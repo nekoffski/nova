@@ -10,9 +10,8 @@ namespace sl::vk {
 VKBuffer::VKBuffer(
   VKContext& context, VKLogicalDevice& device, const VKBuffer::Properties& props
 ) :
-    m_context(context),
-    m_device(device), m_totalSize(props.size), m_usageFlags(props.usageFlags),
-    m_memoryPropertyFlags(props.memoryPropertyFlags),
+    m_context(context), m_device(device), m_totalSize(props.size),
+    m_usageFlags(props.usageFlags), m_memoryPropertyFlags(props.memoryPropertyFlags),
     m_useFreeList(props.useFreeList) {
     if (m_useFreeList) m_bufferFreeList.emplace(props.size);
 
@@ -51,11 +50,12 @@ VKBuffer::~VKBuffer() { destroy(); }
 uint64_t VKBuffer::allocate(uint64_t size) {
     if (m_useFreeList) [[likely]] {
         const auto offset = m_bufferFreeList->allocateBlock(size);
+        ASSERT(offset.has_value(), "Could not allocate buffer memory");
         LOG_TRACE(
           "Buffer_{} - Allocating {} bytes of memory, returned offset: {}", getId(),
-          size, offset
+          size, *offset
         );
-        return offset;
+        return *offset;
     }
     LOG_WARN(
       "Allocating from buffer that doesn't have free list, offset won't be valid"
@@ -74,9 +74,11 @@ void VKBuffer::free(uint64_t size, uint64_t offset) {
 VkMemoryAllocateInfo VKBuffer::createMemoryAllocateInfo(
   VkMemoryRequirements memoryRequirements
 ) const {
-    VkMemoryAllocateInfo allocateInfo = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-    allocateInfo.allocationSize       = memoryRequirements.size;
-    allocateInfo.memoryTypeIndex      = (uint32_t)m_memoryIndex;
+    VkMemoryAllocateInfo allocateInfo;
+    allocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocateInfo.pNext           = nullptr;
+    allocateInfo.allocationSize  = memoryRequirements.size;
+    allocateInfo.memoryTypeIndex = (uint32_t)m_memoryIndex;
 
     return allocateInfo;
 }
@@ -89,10 +91,13 @@ VkMemoryRequirements VKBuffer::getMemoryRequirements(VkBuffer buffer) const {
 }
 
 VkBufferCreateInfo VKBuffer::createBufferCreateInfo() const {
-    VkBufferCreateInfo bufferCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-    bufferCreateInfo.size               = m_totalSize;
-    bufferCreateInfo.usage              = m_usageFlags;
-    bufferCreateInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
+    VkBufferCreateInfo bufferCreateInfo;
+    bufferCreateInfo.flags       = 0;
+    bufferCreateInfo.pNext       = nullptr;
+    bufferCreateInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferCreateInfo.size        = m_totalSize;
+    bufferCreateInfo.usage       = m_usageFlags;
+    bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     return bufferCreateInfo;
 }
@@ -182,8 +187,8 @@ void VKBuffer::loadData(
 }
 
 void VKBuffer::copyTo(
-  VkCommandPool pool, VkFence fence, VkQueue queue, VkBuffer destination,
-  const VkBufferCopy& copyRegion
+  VkCommandPool pool, [[maybe_unused]] VkFence fence, VkQueue queue,
+  VkBuffer destination, const VkBufferCopy& copyRegion
 ) {
     vkQueueWaitIdle(queue);
 

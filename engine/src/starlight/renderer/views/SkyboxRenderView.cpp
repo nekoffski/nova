@@ -17,10 +17,13 @@ void SkyboxRenderView::init(
         .clearColor = backgroundColor,
         .clearFlags = RenderPass::clearColorBuffer,
         .hasPreviousPass = initProperties.hasPreviousView,
-        .hasNextPass     = initProperties.hasNextView
+        .hasNextPass     = initProperties.hasNextView,
+        .renderTargets   = {}
     };
 
-    RenderTarget renderTarget{ .size = initProperties.viewportSize };
+    RenderTarget renderTarget{
+        .size = initProperties.viewportSize, .attachments = {}
+    };
 
     for (u8 i = 0; i < 3; ++i) {
         renderTarget.attachments = { renderer.getSwapchainTexture(i) };
@@ -79,7 +82,7 @@ void SkyboxRenderView::onViewportResize(
     std::vector<RenderTarget> renderTargets;
     renderTargets.reserve(3);
 
-    RenderTarget renderTarget{ .size = viewportSize };
+    RenderTarget renderTarget{ .size = viewportSize, .attachments = {} };
 
     for (u8 i = 0; i < 3; ++i) {
         renderTarget.attachments = { renderer.getSwapchainTexture(i) };

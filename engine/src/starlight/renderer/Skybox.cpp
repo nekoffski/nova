@@ -7,8 +7,7 @@ namespace sl {
 Skybox::Skybox(
   ResourceRef<Texture> cubeMap, ResourceRef<Mesh> mesh, ResourceRef<Shader> shader
 ) :
-    m_cubeMap(cubeMap),
-    m_shader(shader), m_mesh(mesh),
+    m_cubeMap(cubeMap), m_mesh(mesh), m_shader(shader),
     m_instanceId(shader->acquireInstanceResources({ cubeMap.get() })) {}
 
 ResourceRef<Skybox> Skybox::load(const std::string& name) {

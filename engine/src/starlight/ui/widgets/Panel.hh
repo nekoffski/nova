@@ -48,9 +48,9 @@ public:
 private:
     void rebuildPanels();
 
-    std::vector<Panel> m_panels;
-    Properties m_props;
     std::string m_name;
+    Properties m_props;
+    std::vector<Panel> m_panels;
 
     bool m_dirty;
 };

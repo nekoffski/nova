@@ -45,9 +45,13 @@ class VKShader final : public Shader {
     static constexpr u32 maxBindings = 2;
 
     struct DescriptorSetConfig {
-        u8 bindingCount = 0;
+        DescriptorSetConfig() : bindingCount(0), samplerBindingIndex(0) {
+            for (auto& binding : bindings) clearMemory(&binding);
+        }
+
+        u8 bindingCount;
         Id8 samplerBindingIndex;
-        std::array<VkDescriptorSetLayoutBinding, maxBindings> bindings = { 0 };
+        std::array<VkDescriptorSetLayoutBinding, maxBindings> bindings;
     };
 
     struct DescriptorState {

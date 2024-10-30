@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <optional>
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/Log.hh"
@@ -23,7 +24,8 @@ public:
     explicit FreeList(u64 size);
 
     void freeBlock(u64 size, u64 offset);
-    u64 allocateBlock(u64 size);
+
+    std::optional<u64> allocateBlock(u64 size);
     u64 spaceLeft();
 
     void resize(u64 newSize);

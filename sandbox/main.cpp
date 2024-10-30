@@ -32,11 +32,11 @@ int main() {
     sl::EventHandlerSentinel sentinel{ eventProxy };
 
     sentinel
-      .pushHandler<sl::QuitEvent>([&](const auto& ev) {
+      .pushHandler<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) {
           isRunning = false;
           return sl::EventChainBehaviour::propagate;
       })
-      .pushHandler<sl::KeyEvent>([&](const auto& ev) {
+      .pushHandler<sl::KeyEvent>([&]([[maybe_unused]] const auto& ev) {
           if (ev.key == SL_KEY_ESCAPE) isRunning = false;
           return sl::EventChainBehaviour::propagate;
       });

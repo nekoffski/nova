@@ -7,17 +7,16 @@ namespace sl::vk {
 VKImage::VKImage(
   VKContext& context, VKLogicalDevice& device, const VKImage::Properties& properties
 ) :
-    m_context(context),
-    m_device(device), m_props(properties), m_handle(VK_NULL_HANDLE),
-    m_memory(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE), m_destroyImage(true) {
+    m_context(context), m_device(device), m_props(properties),
+    m_handle(VK_NULL_HANDLE), m_memory(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE),
+    m_destroyImage(true) {
     create();
 }
 
 VKImage::VKImage(
   VKContext& context, VKLogicalDevice& device, const Properties& properties,
   std::span<const u8> pixels
-) :
-    VKImage(context, device, properties) {
+) : VKImage(context, device, properties) {
     write(0, pixels);
 }
 
@@ -25,8 +24,7 @@ VKImage::VKImage(
   VKContext& context, VKLogicalDevice& device, const Properties& properties,
   VkImage handle
 ) :
-    m_context(context),
-    m_device(device), m_props(properties), m_handle(handle),
+    m_context(context), m_device(device), m_props(properties), m_handle(handle),
     m_memory(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE), m_destroyImage(false) {
     if (m_props.createView) createView();
 }
@@ -69,7 +67,7 @@ void VKImage::create() {
 
 VKImage::~VKImage() { destroy(); }
 
-void VKImage::write(u32 offset, std::span<const u8> pixels) {
+void VKImage::write([[maybe_unused]] u32 offset, std::span<const u8> pixels) {
     VkDeviceSize imageSize = pixels.size();
 
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -133,18 +131,20 @@ void VKImage::copyFromBuffer(VKBuffer& buffer, VKCommandBuffer& commandBuffer) {
 }
 
 void VKImage::transitionLayout(
-  VKCommandBuffer& commandBuffer, VkFormat format, VkImageLayout oldLayout,
-  VkImageLayout newLayout
+  VKCommandBuffer& commandBuffer, [[maybe_unused]] VkFormat format,
+  VkImageLayout oldLayout, VkImageLayout newLayout
 ) {
     auto queueFamilyIndex = m_device.getQueueIndices().graphics;
 
-    VkImageMemoryBarrier barrier        = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-    barrier.oldLayout                   = oldLayout;
-    barrier.newLayout                   = newLayout;
-    barrier.srcQueueFamilyIndex         = queueFamilyIndex;
-    barrier.dstQueueFamilyIndex         = queueFamilyIndex;
-    barrier.image                       = m_handle;
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageMemoryBarrier barrier;
+    clearMemory(&barrier);
+    barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout                       = oldLayout;
+    barrier.newLayout                       = newLayout;
+    barrier.srcQueueFamilyIndex             = queueFamilyIndex;
+    barrier.dstQueueFamilyIndex             = queueFamilyIndex;
+    barrier.image                           = m_handle;
+    barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel   = 0;
     barrier.subresourceRange.levelCount     = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
@@ -155,7 +155,8 @@ void VKImage::transitionLayout(
 
     // Don't care about the old layout - transition to optimal layout (for the
     // underlying implementation).
-    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED
+        && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -164,7 +165,8 @@ void VKImage::transitionLayout(
 
         // Used for copying
         destination = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+               && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
         // Transitioning from a transfer destination layout to a shader-readonly
         // layout.
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -188,17 +190,20 @@ void VKImage::transitionLayout(
 VkImageCreateInfo createImageCreateInfo(const VKImage::Properties& properties) {
     bool isCubemap = properties.type == VKImage::Type::cubemap;
 
-    VkImageCreateInfo imageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-    imageCreateInfo.imageType         = VK_IMAGE_TYPE_2D;
-    imageCreateInfo.extent.width      = properties.width;
-    imageCreateInfo.extent.height     = properties.height;
-    imageCreateInfo.extent.depth      = 1;  // TODO: Support configurable depth.
-    imageCreateInfo.mipLevels         = 4;  // TODO: Support mip mapping
-    imageCreateInfo.arrayLayers       = isCubemap ? 6 : 1;
-    imageCreateInfo.format            = properties.format;
-    imageCreateInfo.tiling            = properties.tiling;
-    imageCreateInfo.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageCreateInfo.usage             = properties.usage;
+    VkImageCreateInfo imageCreateInfo;
+    imageCreateInfo.flags         = 0;
+    imageCreateInfo.pNext         = nullptr;
+    imageCreateInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageCreateInfo.imageType     = VK_IMAGE_TYPE_2D;
+    imageCreateInfo.extent.width  = properties.width;
+    imageCreateInfo.extent.height = properties.height;
+    imageCreateInfo.extent.depth  = 1;  // TODO: Support configurable depth.
+    imageCreateInfo.mipLevels     = 4;  // TODO: Support mip mapping
+    imageCreateInfo.arrayLayers   = isCubemap ? 6 : 1;
+    imageCreateInfo.format        = properties.format;
+    imageCreateInfo.tiling        = properties.tiling;
+    imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageCreateInfo.usage         = properties.usage;
     imageCreateInfo.samples =
       VK_SAMPLE_COUNT_1_BIT;  // TODO: Configurable sample count.
     imageCreateInfo.sharingMode =
@@ -211,22 +216,22 @@ VkImageCreateInfo createImageCreateInfo(const VKImage::Properties& properties) {
 VkImageViewCreateInfo createViewCreateInfo(
   const VKImage::Properties& properties, VkImage imageHandle
 ) {
-    VkImageViewCreateInfo viewCreateInfo = {
-        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO
-    };
+    VkImageViewCreateInfo viewCreateInfo;
+    clearMemory(&viewCreateInfo);
+    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
     bool isCubemap = properties.type == VKImage::Type::cubemap;
 
     viewCreateInfo.image = imageHandle;
     viewCreateInfo.viewType =
       isCubemap ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
-    viewCreateInfo.format                      = properties.format;
-    viewCreateInfo.subresourceRange.aspectMask = properties.viewAspectFlags;
-
+    viewCreateInfo.format                          = properties.format;
+    viewCreateInfo.subresourceRange.aspectMask     = properties.viewAspectFlags;
     viewCreateInfo.subresourceRange.baseMipLevel   = 0;
     viewCreateInfo.subresourceRange.levelCount     = 1;
     viewCreateInfo.subresourceRange.baseArrayLayer = 0;
     viewCreateInfo.subresourceRange.layerCount     = isCubemap ? 6 : 1;
+    viewCreateInfo.flags                           = 0;
 
     return viewCreateInfo;
 }
@@ -241,11 +246,11 @@ VkMemoryRequirements getMemoryRequirements(VkDevice device, VkImage handle) {
 VkMemoryAllocateInfo createMemoryAllocateInfo(
   const VkMemoryRequirements& requirements, uint32_t memoryTypeIndex
 ) {
-    VkMemoryAllocateInfo memoryAllocateInfo = {
-        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO
-    };
+    VkMemoryAllocateInfo memoryAllocateInfo;
+    memoryAllocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.allocationSize  = requirements.size;
     memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+    memoryAllocateInfo.pNext           = nullptr;
 
     return memoryAllocateInfo;
 }

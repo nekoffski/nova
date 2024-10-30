@@ -11,8 +11,7 @@ namespace sl::vk {
 VKSwapchain::VKSwapchain(
   VKContext& context, VKLogicalDevice& device, u32 viewportWidth, u32 viewportHeight
 ) :
-    m_context(context),
-    m_device(device), m_viewportWidth(viewportWidth),
+    m_context(context), m_device(device), m_viewportWidth(viewportWidth),
     m_viewportHeight(viewportHeight) {
     create();
 }
@@ -24,7 +23,8 @@ VkSurfaceFormatKHR pickSurfaceFormat(
     const auto demandedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
     for (const auto& format : swapchainSupport.formats)
-        if (format.format == demandedFormat && format.colorSpace == demandedColorSpace)
+        if (format.format == demandedFormat
+            && format.colorSpace == demandedColorSpace)
             return format;
 
     return swapchainSupport.formats[0];
@@ -76,8 +76,8 @@ uint32_t getDeviceImageCount(
 ) {
     uint32_t imageCount = swapchainSupport.capabilities.minImageCount + 1;
 
-    if (swapchainSupport.capabilities.maxImageCount > 0 &&
-        imageCount > swapchainSupport.capabilities.maxImageCount) {
+    if (swapchainSupport.capabilities.maxImageCount > 0
+        && imageCount > swapchainSupport.capabilities.maxImageCount) {
         imageCount = swapchainSupport.capabilities.maxImageCount;
     }
 
@@ -100,7 +100,7 @@ SwapchainCreateInfo createSwapchainCreateInfo(
     SwapchainCreateInfo createInfo;
     auto& handle = createInfo.handle;
 
-    handle                  = { VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
+    handle.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     handle.surface          = surface;
     handle.minImageCount    = imageCount;
     handle.imageFormat      = imageFormat.format;
@@ -108,6 +108,8 @@ SwapchainCreateInfo createSwapchainCreateInfo(
     handle.imageExtent      = extent;
     handle.imageArrayLayers = 1;
     handle.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    handle.pNext            = nullptr;
+    handle.flags            = 0;
 
     const auto& queueIndices = device.getQueueIndices();
 
@@ -137,11 +139,12 @@ SwapchainCreateInfo createSwapchainCreateInfo(
 }
 
 VkImageViewCreateInfo createImageViewCreateInfo(VkImage image, VkFormat format) {
-    VkImageViewCreateInfo viewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-    viewInfo.image                 = image;
-    viewInfo.viewType              = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format                = format;
-    viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageViewCreateInfo viewInfo;
+    viewInfo.sType                       = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image                       = image;
+    viewInfo.viewType                    = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format                      = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     viewInfo.subresourceRange.baseMipLevel   = 0;
     viewInfo.subresourceRange.levelCount     = 1;
     viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -177,7 +180,6 @@ void VKSwapchain::createSwapchain() {
 
 void VKSwapchain::createImages() {
     const auto logicalDeviceHandle = m_device.getHandle();
-    const auto allocator           = m_context.getAllocator();
 
     VK_ASSERT(
       vkGetSwapchainImagesKHR(logicalDeviceHandle, m_handle, &m_imageCount, 0)
@@ -202,7 +204,7 @@ void VKSwapchain::createImages() {
         props.isTransparent = false;
         props.isWritable    = true;
 
-        for (int i = 0; i < m_imageCount; ++i) {
+        for (u32 i = 0; i < m_imageCount; ++i) {
             auto& swapchainImageHandle = swapchainImages[i];
             props.name = fmt::format("SL_InternalSwapchainTexture_{}", i);
 
@@ -211,10 +213,8 @@ void VKSwapchain::createImages() {
             );
         }
     } else {
-        for (int i = 0; i < m_imageCount; ++i) {
-            auto& swapchainImageHandle = swapchainImages[i];
-            auto& texture              = m_textures[i];
-
+        for (u32 i = 0; i < m_imageCount; ++i) {
+            auto& texture = m_textures[i];
             texture->resize(m_swapchainExtent.width, m_swapchainExtent.height);
         }
     }
@@ -278,8 +278,8 @@ VkPresentInfoKHR createPresentInfo(
   uint32_t* presentImageIndex
 ) {
     // Return the image to the swapchain for presentation.
-    VkPresentInfoKHR presentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
-
+    VkPresentInfoKHR presentInfo;
+    presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores    = renderSemaphore;
     presentInfo.swapchainCount     = 1;
@@ -291,8 +291,8 @@ VkPresentInfoKHR createPresentInfo(
 }
 
 void VKSwapchain::present(
-  VkQueue graphicsQueue, VkQueue presentQueue, VkSemaphore renderSemaphore,
-  uint32_t presentImageIndex
+  [[maybe_unused]] VkQueue graphicsQueue, VkQueue presentQueue,
+  VkSemaphore renderSemaphore, uint32_t presentImageIndex
 ) {
     const auto presentInfo =
       createPresentInfo(&renderSemaphore, &m_handle, &presentImageIndex);

@@ -6,7 +6,7 @@
 namespace sl {
 
 EulerCamera::EulerCamera(const Properties& props) :
-    m_target(props.target), m_radius(props.radius), m_pitch(90.0f), m_yaw(90.0f),
+    m_target(props.target), m_radius(props.radius), m_yaw(90.0f), m_pitch(90.0f),
     m_viewportSize(props.viewportSize) {
     recalculateVectors();
 }

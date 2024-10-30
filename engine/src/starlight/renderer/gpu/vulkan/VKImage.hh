@@ -73,14 +73,14 @@ private:
     void allocateAndBindMemory();
     void createView();
 
-    VkImage m_handle;
-    VkDeviceMemory m_memory;
-    VkImageView m_view;
+    VKContext& m_context;
+    VKLogicalDevice& m_device;
 
     Properties m_props;
 
-    VKContext& m_context;
-    VKLogicalDevice& m_device;
+    VkImage m_handle;
+    VkDeviceMemory m_memory;
+    VkImageView m_view;
 
     // sometimes we want to just wrap an image owned by the swapchain
     bool m_destroyImage;

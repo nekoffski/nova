@@ -14,10 +14,8 @@ namespace sl::vk {
 class VKCommandBufferPool : public CommandBufferPool {
 public:
     explicit VKCommandBufferPool(
-      VKContext& context, VKLogicalDevice& device, u64 size
-    ) :
-        m_device(device),
-        m_frameImageIndex(0u), m_size(size) {
+      [[maybe_unused]] VKContext& context, VKLogicalDevice& device, u64 size
+    ) : m_device(device), m_frameImageIndex(0u), m_size(size) {
         create();
     }
 
@@ -38,7 +36,7 @@ private:
     void create() {
         m_commandBuffers.reserve(m_size);
 
-        for (int i = 0; i < m_size; ++i) {
+        for (u64 i = 0; i < m_size; ++i) {
             m_commandBuffers.emplace_back(
               m_device, m_device.getGraphicsCommandPool()
             );

@@ -16,26 +16,25 @@ namespace sl::vk {
 VKUIRenderer::VKUIRenderer(
   VKContext& context, VKPhysicalDevice& physicalDevice, VKLogicalDevice& device,
   Window& window, RenderPass& renderPass
-) :
-    m_context(context),
-    m_physicalDevice(physicalDevice), m_device(device) {
+) : m_context(context), m_physicalDevice(physicalDevice), m_device(device) {
     ASSERT(not s_hasInstance, "Only single instance of UI renderer is allowed");
     s_hasInstance = true;
 
     VkDescriptorPoolSize poolSizes[] = {
-        {VK_DESCRIPTOR_TYPE_SAMPLER,                 1000},
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          1000},
-        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          1000},
-        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   1000},
-        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   1000},
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         1000},
-        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         1000},
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,       1000}
+        { VK_DESCRIPTOR_TYPE_SAMPLER,                1000 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,       1000 }
     };
-    VkDescriptorPoolCreateInfo poolInfo = {};
+    VkDescriptorPoolCreateInfo poolInfo;
+    poolInfo.pNext         = nullptr;
     poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
     poolInfo.maxSets       = 1000;
@@ -61,15 +60,16 @@ VKUIRenderer::VKUIRenderer(
     auto renderPassHandle = static_cast<VKRenderPass&>(renderPass).getHandle();
 
     ImGui_ImplVulkan_InitInfo initInfo = {};
-    initInfo.Instance                  = m_context.getInstance();
-    initInfo.PhysicalDevice            = m_physicalDevice.getHandle();
-    initInfo.Device                    = m_device.getHandle();
-    initInfo.Queue                     = graphicsQueue;
-    initInfo.DescriptorPool            = m_uiPool;
-    initInfo.MinImageCount             = 3;
-    initInfo.ImageCount                = 3;
-    initInfo.MSAASamples               = VK_SAMPLE_COUNT_1_BIT;
-    initInfo.RenderPass                = renderPassHandle;
+    clearMemory(&initInfo);
+    initInfo.Instance       = m_context.getInstance();
+    initInfo.PhysicalDevice = m_physicalDevice.getHandle();
+    initInfo.Device         = m_device.getHandle();
+    initInfo.Queue          = graphicsQueue;
+    initInfo.DescriptorPool = m_uiPool;
+    initInfo.MinImageCount  = 3;
+    initInfo.ImageCount     = 3;
+    initInfo.MSAASamples    = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.RenderPass     = renderPassHandle;
 
     ImGui_ImplVulkan_Init(&initInfo);
 

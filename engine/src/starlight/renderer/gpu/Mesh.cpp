@@ -27,7 +27,7 @@ ResourceRef<Mesh> Mesh::find(const std::string& name) {
 
 ResourceRef<Mesh> Mesh::getCube() {
     static CubeProperties properties{
-        10.0f, 10.0f, 10.0f, 1, 1, "Internal.Mesh.SkyboxCube"
+        10.0f, 10.0f, 10.0f, 1, 1, "Internal.Mesh.SkyboxCube", ""
     };
     return load(MeshConfig3D::generateCube(properties));
 }

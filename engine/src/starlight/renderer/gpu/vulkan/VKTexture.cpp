@@ -44,11 +44,12 @@ VkSamplerCreateInfo createSamplerCreateInfo(const Texture::Properties& props) {
     };
     // clang-format on
     static std::unordered_map<Texture::Filter, VkFilter> vkFilter{
-        {Texture::Filter::nearest, VK_FILTER_NEAREST},
-        { Texture::Filter::linear, VK_FILTER_LINEAR }
+        { Texture::Filter::nearest, VK_FILTER_NEAREST },
+        { Texture::Filter::linear,  VK_FILTER_LINEAR  }
     };
 
-    VkSamplerCreateInfo samplerInfo     = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+    VkSamplerCreateInfo samplerInfo;
+    samplerInfo.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter               = vkFilter[props.magnifyFilter];
     samplerInfo.minFilter               = vkFilter[props.minifyFilter];
     samplerInfo.addressModeU            = vkRepeat[props.uRepeat];
@@ -64,6 +65,8 @@ VkSamplerCreateInfo createSamplerCreateInfo(const Texture::Properties& props) {
     samplerInfo.mipLodBias              = 0.0f;
     samplerInfo.minLod                  = 0.0f;
     samplerInfo.maxLod                  = 0.0f;
+    samplerInfo.pNext                   = nullptr;
+    samplerInfo.flags                   = 0;
 
     return samplerInfo;
 }
@@ -84,7 +87,8 @@ VKImage::Properties getImageProperties(
           | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         true,
-        VK_IMAGE_ASPECT_COLOR_BIT
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        3  // TODO: how to get those channels?
     };
 }
 
@@ -94,8 +98,7 @@ VKTexture::VKTexture(
   VKContext& context, VKLogicalDevice& device, const Properties& props,
   std::span<const u8> pixels
 ) :
-    Texture(props),
-    m_context(context), m_device(device),
+    Texture(props), m_context(context), m_device(device),
     m_image(
       m_context, m_device,
       getImageProperties(
@@ -112,8 +115,7 @@ VKTexture::VKTexture(
   VKContext& context, VKLogicalDevice& device, const Properties& props,
   VkImage handle, VkFormat format
 ) :
-    Texture(props),
-    m_context(context), m_device(device),
+    Texture(props), m_context(context), m_device(device),
     m_image(
       m_context, m_device,
       getImageProperties(props.width, props.height, props.type, format), handle
@@ -133,6 +135,7 @@ VKTexture::VKTexture(
       true,
       false,
       "InternalTexture",
+      Type::flat,
     }),
     m_context(context), m_device(device), m_image(m_context, m_device, props) {
     createSampler(m_props);

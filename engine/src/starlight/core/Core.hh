@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <cstring>
+
 #include <string>
 #include <concepts>
 
@@ -63,5 +65,9 @@ template <typename C, typename R = void, typename... Args>
 concept Callable = requires(C&& callback, Args&&... args) {
     { callback(std::forward<Args>(args)...) } -> std::same_as<R>;
 };
+
+template <typename T> inline void clearMemory(T* target) {
+    std::memset(target, 0, sizeof(T));
+}
 
 }  // namespace sl

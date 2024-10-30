@@ -22,6 +22,8 @@ add_definitions(-DSL_VK_DEBUG=1)
 set(GCC_COVERAGE_COMPILE_FLAGS "--coverage -O0 -fprofile-arcs -ftest-coverage -fno-elide-constructors -fno-inline")
 set(GCC_COVERAGE_LINK_FLAGS "-lgcov")
 
+add_subdirectory(3rdparty)
+
 option(SL_ENABLE_UNIT_TESTS "Build unit tests" OFF)
 option(SL_ENABLE_BENCHMARKS "Build benchmakrs " OFF)
 option(SL_ENABLE_COVERAGE "Enable code coverage" OFF)
@@ -39,7 +41,8 @@ if(SL_ENABLE_UNIT_TESTS)
     enable_testing()
 endif()
 
-add_subdirectory(3rdparty)
+add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+
 add_subdirectory(engine)
-# add_subdirectory(editor)
 add_subdirectory(sandbox)
+# add_subdirectory(editor)

@@ -55,7 +55,7 @@ void RendererFrontend::setRenderMode(RenderMode mode) {
     m_renderMode = mode;
 }
 
-void RendererFrontend::onViewportResize(Vec2<u32> viewportSize) {
+void RendererFrontend::onViewportResize([[maybe_unused]] Vec2<u32> viewportSize) {
     // m_resizing = true;
     // m_backend.onViewportResize(viewportSize);
 

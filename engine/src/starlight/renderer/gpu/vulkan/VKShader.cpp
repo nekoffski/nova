@@ -51,6 +51,10 @@ VkShaderStageFlagBits getStageFlagBits(Shader::Stage::Type type) {
             return VK_SHADER_STAGE_VERTEX_BIT;
         case Shader::Stage::Type::fragment:
             return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case Shader::Stage::Type::geometry:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case Shader::Stage::Type::compute:
+            return VK_SHADER_STAGE_COMPUTE_BIT;
     }
     FATAL_ERROR("Unknown shader type: {}", fmt::underlying(type));
 }
@@ -60,7 +64,8 @@ VKShaderStage::VKShaderStage(
 ) :
 
     m_context(context), m_device(device), m_handle(VK_NULL_HANDLE) {
-    m_moduleCreateInfo          = { VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+    clearMemory(&m_moduleCreateInfo);
+    m_moduleCreateInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     m_moduleCreateInfo.codeSize = props.source.size();
     m_moduleCreateInfo.pCode    = (uint32_t*)(props.source.data());
 
@@ -70,7 +75,8 @@ VKShaderStage::VKShaderStage(
 
     LOG_DEBUG("Shader module created");
 
-    m_stageCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+    clearMemory(&m_stageCreateInfo);
+    m_stageCreateInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     m_stageCreateInfo.stage  = getStageFlagBits(props.type);
     m_stageCreateInfo.module = m_handle;
     m_stageCreateInfo.pName  = "main";
@@ -146,6 +152,8 @@ VKShader::VKShader(
     m_poolSizes[1] =
       VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096 };
 
+    // HERE!!
+
     if (m_globalUniformCount > 0 || m_globalUniformSamplerCount > 0) {
         auto& descriptorSetConfig = m_descriptorSets[m_descriptorSetCount];
         auto& bindingIndex        = descriptorSetConfig.bindingCount;
@@ -157,6 +165,7 @@ VKShader::VKShader(
               VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorSetConfig.bindings[bindingIndex].stageFlags =
               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+            descriptorSetConfig.bindings[bindingIndex].pImmutableSamplers = nullptr;
             bindingIndex++;
         }
         if (m_globalUniformSamplerCount > 0) {
@@ -167,6 +176,7 @@ VKShader::VKShader(
               VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorSetConfig.bindings[bindingIndex].stageFlags =
               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+            descriptorSetConfig.bindings[bindingIndex].pImmutableSamplers = nullptr;
             descriptorSetConfig.samplerBindingIndex = bindingIndex;
             bindingIndex++;
         }
@@ -185,6 +195,7 @@ VKShader::VKShader(
               VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorSetConfig.bindings[bindingIndex].stageFlags =
               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+            descriptorSetConfig.bindings[bindingIndex].pImmutableSamplers = nullptr;
             bindingIndex++;
         }
         if (m_instanceUniformSamplerCount > 0) {
@@ -195,6 +206,7 @@ VKShader::VKShader(
               VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorSetConfig.bindings[bindingIndex].stageFlags =
               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+            descriptorSetConfig.bindings[bindingIndex].pImmutableSamplers = nullptr;
             descriptorSetConfig.samplerBindingIndex = bindingIndex;
             bindingIndex++;
         }
@@ -241,7 +253,8 @@ void VKShader::addAttributes(std::span<const Shader::Attribute> attributes) {
 }
 
 void VKShader::addUniforms(
-  std::span<const Shader::Uniform::Properties> uniforms, Texture* defaultTexture
+  std::span<const Shader::Uniform::Properties> uniforms,
+  [[maybe_unused]] Texture* defaultTexture
 ) {
     for (const auto& uniformProps : uniforms) {
         ASSERT(
@@ -260,7 +273,7 @@ void VKShader::addUniforms(
 }
 
 void VKShader::addSampler(
-  const Shader::Uniform::Properties& props, Texture* defaultTexture
+  const Shader::Uniform::Properties& props, [[maybe_unused]] Texture* defaultTexture
 ) {
     ASSERT(
       props.scope != Scope::instance || m_useInstances,
@@ -377,13 +390,15 @@ void VKShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
     bufferInfo.range  = m_globalUboStride;
 
     // Update desriptor sets
-    VkWriteDescriptorSet uboWrite = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-    uboWrite.dstSet               = m_globalDescriptorSets[imageIndex];
-    uboWrite.dstBinding           = 0;
-    uboWrite.dstArrayElement      = 0;
-    uboWrite.descriptorType       = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboWrite.descriptorCount      = 1;
-    uboWrite.pBufferInfo          = &bufferInfo;
+    VkWriteDescriptorSet uboWrite;
+    clearMemory(&uboWrite);
+    uboWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    uboWrite.dstSet          = m_globalDescriptorSets[imageIndex];
+    uboWrite.dstBinding      = 0;
+    uboWrite.dstArrayElement = 0;
+    uboWrite.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboWrite.descriptorCount = 1;
+    uboWrite.pBufferInfo     = &bufferInfo;
 
     std::array<VkWriteDescriptorSet, 2> descriptorWrites;
     descriptorWrites[0] = uboWrite;
@@ -426,9 +441,9 @@ void VKShader::applyInstance(CommandBuffer& commandBuffer, u32 imageIndex) {
             bufferInfo.offset = *objectState->offset;
             bufferInfo.range  = m_uboStride;
 
-            VkWriteDescriptorSet uboDescriptor = {
-                VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET
-            };
+            VkWriteDescriptorSet uboDescriptor;
+            clearMemory(&uboDescriptor);
+            uboDescriptor.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             uboDescriptor.dstSet          = objectDescriptorSet;
             uboDescriptor.dstBinding      = descriptorIndex;
             uboDescriptor.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -451,7 +466,7 @@ void VKShader::applyInstance(CommandBuffer& commandBuffer, u32 imageIndex) {
             .bindings[bindingIndex]
             .descriptorCount;
         imageInfos.reserve(totalSamplerCount);
-        for (int i = 0; i < totalSamplerCount; ++i) {
+        for (u32 i = 0; i < totalSamplerCount; ++i) {
             const VKTexture* texture = static_cast<const VKTexture*>(
               m_instanceStates[m_boundInstanceId].instanceTextures[i]
             );
@@ -465,9 +480,9 @@ void VKShader::applyInstance(CommandBuffer& commandBuffer, u32 imageIndex) {
             );
         }
 
-        VkWriteDescriptorSet samplerDescriptor = {
-            VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET
-        };
+        VkWriteDescriptorSet samplerDescriptor;
+        clearMemory(&samplerDescriptor);
+        samplerDescriptor.sType          = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         samplerDescriptor.dstSet         = objectDescriptorSet;
         samplerDescriptor.dstBinding     = descriptorIndex;
         samplerDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -504,7 +519,7 @@ u32 VKShader::acquireInstanceResources(const std::vector<Texture*>& textures) {
     auto& instanceState = m_instanceStates[*id];
     const u8 bindingIndex =
       *m_descriptorSets[descSetIndexInstance].samplerBindingIndex;
-    const auto instanceTextureCount =
+    [[maybe_unused]] const auto instanceTextureCount =
       m_descriptorSets[descSetIndexInstance].bindings[bindingIndex].descriptorCount;
 
     if (textures.size() != m_instanceTextureCount) {
@@ -532,8 +547,9 @@ u32 VKShader::acquireInstanceResources(const std::vector<Texture*>& textures) {
         LOG_INFO("UBO stride equals 0, not allocating memory");
     }
 
-    auto& setState          = instanceState.descriptorSetState;
-    const auto bindingCount = m_descriptorSets[descSetIndexInstance].bindingCount;
+    auto& setState = instanceState.descriptorSetState;
+    [[maybe_unused]] const auto bindingCount =
+      m_descriptorSets[descSetIndexInstance].bindingCount;
     setState.descriptorStates.resize(maxBindings);
 
     // allocate 3 descirptor sets, one per frame
@@ -543,9 +559,9 @@ u32 VKShader::acquireInstanceResources(const std::vector<Texture*>& textures) {
         m_descriptorSetLayouts[descSetIndexInstance]
     };
 
-    VkDescriptorSetAllocateInfo allocateInfo = {
-        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO
-    };
+    VkDescriptorSetAllocateInfo allocateInfo;
+    clearMemory(&allocateInfo);
+    allocateInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocateInfo.descriptorPool     = m_descriptorPool;
     allocateInfo.descriptorSetCount = 3;
     allocateInfo.pSetLayouts        = layouts.data();
@@ -619,9 +635,9 @@ void VKShader::createModules(std::span<const Stage> stages) {
 }
 
 void VKShader::createDescriptorPool() {
-    VkDescriptorPoolCreateInfo poolInfo = {
-        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO
-    };
+    VkDescriptorPoolCreateInfo poolInfo;
+    poolInfo.pNext         = nullptr;
+    poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 2;
     poolInfo.pPoolSizes    = m_poolSizes.data();
     poolInfo.maxSets       = m_maxDescriptorSetCount;
@@ -639,9 +655,9 @@ void VKShader::createDescriptorSetLayouts() {
           m_descriptorSets[i].bindingCount
         );
 
-        VkDescriptorSetLayoutCreateInfo info = {
-            VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO
-        };
+        VkDescriptorSetLayoutCreateInfo info;
+        clearMemory(&info);
+        info.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         info.bindingCount = m_descriptorSets[i].bindingCount;
         info.pBindings    = m_descriptorSets[i].bindings.data();
 
@@ -744,9 +760,9 @@ void VKShader::createUniformBuffer() {
         m_descriptorSetLayouts[descSetIndexGlobal],
         m_descriptorSetLayouts[descSetIndexGlobal]
     };
-    VkDescriptorSetAllocateInfo allocateInfo = {
-        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO
-    };
+    VkDescriptorSetAllocateInfo allocateInfo;
+    clearMemory(&allocateInfo);
+    allocateInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocateInfo.descriptorPool     = m_descriptorPool;
     allocateInfo.descriptorSetCount = 3;
     allocateInfo.pSetLayouts        = globalLayouts.data();
@@ -761,7 +777,7 @@ void VKShader::processAttributes() {
     const auto attributeCount = m_attributes.size();
     m_attributeDescriptions.reserve(attributeCount);
 
-    for (int i = 0; i < attributeCount; ++i) {
+    for (u32 i = 0; i < attributeCount; ++i) {
         VkVertexInputAttributeDescription attribute;
         attribute.location = i;
         attribute.binding  = 0;

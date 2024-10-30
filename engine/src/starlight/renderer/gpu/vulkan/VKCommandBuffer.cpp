@@ -6,18 +6,16 @@ namespace sl::vk {
 
 VKCommandBuffer::VKCommandBuffer(
   VKLogicalDevice& device, VkCommandPool commandPool, Severity severity
-) :
-    m_device(device),
-    m_commandPool(commandPool) {
+) : m_device(device), m_commandPool(commandPool) {
     create(severity);
 }
 
 VKCommandBuffer::~VKCommandBuffer() { destroy(); }
 
 VkCommandBufferAllocateInfo VKCommandBuffer::createAllocateInfo(Severity severity) {
-    VkCommandBufferAllocateInfo allocateInfo = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
-    };
+    VkCommandBufferAllocateInfo allocateInfo;
+    clearMemory(&allocateInfo);
+    allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 
     const auto level =
       severity == Severity::primary
@@ -80,9 +78,16 @@ void VKCommandBuffer::createAndBeginSingleUse() {
 }
 
 VkSubmitInfo VKCommandBuffer::createSubmitQueueInfo() const {
-    VkSubmitInfo submitInfo       = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers    = &m_handle;
+    VkSubmitInfo submitInfo;
+    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.pNext                = nullptr;
+    submitInfo.commandBufferCount   = 1;
+    submitInfo.pCommandBuffers      = &m_handle;
+    submitInfo.signalSemaphoreCount = 0;
+    submitInfo.pSignalSemaphores    = nullptr;
+    submitInfo.waitSemaphoreCount   = 0;
+    submitInfo.pWaitSemaphores      = nullptr;
+    submitInfo.pWaitDstStageMask    = 0;
 
     return submitInfo;
 }
@@ -109,11 +114,9 @@ void VKCommandBuffer::endSingleUse(VkQueue queue) {
 VkCommandBufferBeginInfo VKCommandBuffer::createCommandBufferBeginInfo(
   const BeginFlags& flags
 ) const {
-    VkCommandBufferBeginInfo beginInfo = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-    };
-
-    beginInfo.flags = 0;
+    VkCommandBufferBeginInfo beginInfo;
+    clearMemory(&beginInfo);
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
     if (flags.isSingleUse)
         beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;

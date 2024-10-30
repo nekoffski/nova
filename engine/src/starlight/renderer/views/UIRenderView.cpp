@@ -21,10 +21,13 @@ void UIRenderView::init(
         .clearColor = glm::vec4(0.0f),
         .clearFlags = RenderPass::clearNone,
         .hasPreviousPass = initProperties.hasPreviousView,
-        .hasNextPass     = initProperties.hasNextView
+        .hasNextPass     = initProperties.hasNextView,
+        .renderTargets   = {}
     };
 
-    RenderTarget renderTarget{ .size = initProperties.viewportSize };
+    RenderTarget renderTarget{
+        .size = initProperties.viewportSize, .attachments = {}
+    };
 
     for (u8 i = 0; i < 3; ++i) {
         renderTarget.attachments = { renderer.getSwapchainTexture(i) };
@@ -44,7 +47,8 @@ void UIRenderView::init(
 
 void UIRenderView::render(
   RendererBackend& renderer, [[maybe_unused]] const RenderPacket& packet,
-  [[maybe_unused]] const RenderProperties& properties, float deltaTime
+  [[maybe_unused]] const RenderProperties& properties,
+  [[maybe_unused]] float deltaTime
 ) {
     m_renderPass->run(
       renderer.getCommandBuffer(), renderer.getImageIndex(),
@@ -61,7 +65,7 @@ void UIRenderView::onViewportResize(
     std::vector<RenderTarget> renderTargets;
     renderTargets.reserve(3);
 
-    RenderTarget renderTarget{ .size = viewportSize };
+    RenderTarget renderTarget{ .size = viewportSize, .attachments = {} };
 
     for (u8 i = 0; i < 3; ++i) {
         renderTarget.attachments = { renderer.getSwapchainTexture(i) };

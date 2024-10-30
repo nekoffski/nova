@@ -15,7 +15,7 @@ struct TextureComponents {
 };
 
 static std::optional<TextureComponents> prepareComponents(
-  std::string_view name, Texture::Type textureType, std::string_view texturesPath
+  std::string_view name, Texture::Type textureType
 ) {
     TextureComponents args;
 
@@ -140,7 +140,7 @@ std::optional<Texture::ImageData> Texture::ImageData::loadFromFile(
     if (channels == 4) {
         static constexpr u8 opaqueAlpha = 255;
 
-        for (u64 i = 3; i < width * height * channels; i += channels) {
+        for (int i = 3; i < width * height * channels; i += channels) {
             const auto alpha = *(pixels + i);
             if (alpha != opaqueAlpha) {
                 isTransparent = true;
@@ -157,9 +157,10 @@ std::optional<Texture::ImageData> Texture::ImageData::loadFromFile(
     }
 
     ImageData image;
-    image.width    = static_cast<u32>(width);
-    image.height   = static_cast<u32>(height);
-    image.channels = static_cast<u32>(requiredChannels);
+    image.width         = static_cast<u32>(width);
+    image.height        = static_cast<u32>(height);
+    image.channels      = static_cast<u32>(requiredChannels);
+    image.isTransparent = isTransparent;
 
     const auto bufferSize = width * height * requiredChannels;
 
@@ -179,7 +180,7 @@ ResourceRef<Texture> TextureManager::load(
 ) {
     if (auto resource = find(name); resource) return resource;
 
-    const auto components = prepareComponents(name, textureType, texturesPath);
+    const auto components = prepareComponents(name, textureType);
 
     if (not components) {
         LOG_WARN("Could not process texture: {}/{}", texturesPath, name);

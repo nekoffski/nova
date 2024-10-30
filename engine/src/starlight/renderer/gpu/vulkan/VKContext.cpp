@@ -147,8 +147,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
 }
 
 VkApplicationInfo createApplicationInfo(const Config& config) {
-    VkApplicationInfo applicationInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-
+    VkApplicationInfo applicationInfo;
+    applicationInfo.sType            = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.apiVersion       = VK_API_VERSION_1_3;
     applicationInfo.pApplicationName = config.window.name.c_str();
     applicationInfo.pEngineName      = "Nova Engine";
@@ -223,16 +223,14 @@ VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo() {
       | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
       | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
 
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{
-        VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT
-    };
-
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     debugCreateInfo.messageSeverity = logSeverity;
     debugCreateInfo.messageType =
       VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
       | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
       | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-
+    debugCreateInfo.pNext           = nullptr;
     debugCreateInfo.pfnUserCallback = debugMessengerCallback;
 
     return debugCreateInfo;
@@ -242,13 +240,12 @@ VkInstanceCreateInfo createInstanceCreateInfo(
   const VkApplicationInfo& applicationInfo, std::vector<const char*>& extensions,
   std::vector<const char*>& layers
 ) {
-    VkInstanceCreateInfo instanceCreateInfo{
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
-    };
-
-    instanceCreateInfo.pApplicationInfo        = &applicationInfo;
+    VkInstanceCreateInfo instanceCreateInfo;
+    instanceCreateInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceCreateInfo.pApplicationInfo = &applicationInfo;
     instanceCreateInfo.enabledExtensionCount   = extensions.size();
     instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
+    instanceCreateInfo.pNext                   = nullptr;
 
     const auto layersSize = layers.size();
 

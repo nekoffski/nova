@@ -5,8 +5,7 @@ namespace sl::vk {
 VKLogicalDevice::VKLogicalDevice(
   VKContext& context, VKPhysicalDevice& physicalDevice
 ) :
-    m_physicalDevice(physicalDevice),
-    m_context(context), m_handle(VK_NULL_HANDLE),
+    m_context(context), m_physicalDevice(physicalDevice), m_handle(VK_NULL_HANDLE),
     m_graphicsCommandPool(VK_NULL_HANDLE) {
     createLogicalDeviceInstance();
     assignQueues();
@@ -113,15 +112,17 @@ void VKLogicalDevice::createLogicalDeviceInstance() {
 
     // device create info
 
-    VkPhysicalDeviceFeatures deviceFeatures = {};
-    deviceFeatures.samplerAnisotropy        = VK_TRUE;  // Request anistrophy
+    VkPhysicalDeviceFeatures deviceFeatures;
+    clearMemory(&deviceFeatures);
+    deviceFeatures.samplerAnisotropy = VK_TRUE;  // Request anistrophy
 
     std::vector<const char*> extensionNames = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-    VkDeviceCreateInfo deviceCreateInfo   = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
-    deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
-    deviceCreateInfo.pQueueCreateInfos    = queueCreateInfos.data();
-    deviceCreateInfo.pEnabledFeatures     = &deviceFeatures;
+    VkDeviceCreateInfo deviceCreateInfo;
+    deviceCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.queueCreateInfoCount    = queueCreateInfos.size();
+    deviceCreateInfo.pQueueCreateInfos       = queueCreateInfos.data();
+    deviceCreateInfo.pEnabledFeatures        = &deviceFeatures;
     deviceCreateInfo.enabledExtensionCount   = extensionNames.size();
     deviceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
 
@@ -144,9 +145,9 @@ void VKLogicalDevice::assignQueues() {
 }
 
 void VKLogicalDevice::createCommandPool() {
-    VkCommandPoolCreateInfo poolCreateInfo = {
-        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO
-    };
+    VkCommandPoolCreateInfo poolCreateInfo;
+    clearMemory(&poolCreateInfo);
+    poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 
     const auto queueIndices = m_physicalDevice.getDeviceInfo().queueIndices;
 
@@ -174,7 +175,8 @@ void VKLogicalDevice::detectDepthFormat() {
         VkFormatProperties properties;
         vkGetPhysicalDeviceFormatProperties(physicalHandle, format, &properties);
 
-        if (((properties.linearTilingFeatures & flags) == flags) || ((properties.optimalTilingFeatures & flags) == flags)) {
+        if (((properties.linearTilingFeatures & flags) == flags)
+            || ((properties.optimalTilingFeatures & flags) == flags)) {
             m_depthFormat       = format;
             m_depthChannelCount = channelCount;
             break;

@@ -40,8 +40,10 @@ DEFINE_TO_STRING(sl::KeyAction, action) {
 
         case sl::KeyAction::release:
             return "KeyRelease";
+
+        default:
+            return "KeyUnknownAction";
     }
-    return "KeyUnknownAction";
 }
 
 DEFINE_TO_STRING(sl::MouseAction, action) {
@@ -51,8 +53,9 @@ DEFINE_TO_STRING(sl::MouseAction, action) {
 
         case sl::MouseAction::release:
             return "KeyRelease";
+        default:
+            return "KeyUnknownAction";
     }
-    return "KeyUnknownAction";
 }
 
 DEFINE_TO_STRING(sl::KeyEvent, event) {

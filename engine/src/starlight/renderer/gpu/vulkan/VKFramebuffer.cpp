@@ -8,9 +8,10 @@ VkFramebufferCreateInfo createFramebufferCreateInfo(
   std::vector<VkImageView>& attachments, VkRenderPass renderPass, u32 width,
   u32 height
 ) {
-    VkFramebufferCreateInfo createInfo = {
-        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO
-    };
+    VkFramebufferCreateInfo createInfo;
+    clearMemory(&createInfo);
+
+    createInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     createInfo.renderPass      = renderPass;
     createInfo.attachmentCount = attachments.size();
     createInfo.pAttachments    = attachments.data();
@@ -26,9 +27,7 @@ VkFramebuffer VKFramebuffer::getHandle() { return m_handle; }
 VKFramebuffer::VKFramebuffer(
   VKContext& context, VKLogicalDevice& device, VkRenderPass renderPass, u32 width,
   u32 height, const std::vector<VkImageView>& attachments
-) :
-    m_context(context),
-    m_device(device), m_attachments(attachments) {
+) : m_context(context), m_device(device), m_attachments(attachments) {
     const auto createInfo =
       createFramebufferCreateInfo(m_attachments, renderPass, width, height);
 

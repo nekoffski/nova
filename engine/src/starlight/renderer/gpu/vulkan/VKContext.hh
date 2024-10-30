@@ -26,8 +26,8 @@ private:
 
     Allocator* m_allocator;
     RAIIWrapper<VkInstance> m_instance;
-    RAIIWrapper<VkSurfaceKHR> m_surface;
     RAIIWrapper<VkDebugUtilsMessengerEXT> m_debugMessenger;
+    RAIIWrapper<VkSurfaceKHR> m_surface;
 };
 
 }  // namespace sl::vk

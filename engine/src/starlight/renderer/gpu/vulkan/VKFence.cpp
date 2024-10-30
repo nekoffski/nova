@@ -7,7 +7,9 @@
 namespace sl::vk {
 
 VkFenceCreateInfo createFenceCreateInfo(VKFence::State state) {
-    VkFenceCreateInfo fenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+    VkFenceCreateInfo fenceCreateInfo;
+    clearMemory(&fenceCreateInfo);
+    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
     if (state == VKFence::State::signaled)
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;

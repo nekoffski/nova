@@ -12,8 +12,7 @@ struct RenderPassCreateInfo {
     explicit RenderPassCreateInfo(
       VkFormat depthFormat, VkSurfaceFormatKHR surfaceFormat,
       VKRenderPass::Properties props
-    ) :
-        props(props) {
+    ) : props(props) {
         createColorAttachment(surfaceFormat);
         if (props.clearFlags & RenderPass::clearDepthBuffer)
             createDepthAttachment(depthFormat);
@@ -140,9 +139,7 @@ struct RenderPassCreateInfo {
 VKRenderPass::VKRenderPass(
   VKContext& context, VKLogicalDevice& device, const VKSwapchain& swapchain,
   const Properties& properties
-) :
-    RenderPass(properties),
-    m_context(context), m_device(device) {
+) : RenderPass(properties), m_context(context), m_device(device) {
     LOG_TRACE("Creating VKRenderPass instance");
 
     RenderPassCreateInfo createInfo(
@@ -201,12 +198,13 @@ std::vector<VkClearValue> VKRenderPass::createClearValues(u8 flags) const {
 VkRenderPassBeginInfo VKRenderPass::createRenderPassBeginInfo(
   const std::vector<VkClearValue>& clearValues, VkFramebuffer framebuffer
 ) const {
-    VkRenderPassBeginInfo beginInfo   = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-    beginInfo.renderPass              = m_handle;
-    beginInfo.framebuffer             = framebuffer;
-    beginInfo.renderArea.offset.x     = m_props.rect.offset.x;
-    beginInfo.renderArea.offset.y     = m_props.rect.offset.y;
-    beginInfo.renderArea.extent.width = m_props.rect.size.w;
+    VkRenderPassBeginInfo beginInfo;
+    beginInfo.sType                    = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    beginInfo.renderPass               = m_handle;
+    beginInfo.framebuffer              = framebuffer;
+    beginInfo.renderArea.offset.x      = m_props.rect.offset.x;
+    beginInfo.renderArea.offset.y      = m_props.rect.offset.y;
+    beginInfo.renderArea.extent.width  = m_props.rect.size.w;
     beginInfo.renderArea.extent.height = m_props.rect.size.h;
 
     beginInfo.clearValueCount = clearValues.size();

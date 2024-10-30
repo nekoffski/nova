@@ -59,7 +59,7 @@ void PanelCombo::rebuildPanels() {
     if (m_props.orientation == Orientation::vertical) {
         const float panelHeight = comboHeight / panelCount;
 
-        for (int i = 0; i < panelCount; ++i) {
+        for (u32 i = 0; i < panelCount; ++i) {
             auto panel = &m_panels[i];
 
             panel->setPosition(
@@ -69,7 +69,7 @@ void PanelCombo::rebuildPanels() {
         }
     } else {
         const float panelWidth = m_props.size.x / panelCount;
-        for (int i = 0; i < panelCount; ++i) {
+        for (u32 i = 0; i < panelCount; ++i) {
             auto panel = &m_panels[i];
 
             panel->setPosition(

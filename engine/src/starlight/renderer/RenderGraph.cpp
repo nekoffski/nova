@@ -5,14 +5,14 @@ namespace sl {
 RenderGraph::Builder::Builder(
   RendererBackend& renderer, const Vec2<u32>& viewportSize
 ) :
-    m_renderer(renderer),
-    m_viewportSize(viewportSize), m_renderGraph(createOwningPtr<RenderGraph>()) {}
+    m_renderer(renderer), m_viewportSize(viewportSize),
+    m_renderGraph(createOwningPtr<RenderGraph>()) {}
 
 OwningPtr<RenderGraph> RenderGraph::Builder::build() && {
     auto& views          = m_renderGraph->getViews();
     const auto viewCount = views.size();
 
-    RenderView::InitProperties initProperties{ .viewportSize = m_viewportSize };
+    RenderView::InitProperties initProperties{ m_viewportSize, false, false };
 
     for (u32 i = 0; i < viewCount; ++i) {
         initProperties.hasPreviousView = (i != 0);

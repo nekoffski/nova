@@ -11,8 +11,8 @@ DynamicAllocator::DynamicAllocator(uint64_t size) :
 void* DynamicAllocator::allocate(uint64_t size) {
     ASSERT(size > 0, "Could not allocate memory block of size 0");
 
-    if (auto offset = m_freeList.allocateBlock(size); offset != -1) {
-        void* block = static_cast<void*>(m_memoryAlias + offset);
+    if (auto offset = m_freeList.allocateBlock(size); offset.has_value()) {
+        void* block = static_cast<void*>(m_memoryAlias + *offset);
         LOG_TRACE("Allocating block of size {} at {}", size, block);
         return block;
     }

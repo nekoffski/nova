@@ -72,7 +72,8 @@ void FreeList::freeBlock(u64 size, u64 offset) {
             else
                 m_head = newNode;
 
-            if (newNode->next && newNode->offset + newNode->size == newNode->next->offset) {
+            if (newNode->next
+                && newNode->offset + newNode->size == newNode->next->offset) {
                 newNode->size += newNode->next->size;
                 auto rubbish  = newNode->next;
                 newNode->next = rubbish->next;
@@ -90,7 +91,7 @@ void FreeList::freeBlock(u64 size, u64 offset) {
     LOG_WARN("Unable to find block to free, that's unexpected");
 }
 
-u64 FreeList::allocateBlock(u64 size) {
+std::optional<u64> FreeList::allocateBlock(u64 size) {
     ASSERT(size > 0, "Could not allocate block with size less or equal 0");
 
     Node* previous = nullptr;
@@ -121,12 +122,11 @@ u64 FreeList::allocateBlock(u64 size) {
         node     = node->next;
     }
 
-    // TODO: handle it as std::optional
-    ASSERT(
-      false,
+    LOG_WARN(
       "Could not find block with enough memory {} bytes requested, total space left: {}",
       size, spaceLeft()
     );
+    return {};
 }
 
 u64 FreeList::spaceLeft() {

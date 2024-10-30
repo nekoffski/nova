@@ -126,7 +126,7 @@ VKTexture* VKRendererBackend::getDepthTexture() {
 Window& VKRendererBackend::getWindow() { return m_window; }
 
 void VKRendererBackend::createCoreComponents(
-  sl::Window& window, const Config& config
+  sl::Window& window, [[maybe_unused]] const Config& config
 ) {
     m_swapchain = createUniqPtr<VKSwapchain>(
       m_context, m_logicalDevice, window.getFramebufferWidth(),
@@ -144,7 +144,7 @@ void VKRendererBackend::createSemaphoresAndFences() {
     m_imagesInFlight.resize(m_maxFramesInFlight);
     m_inFlightFences.reserve(m_maxFramesInFlight);
 
-    for (int i = 0; i < m_maxFramesInFlight; ++i) {
+    for (u32 i = 0; i < m_maxFramesInFlight; ++i) {
         m_imageAvailableSemaphores.emplace_back(m_context, m_logicalDevice);
         m_queueCompleteSemaphores.emplace_back(m_context, m_logicalDevice);
         m_inFlightFences.emplace_back(
@@ -182,7 +182,7 @@ void VKRendererBackend::createCommandBuffers() {
     m_commandBuffers.clear();
     LOG_TRACE("Creating {} command buffers", swapchainImagesCount);
     m_commandBuffers.reserve(swapchainImagesCount);
-    for (int i = 0; i < swapchainImagesCount; ++i) {
+    for (u32 i = 0; i < swapchainImagesCount; ++i) {
         m_commandBuffers.emplace_back(
           m_logicalDevice, graphicsCommandPool, VKCommandBuffer::Severity::primary
         );
@@ -242,7 +242,7 @@ void VKRendererBackend::setScissors(VKCommandBuffer& commandBuffer) {
     vkCmdSetScissor(commandBuffer.getHandle(), 0, 1, &scissor);
 }
 
-bool VKRendererBackend::beginFrame(float deltaTime) {
+bool VKRendererBackend::beginFrame([[maybe_unused]] float deltaTime) {
     m_renderedVertices       = 0u;
     const auto logicalDevice = m_logicalDevice.getHandle();
 
@@ -289,8 +289,8 @@ bool VKRendererBackend::beginFrame(float deltaTime) {
     setViewport(
       *commandBuffer,
       Rect2<u32>{
-        Vec2<u32>{0u,                  0u                 },
-        Vec2<u32>{ m_framebufferWidth, m_framebufferHeight},
+        Vec2<u32>{ 0u,                 0u                  },
+        Vec2<u32>{ m_framebufferWidth, m_framebufferHeight },
     }
     );
     setScissors(*commandBuffer);
@@ -298,9 +298,8 @@ bool VKRendererBackend::beginFrame(float deltaTime) {
     return true;
 }
 
-bool VKRendererBackend::endFrame(float deltaTime) {
-    const auto logicalDevice = m_logicalDevice.getHandle();
-    auto commandBuffer       = m_commandBuffers[m_imageIndex].get();
+bool VKRendererBackend::endFrame([[maybe_unused]] float deltaTime) {
+    auto commandBuffer = m_commandBuffers[m_imageIndex].get();
 
     commandBuffer->end();
 
@@ -313,7 +312,9 @@ bool VKRendererBackend::endFrame(float deltaTime) {
 
     // Submit the queue and wait for the operation to complete.
     // Begin queue submission
-    VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+    VkSubmitInfo submit_info;
+    clearMemory(&submit_info);
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     auto commandBufferHandle = commandBuffer->getHandle();
 
@@ -331,6 +332,8 @@ bool VKRendererBackend::endFrame(float deltaTime) {
     submit_info.waitSemaphoreCount = 1;
     submit_info.pWaitSemaphores =
       m_imageAvailableSemaphores[m_currentFrame]->getHandlePointer();
+
+    submit_info.pWaitDstStageMask = 0;
 
     // Each semaphore waits on the corresponding pipeline stage to complete. 1:1
     // ratio. VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents subsequent

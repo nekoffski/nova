@@ -20,9 +20,7 @@ VKPhysicalDevice::DeviceProperties VKPhysicalDevice::DeviceProperties::fetch(
 
 VKPhysicalDevice::VKPhysicalDevice(
   VKContext& context, const Requirements& requirements
-) :
-    m_context(context),
-    m_requirements(requirements), m_handle(VK_NULL_HANDLE) {
+) : m_context(context), m_requirements(requirements), m_handle(VK_NULL_HANDLE) {
     for (const auto& physicalDevice : getPhysicalDevices()) {
         auto properties = DeviceProperties::fetch(physicalDevice);
 
@@ -77,19 +75,23 @@ void VKPhysicalDevice::logQueueIndices(const QueueIndices& indices) const {
 }
 
 bool VKPhysicalDevice::validateQueueIndices(const QueueIndices& indices) const {
-    if (isFlagEnabled(m_requirements.supportedQueues, Queue::graphics) && indices.graphics == -1) {
+    if (isFlagEnabled(m_requirements.supportedQueues, Queue::graphics)
+        && indices.graphics == -1) {
         LOG_WARN("Device doesn't support graphics queue");
         return false;
     }
-    if (isFlagEnabled(m_requirements.supportedQueues, Queue::compute) && indices.compute == -1) {
+    if (isFlagEnabled(m_requirements.supportedQueues, Queue::compute)
+        && indices.compute == -1) {
         LOG_WARN("Device doesn't support compute queue");
         return false;
     }
-    if (isFlagEnabled(m_requirements.supportedQueues, Queue::transfer) && indices.transfer == -1) {
+    if (isFlagEnabled(m_requirements.supportedQueues, Queue::transfer)
+        && indices.transfer == -1) {
         LOG_WARN("Device doesn't support transfer queue");
         return false;
     }
-    if (isFlagEnabled(m_requirements.supportedQueues, Queue::present) && indices.present == -1) {
+    if (isFlagEnabled(m_requirements.supportedQueues, Queue::present)
+        && indices.present == -1) {
         LOG_WARN("Device doesn't support present queue");
         return false;
     }
@@ -220,7 +222,8 @@ std::optional<VKPhysicalDevice::DeviceInfo>
   ) const {
     DeviceInfo result;
 
-    if (m_requirements.isDiscreteGPU && properties.core.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+    if (m_requirements.isDiscreteGPU
+        && properties.core.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
         LOG_INFO(
           "VKDevice is not a discrete GPU, and one is required, skipping device"
         );
@@ -249,15 +252,17 @@ std::optional<VKPhysicalDevice::DeviceInfo>
         return {};
     }
 
-    if (m_requirements.supportsSamplerAnisotropy && !properties.features.samplerAnisotropy) {
+    if (m_requirements.supportsSamplerAnisotropy
+        && !properties.features.samplerAnisotropy) {
         LOG_INFO("VKDevice does not support samplerAnisotropy, skipping.");
         return {};
     }
 
     // Check if device supports local/host visible combo
-    for (int i = 0; i < properties.memory.memoryTypeCount; ++i) {
-        if ((properties.memory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) && 
-            (properties.memory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+    for (u32 i = 0; i < properties.memory.memoryTypeCount; ++i) {
+        if ((properties.memory.memoryTypes[i].propertyFlags
+             & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+            && (properties.memory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
             result.supportsDeviceLocalHostVisibleMemory = true;
             break;
         }
