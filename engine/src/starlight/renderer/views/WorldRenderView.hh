@@ -13,16 +13,18 @@ class WorldRenderView : public RenderView {
 public:
     explicit WorldRenderView(Shader* shader);
 
-    void init(RendererBackend& renderer, const InitProperties& initProperties)
-      override;
+    RenderPass::Properties getRenderPassProperties(
+      RendererBackend& renderer, RenderPass::ChainFlags chainFlags
+    ) const override;
+
+    void init(RenderPass& renderPass) override;
+    void preRender(RendererBackend& renderer) override;
 
     void render(
       RendererBackend& renderer, const RenderPacket& packet,
-      const RenderProperties& properties, float deltaTime
+      const RenderProperties& props, float deltaTime, CommandBuffer& commandBuffer,
+      u8 imageIndex
     ) override;
-
-    void onViewportResize(RendererBackend& renderer, Vec2<u32> viewportSize)
-      override;
 
 private:
     Shader* m_shader;

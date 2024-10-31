@@ -53,7 +53,8 @@ public:
     void setScissors(VKCommandBuffer& commandBuffer);
 
     VKCommandBuffer& getCommandBuffer() override;
-    u32 getImageIndex() override;
+    u32 getImageIndex() const override;
+    u32 getSwapchainImageCount() const override;
 
     VKTexture* getSwapchainTexture(u32 index) override;
     VKTexture* getDepthTexture() override;

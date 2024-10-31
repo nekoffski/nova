@@ -113,7 +113,11 @@ VKCommandBuffer& VKRendererBackend::getCommandBuffer() {
     return *m_commandBuffers[m_imageIndex];
 }
 
-u32 VKRendererBackend::getImageIndex() { return m_imageIndex; }
+u32 VKRendererBackend::getImageIndex() const { return m_imageIndex; }
+
+u32 VKRendererBackend::getSwapchainImageCount() const {
+    return m_swapchain->getImageCount();
+}
 
 VKTexture* VKRendererBackend::getSwapchainTexture(u32 index) {
     return m_swapchain->getFramebuffer(index);

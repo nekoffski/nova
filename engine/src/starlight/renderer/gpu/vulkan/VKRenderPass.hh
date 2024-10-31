@@ -25,7 +25,7 @@ public:
 
     explicit VKRenderPass(
       VKContext& context, VKLogicalDevice& device, const VKSwapchain& swapchain,
-      const Properties& properties
+      const Properties& properties, ChainFlags chainFlags
     );
 
     ~VKRenderPass();
@@ -40,7 +40,7 @@ public:
 private:
     void generateRenderTargets(const std::vector<RenderTarget>&);
 
-    std::vector<VkClearValue> createClearValues(u8 flags) const;
+    std::vector<VkClearValue> createClearValues(ClearFlags flags) const;
 
     VkRenderPassBeginInfo createRenderPassBeginInfo(
       const std::vector<VkClearValue>& clearValues, VkFramebuffer framebuffer

@@ -11,10 +11,11 @@ namespace sl::vk {
 struct RenderPassCreateInfo {
     explicit RenderPassCreateInfo(
       VkFormat depthFormat, VkSurfaceFormatKHR surfaceFormat,
-      VKRenderPass::Properties props
-    ) : props(props) {
+      VKRenderPass::Properties props, RenderPass::ChainFlags chainFlags
+    ) : props(props), chainFlags(chainFlags) {
         createColorAttachment(surfaceFormat);
-        if (props.clearFlags & RenderPass::clearDepthBuffer)
+
+        if (isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::depth))
             createDepthAttachment(depthFormat);
 
         createSubpass();
@@ -30,7 +31,7 @@ struct RenderPassCreateInfo {
 
         subpass.pDepthStencilAttachment = nullptr;
 
-        if (props.clearFlags & RenderPass::clearDepthBuffer)
+        if (isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::depth))
             subpass.pDepthStencilAttachment = &depthAttachmentReference;
 
         // Input from a shader
@@ -50,7 +51,7 @@ struct RenderPassCreateInfo {
         colorAttachment.format  = surfaceFormat.format;  // TODO: configurable
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         colorAttachment.loadOp =
-          (props.clearFlags & RenderPass::clearColorBuffer)
+          isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::color)
             ? VK_ATTACHMENT_LOAD_OP_CLEAR
             : VK_ATTACHMENT_LOAD_OP_LOAD;
         colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
@@ -58,11 +59,11 @@ struct RenderPassCreateInfo {
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         // Do not expect any particular layout before render pass starts.
         colorAttachment.initialLayout =
-          props.hasPreviousPass
+          isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious)
             ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
             : VK_IMAGE_LAYOUT_UNDEFINED;
         colorAttachment.finalLayout =
-          props.hasNextPass
+          isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasNext)
             ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
             : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         colorAttachment.flags = 0;
@@ -121,6 +122,7 @@ struct RenderPassCreateInfo {
     }
 
     VKRenderPass::Properties props;
+    RenderPass::ChainFlags chainFlags;
 
     VkRenderPassCreateInfo handle;
     VkSubpassDescription subpass;
@@ -138,12 +140,12 @@ struct RenderPassCreateInfo {
 
 VKRenderPass::VKRenderPass(
   VKContext& context, VKLogicalDevice& device, const VKSwapchain& swapchain,
-  const Properties& properties
+  const Properties& properties, ChainFlags chainFlags
 ) : RenderPass(properties), m_context(context), m_device(device) {
     LOG_TRACE("Creating VKRenderPass instance");
 
     RenderPassCreateInfo createInfo(
-      m_device.getDepthFormat(), swapchain.getSurfaceFormat(), properties
+      m_device.getDepthFormat(), swapchain.getSurfaceFormat(), properties, chainFlags
     );
 
     VK_ASSERT(vkCreateRenderPass(
@@ -168,11 +170,11 @@ VKRenderPass::~VKRenderPass() {
 
 VkRenderPass VKRenderPass::getHandle() { return m_handle; }
 
-std::vector<VkClearValue> VKRenderPass::createClearValues(u8 flags) const {
+std::vector<VkClearValue> VKRenderPass::createClearValues(ClearFlags flags) const {
     std::vector<VkClearValue> clearValues;
     clearValues.resize(2);
 
-    if (flags & clearColorBuffer) {
+    if (isFlagEnabled(flags, ClearFlags::color)) {
         VkClearValue clearValue;
 
         clearValue.color.float32[0] = m_props.clearColor.r;
@@ -183,11 +185,12 @@ std::vector<VkClearValue> VKRenderPass::createClearValues(u8 flags) const {
         clearValues[0] = clearValue;
     }
 
-    if (flags & clearDepthBuffer) {
+    if (isFlagEnabled(flags, ClearFlags::depth)) {
         VkClearValue clearValue;
         clearValue.depthStencil.depth = m_depth;
 
-        if (flags & clearStencilBuffer) clearValue.depthStencil.stencil = m_stencil;
+        if (isFlagEnabled(flags, ClearFlags::stencil))
+            clearValue.depthStencil.stencil = m_stencil;
 
         clearValues[1] = clearValue;
     }

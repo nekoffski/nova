@@ -6,39 +6,44 @@ namespace sl {
 
 WorldRenderView::WorldRenderView(Shader* shader) : m_shader(shader) {}
 
-void WorldRenderView::init(
-  RendererBackend& renderer, const InitProperties& initProperties
-) {
-    LOG_TRACE("Initializing WorldRenderView");
-    auto backgroundColor = (1.0f / 255.0f) * glm::vec4{ 11, 16, 47, 255 };
+RenderPass::Properties WorldRenderView::getRenderPassProperties(
+  RendererBackend& renderer, RenderPass::ChainFlags chainFlags
+) const {
+    auto props = getDefaultRenderPassProperties();
 
-    u8 clearFlags = RenderPass::clearDepthBuffer | RenderPass::clearStencilBuffer;
-    if (not initProperties.hasPreviousView)
-        clearFlags |= RenderPass::clearColorBuffer;
+    auto clearFlags =
+      RenderPass::ClearFlags::depth | RenderPass::ClearFlags::stencil;
+    if (not isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious))
+        clearFlags |= RenderPass::ClearFlags::color;
 
-    RenderPass::Properties renderPassProperties{
-        .rect       = Rect2u32{ Vec2<u32>{ 0u, 0u }, initProperties.viewportSize },
-        .clearColor = backgroundColor,
-        .clearFlags = clearFlags,
-        .hasPreviousPass = initProperties.hasPreviousView,
-        .hasNextPass     = initProperties.hasNextView,
-        .renderTargets   = {}
-    };
+    props.clearFlags = clearFlags;
 
-    RenderTarget renderTarget{
-        .size = initProperties.viewportSize, .attachments = {}
-    };
+    RenderTarget renderTarget;
+    renderTarget.size = props.rect.size;
 
-    for (u8 i = 0; i < 3; ++i) {
+    const auto swapchainImageCount = renderer.getSwapchainImageCount();
+    props.renderTargets.reserve(swapchainImageCount);
+
+    for (u8 i = 0; i < swapchainImageCount; ++i) {
         renderTarget.attachments = {
             renderer.getSwapchainTexture(i), renderer.getDepthTexture()
         };
-        renderPassProperties.renderTargets.push_back(renderTarget);
+        props.renderTargets.push_back(renderTarget);
     }
 
-    m_renderPass = RenderPass::create(renderer, renderPassProperties);
-    m_shader->createPipeline(*m_renderPass);
-    LOG_TRACE("WorldRenderView initialized");
+    return props;
+}
+
+void WorldRenderView::init(RenderPass& renderPass) {
+    m_shader->createPipeline(renderPass);
+}
+
+void WorldRenderView::preRender(RendererBackend& renderer) {
+    Rect2<u32> viewport{
+        .offset = Vec2<u32>{ 0, 0 },
+        .size   = Window::get().getFramebufferSize(),
+    };
+    renderer.setViewport(viewport);
 }
 
 struct MeshRenderData {
@@ -50,101 +55,89 @@ struct MeshRenderData {
 
 void WorldRenderView::render(
   RendererBackend& renderer, const RenderPacket& packet,
-  const RenderProperties& properties, [[maybe_unused]] float deltaTime
+  const RenderProperties& properties, [[maybe_unused]] float deltaTime,
+  CommandBuffer& commandBuffer, u8 imageIndex
 ) {
-    Rect2<u32> viewport{
-        .offset = Vec2<u32>{ 0, 0 },
-        .size   = Window::get().getFramebufferSize(),
-    };
-    renderer.setViewport(viewport);
+    Vec4<f32> ambientColor(0.3f, 0.3f, 0.3f, 1.0f);
+    auto camera               = packet.camera;
+    const auto cameraPosition = camera->getPosition();
 
-    m_renderPass->run(
-      renderer.getCommandBuffer(), renderer.getImageIndex(),
-      [&](CommandBuffer& commandBuffer, u32 imageIndex) {
-          glm::vec4 ambientColor(0.3f, 0.3f, 0.3f, 1.0f);
+    m_shader->use(commandBuffer);
+    m_shader->setGlobalUniforms(
+      commandBuffer, imageIndex,
+      [&](Shader::UniformProxy& proxy) {
+          proxy.set("view", camera->getViewMatrix());
+          proxy.set("projection", camera->getProjectionMatrix());
+          proxy.set("viewPosition", cameraPosition);
+          proxy.set("ambientColor", ambientColor);
+          proxy.set("renderMode", static_cast<int>(properties.renderMode));
 
-          auto camera               = packet.camera;
-          const auto cameraPosition = camera->getPosition();
+          const auto pointLightCount = packet.pointLights.size();
+          proxy.set("pointLightCount", pointLightCount);
 
-          m_shader->use(commandBuffer);
-          m_shader->setGlobalUniforms(
-            commandBuffer, imageIndex,
-            [&](Shader::UniformProxy& proxy) {
-                proxy.set("view", camera->getViewMatrix());
-                proxy.set("projection", camera->getProjectionMatrix());
-                proxy.set("viewPosition", cameraPosition);
-                proxy.set("ambientColor", ambientColor);
-                proxy.set("renderMode", static_cast<int>(properties.renderMode));
-
-                const auto pointLightCount = packet.pointLights.size();
-                proxy.set("pointLightCount", pointLightCount);
-
-                if (pointLightCount > 0)
-                    proxy.set("pointLights", packet.pointLights.data());
-            }
-          );
-
-          std::vector<MeshRenderData> meshes;
-          std::vector<MeshRenderData> transparentGeometries;
-          meshes.reserve(256);
-          transparentGeometries.reserve(128);
-
-          for (auto& [worldTransform, mesh, material] : packet.entities) {
-              if (material->isTransparent()) {
-                  auto center         = worldTransform * mesh->getExtent().center;
-                  auto cameraDistance = glm::distance2(cameraPosition, center);
-                  transparentGeometries.emplace_back(
-                    mesh, material, worldTransform, cameraDistance
-                  );
-              } else {
-                  meshes.emplace_back(mesh, material, worldTransform);
-              }
-          }
-
-          std::sort(
-            transparentGeometries.begin(), transparentGeometries.end(),
-            [](auto& lhs, auto& rhs) -> bool {
-                return lhs.cameraDistance < rhs.cameraDistance;
-            }
-          );
-          std::move(
-            transparentGeometries.begin(), transparentGeometries.end(),
-            std::back_inserter(meshes)
-          );
-          transparentGeometries.clear();
-
-          for (auto& [mesh, material, model, _] : meshes) {
-              m_shader->setLocalUniforms(
-                commandBuffer,
-                [&](Shader::UniformProxy& proxy) { proxy.set("model", model); }
-              );
-
-              material->applyUniforms(
-                *m_shader, commandBuffer, imageIndex, properties.frameNumber
-              );
-              renderer.drawMesh(*mesh);
-          }
+          if (pointLightCount > 0)
+              proxy.set("pointLights", packet.pointLights.data());
       }
     );
-}
 
-void WorldRenderView::onViewportResize(
-  RendererBackend& renderer, Vec2<u32> viewportSize
-) {
-    // TODO: get swapchain images count from backend
-    std::vector<RenderTarget> renderTargets;
-    renderTargets.reserve(3);
+    std::vector<MeshRenderData> meshes;
+    std::vector<MeshRenderData> transparentGeometries;
+    meshes.reserve(256);
+    transparentGeometries.reserve(128);
 
-    RenderTarget renderTarget{ .size = viewportSize, .attachments = {} };
-
-    for (u8 i = 0; i < 3; ++i) {
-        renderTarget.attachments = {
-            renderer.getSwapchainTexture(i), renderer.getDepthTexture()
-        };
-        renderTargets.push_back(renderTarget);
+    for (auto& [worldTransform, mesh, material] : packet.entities) {
+        if (material->isTransparent()) {
+            auto center         = worldTransform * mesh->getExtent().center;
+            auto cameraDistance = glm::distance2(cameraPosition, center);
+            transparentGeometries.emplace_back(
+              mesh, material, worldTransform, cameraDistance
+            );
+        } else {
+            meshes.emplace_back(mesh, material, worldTransform);
+        }
     }
-    m_renderPass->regenerateRenderTargets(renderTargets);
-    m_renderPass->setRectSize(viewportSize);
+
+    std::sort(
+      transparentGeometries.begin(), transparentGeometries.end(),
+      [](auto& lhs, auto& rhs) -> bool {
+          return lhs.cameraDistance < rhs.cameraDistance;
+      }
+    );
+    std::move(
+      transparentGeometries.begin(), transparentGeometries.end(),
+      std::back_inserter(meshes)
+    );
+    transparentGeometries.clear();
+
+    for (auto& [mesh, material, model, _] : meshes) {
+        m_shader->setLocalUniforms(commandBuffer, [&](Shader::UniformProxy& proxy) {
+            proxy.set("model", model);
+        });
+
+        material->applyUniforms(
+          *m_shader, commandBuffer, imageIndex, properties.frameNumber
+        );
+        renderer.drawMesh(*mesh);
+    }
 }
+
+// void WorldRenderView::onViewportResize(
+//   RendererBackend& renderer, Vec2<u32> viewportSize
+// ) {
+//     // TODO: get swapchain images count from backend
+//     std::vector<RenderTarget> renderTargets;
+//     renderTargets.reserve(3);
+
+//     RenderTarget renderTarget{ .size = viewportSize, .attachments = {} };
+
+//     for (u8 i = 0; i < 3; ++i) {
+//         renderTarget.attachments = {
+//             renderer.getSwapchainTexture(i), renderer.getDepthTexture()
+//         };
+//         renderTargets.push_back(renderTarget);
+//     }
+//     m_renderPass->regenerateRenderTargets(renderTargets);
+//     m_renderPass->setRectSize(viewportSize);
+// }
 
 }  // namespace sl

@@ -4,6 +4,7 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/math/Core.hh"
+#include "starlight/core/utils/Enum.hh"
 #include "starlight/core/utils/Id.hh"
 #include "starlight/core/utils/Resource.hh"
 
@@ -16,24 +17,29 @@ namespace sl {
 
 class RenderPass : public NonMovable, public Identificable<RenderTarget> {
 public:
-    static constexpr u8 clearNone          = 0x0;
-    static constexpr u8 clearColorBuffer   = 0x1;
-    static constexpr u8 clearDepthBuffer   = 0x2;
-    static constexpr u8 clearStencilBuffer = 0x4;
+    enum class ClearFlags : unsigned char {
+        none    = 0x0,
+        color   = 0x1,
+        depth   = 0x2,
+        stencil = 0x04
+    };
+
+    enum class ChainFlags : unsigned char {
+        none        = 0x0,
+        hasNext     = 0x1,
+        hasPrevious = 0x2
+    };
 
     struct Properties {
         Rect2u32 rect;
         Vec4<f32> clearColor;
-        u8 clearFlags;
-
-        bool hasPreviousPass;
-        bool hasNextPass;
-
+        ClearFlags clearFlags;
         std::vector<RenderTarget> renderTargets;
     };
 
     static OwningPtr<RenderPass> create(
-      RendererBackend& renderer, const Properties& props
+      RendererBackend& renderer, const Properties& props,
+      ChainFlags chainFlags = ChainFlags::none
     );
 
     explicit RenderPass(const Properties& props);
@@ -62,5 +68,8 @@ private:
 protected:
     Properties m_props;
 };
+
+constexpr void enableBitOperations(RenderPass::ClearFlags);
+constexpr void enableBitOperations(RenderPass::ChainFlags);
 
 }  // namespace sl

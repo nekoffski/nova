@@ -17,13 +17,15 @@
 
 namespace sl {
 
-struct RendererBackend : public NonCopyable, public NonMovable {
+class RendererBackend : public NonCopyable, public NonMovable {
+public:
     virtual ~RendererBackend() = default;
 
     template <typename C>
-    requires Callable<C> u64 renderFrame(float deltaTime, C&& callback) {
+    requires Callable<C, void, CommandBuffer&, u8>
+    u64 renderFrame(float deltaTime, C&& callback) {
         if (beginFrame(deltaTime)) {
-            callback();
+            callback(getCommandBuffer(), getImageIndex());
             endFrame(deltaTime);
         }
         return getRenderedVertexCount();
@@ -40,8 +42,10 @@ struct RendererBackend : public NonCopyable, public NonMovable {
 
     virtual void onViewportResize(const Vec2<u32>& viewportSize) = 0;
 
-    virtual CommandBuffer& getCommandBuffer()       = 0;
-    virtual u32 getImageIndex()                     = 0;
+    virtual CommandBuffer& getCommandBuffer()  = 0;  // should be private
+    virtual u32 getSwapchainImageCount() const = 0;
+    // TODO: unify, either image or texture
+    virtual u32 getImageIndex() const               = 0;  // should be private
     virtual Texture* getSwapchainTexture(u32 index) = 0;
     virtual Texture* getDepthTexture()              = 0;
 };

@@ -12,19 +12,20 @@ namespace sl {
 
 class SkyboxRenderView : public RenderView {
 public:
-    using UICallback = std::function<void(float)>;
-
     explicit SkyboxRenderView(Skybox* skybox);
 
-    void init(RendererBackend& backend, const InitProperties& initProperties)
-      override;
+    RenderPass::Properties getRenderPassProperties(
+      RendererBackend& renderer, RenderPass::ChainFlags chainFlags
+    ) const override;
+
+    void init(RenderPass& renderPass) override;
+    void preRender(RendererBackend& renderer) override;
 
     void render(
-      RendererBackend& backend, const RenderPacket& packet,
-      const RenderProperties& properties, float deltaTime
+      RendererBackend& renderer, const RenderPacket& packet,
+      const RenderProperties& props, float deltaTime, CommandBuffer& commandBuffer,
+      u8 imageIndex
     ) override;
-
-    void onViewportResize(RendererBackend& backend, Vec2<u32> viewportSize) override;
 
 private:
     Skybox* m_skybox;

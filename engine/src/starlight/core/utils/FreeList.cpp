@@ -130,7 +130,7 @@ std::optional<u64> FreeList::allocateBlock(u64 size) {
 }
 
 u64 FreeList::spaceLeft() {
-    u64 totalSpace;
+    u64 totalSpace = 0u;
 
     for (Node* node = m_head; node != nullptr; node = node->next)
         totalSpace += node->size;

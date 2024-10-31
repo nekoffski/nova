@@ -2,37 +2,28 @@
 
 #include "starlight/renderer/gpu/RendererBackend.hh"
 #include "starlight/renderer/gpu/RenderPass.hh"
-#include "starlight/renderer/gpu/Shader.hh"
-#include "starlight/renderer/camera/Camera.hh"
 #include "starlight/renderer/RenderPacket.hh"
 #include "starlight/renderer/RenderProperties.hh"
 
 namespace sl {
 
-class RenderView {
-public:
-    struct InitProperties {
-        Vec2<u32> viewportSize;
-        bool hasNextView;
-        bool hasPreviousView;
-    };
-
-    explicit RenderView();
+struct RenderView {
     virtual ~RenderView() = default;
 
-    virtual void init(
-      RendererBackend& backend, const InitProperties& initProperties
-    ) = 0;
+    virtual RenderPass::Properties getRenderPassProperties(
+      RendererBackend& renderer, RenderPass::ChainFlags chainFlags
+    ) const = 0;
+
+    virtual void init([[maybe_unused]] RenderPass& renderPass) {}
+    virtual void preRender([[maybe_unused]] RendererBackend& renderer) {}
+
     virtual void render(
-      RendererBackend& backend, const RenderPacket& packet,
-      const RenderProperties& properties, float deltaTime
-    ) = 0;
-    virtual void onViewportResize(
-      RendererBackend& backend, Vec2<u32> viewportSize
+      RendererBackend& renderer, const RenderPacket& packet,
+      const RenderProperties& props, float deltaTime, CommandBuffer& commandBuffer,
+      u8 imageIndex
     ) = 0;
 
-protected:
-    OwningPtr<RenderPass> m_renderPass;
+    static RenderPass::Properties getDefaultRenderPassProperties();
 };
 
 }  // namespace sl

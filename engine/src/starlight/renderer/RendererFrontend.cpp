@@ -13,15 +13,15 @@ RendererFrontend::RendererFrontend(Context& context) :
     m_renderMode(RenderMode::standard), m_framesSinceResize(0u), m_resizing(false),
     m_viewportSize(context.getWindow().getFramebufferSize()),
     m_shaderManager(m_backend), m_textureManager(m_backend),
-    m_meshManager(m_backend) {}
+    m_meshManager(m_backend), m_renderGraph(nullptr) {}
 
 FrameStatistics RendererFrontend::getFrameStatistics() { return m_frameStatistics; }
 
 RendererBackend& RendererFrontend::getRendererBackend() { return m_backend; }
 
-void RendererFrontend::renderFrame(
-  float deltaTime, const RenderPacket& packet, RenderGraph& renderGraph
-) {
+void RendererFrontend::renderFrame(float deltaTime, const RenderPacket& packet) {
+    ASSERT(m_renderGraph, "Renderer frontend requires render graph to render");
+
     m_frameStatistics.frameNumber++;
     m_frameStatistics.deltaTime = deltaTime;
 
@@ -41,13 +41,28 @@ void RendererFrontend::renderFrame(
         }
     }
 
-    m_frameStatistics.renderedVertices = m_backend.renderFrame(deltaTime, [&]() {
-        RenderProperties renderProperties{
-            m_renderMode, m_frameStatistics.frameNumber
-        };
-        for (auto& view : renderGraph.getViews())
-            view->render(m_backend, packet, renderProperties, deltaTime);
-    });
+    m_frameStatistics.renderedVertices = m_backend.renderFrame(
+      deltaTime,
+      [&](CommandBuffer& commandBuffer, u8 imageIndex) {
+          RenderProperties renderProperties{
+              m_renderMode, m_frameStatistics.frameNumber
+          };
+
+          for (auto& [view, renderPass] : m_renderGraph->getNodes()) {
+              view->preRender(m_backend);
+
+              renderPass->run(
+                commandBuffer, imageIndex,
+                [&](CommandBuffer& commandBuffer, u8 imageIndex) {
+                    view->render(
+                      m_backend, packet, renderProperties, deltaTime, commandBuffer,
+                      imageIndex
+                    );
+                }
+              );
+          }
+      }
+    );
 }
 
 void RendererFrontend::setRenderMode(RenderMode mode) {
@@ -55,13 +70,14 @@ void RendererFrontend::setRenderMode(RenderMode mode) {
     m_renderMode = mode;
 }
 
-void RendererFrontend::onViewportResize([[maybe_unused]] Vec2<u32> viewportSize) {
-    // m_resizing = true;
-    // m_backend.onViewportResize(viewportSize);
+void RendererFrontend::setRenderGraph(RenderGraph* renderGraph) {
+    m_renderGraph = renderGraph;
+}
 
-    // auto backendProxy = m_backend.getProxy();
-    // for (auto& view : m_renderViews)
-    //     view->onViewportResize(*backendProxy, viewportSize);
+void RendererFrontend::onViewportResize(const Vec2<u32>& viewportSize) {
+    m_resizing = true;
+    m_backend.onViewportResize(viewportSize);
+    m_renderGraph->onViewportResize(m_backend, viewportSize);
 }
 
 }  // namespace sl

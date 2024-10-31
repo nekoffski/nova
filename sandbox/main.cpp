@@ -71,9 +71,11 @@ int main() {
       .front()
       .scale(sl::Vec3<sl::f32>{ 0.25f });
 
+    renderer.setRenderGraph(renderGraph.get());
+
     while (isRunning) {
         context.beginFrame([&](float deltaTime) {
-            renderer.renderFrame(deltaTime, scene.getRenderPacket(), *renderGraph);
+            renderer.renderFrame(deltaTime, scene.getRenderPacket());
             camera.update(deltaTime);
         });
     }

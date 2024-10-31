@@ -10,7 +10,7 @@
 namespace sl {
 
 OwningPtr<RenderPass> RenderPass::create(
-  RendererBackend& renderer, const Properties& props
+  RendererBackend& renderer, const Properties& props, ChainFlags chainFlags
 ) {
 #ifdef SL_USE_VK
     auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
@@ -19,7 +19,7 @@ OwningPtr<RenderPass> RenderPass::create(
 
     return createOwningPtr<vk::VKRenderPass>(
       vkRenderer.getContext(), vkRenderer.getLogicalDevice(),
-      vkRenderer.getSwapchain(), props
+      vkRenderer.getSwapchain(), props, chainFlags
     );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
