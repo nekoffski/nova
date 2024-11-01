@@ -44,7 +44,7 @@ public:
     const Nodes& getNodes() const;
     Nodes& getNodes();
 
-    void onViewportResize(RendererBackend& renderer, const Vec2<u32>& viewport);
+    void onViewportResize(const Vec2<u32>& viewport);
 
 private:
     std::vector<OwningPtr<RenderView>>& getViews();

@@ -1,7 +1,9 @@
 #include "RendererFrontend.hh"
 
 #include "starlight/core/math/Core.hh"
+#include "starlight/core/event/WindowResized.hh"
 #include "starlight/core/memory/Memory.hh"
+#include "starlight/core/event/EventProxy.hh"
 
 #include "RenderPacket.hh"
 #include "camera/EulerCamera.hh"
@@ -10,10 +12,18 @@ namespace sl {
 
 RendererFrontend::RendererFrontend(Context& context) :
     m_backend(context.getWindow(), context.getConfig()),
-    m_renderMode(RenderMode::standard), m_framesSinceResize(0u), m_resizing(false),
+    m_eventSentinel(EventProxy::get()), m_renderMode(RenderMode::standard),
+    m_framesSinceResize(0u), m_resizing(false),
     m_viewportSize(context.getWindow().getFramebufferSize()),
     m_shaderManager(m_backend), m_textureManager(m_backend),
-    m_meshManager(m_backend), m_renderGraph(nullptr) {}
+    m_meshManager(m_backend), m_renderGraph(nullptr) {
+    m_eventSentinel.pushHandler<WindowResized>(
+      [&](const auto& event) -> EventChainBehaviour {
+          onViewportResize(event.size);
+          return EventChainBehaviour::propagate;
+      }
+    );
+}
 
 FrameStatistics RendererFrontend::getFrameStatistics() { return m_frameStatistics; }
 
@@ -77,7 +87,7 @@ void RendererFrontend::setRenderGraph(RenderGraph* renderGraph) {
 void RendererFrontend::onViewportResize(const Vec2<u32>& viewportSize) {
     m_resizing = true;
     m_backend.onViewportResize(viewportSize);
-    m_renderGraph->onViewportResize(m_backend, viewportSize);
+    m_renderGraph->onViewportResize(viewportSize);
 }
 
 }  // namespace sl

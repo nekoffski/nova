@@ -21,7 +21,7 @@ public:
         none    = 0x0,
         color   = 0x1,
         depth   = 0x2,
-        stencil = 0x04
+        stencil = 0xc4
     };
 
     enum class ChainFlags : unsigned char {
@@ -57,9 +57,7 @@ public:
     void setRect(const Rect2u32& extent);
     void setRectSize(const Vec2<u32>& size);
 
-    virtual void regenerateRenderTargets(
-      const std::vector<RenderTarget>& renderTargets
-    ) = 0;
+    virtual void regenerateRenderTargets(const Vec2<u32>& viewportSize) = 0;
 
 private:
     virtual void begin(CommandBuffer& commandBuffer, u8 attachmentIndex) = 0;

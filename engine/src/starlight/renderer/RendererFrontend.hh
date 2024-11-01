@@ -37,6 +37,7 @@ public:
 
 private:
     RendererBackendVendor m_backend;
+    EventHandlerSentinel m_eventSentinel;
 
     RenderMode m_renderMode;
     u16 m_framesSinceResize;

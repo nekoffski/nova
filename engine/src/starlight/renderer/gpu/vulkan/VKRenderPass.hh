@@ -33,12 +33,12 @@ public:
     void begin(CommandBuffer& commandBuffer, u8 attachmentIndex) override;
     void end(CommandBuffer& commandBuffer) override;
 
-    void regenerateRenderTargets(const std::vector<RenderTarget>&) override;
+    void regenerateRenderTargets(const Vec2<u32>& viewportSize) override;
 
     VkRenderPass getHandle();
 
 private:
-    void generateRenderTargets(const std::vector<RenderTarget>&);
+    void generateRenderTargets();
 
     std::vector<VkClearValue> createClearValues(ClearFlags flags) const;
 

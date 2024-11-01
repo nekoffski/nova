@@ -60,9 +60,9 @@ RenderGraph::Nodes& RenderGraph::getNodes() { return m_nodes; }
 
 const RenderGraph::Nodes& RenderGraph::getNodes() const { return m_nodes; }
 
-void RenderGraph::onViewportResize(
-  [[maybe_unused]] RendererBackend& renderer,
-  [[maybe_unused]] const Vec2<u32>& viewport
-) {}
+void RenderGraph::onViewportResize(const Vec2<u32>& viewport) {
+    for (auto& renderPass : m_renderPasses)
+        renderPass->regenerateRenderTargets(viewport);
+}
 
 }  // namespace sl

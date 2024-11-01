@@ -155,7 +155,7 @@ VKRenderPass::VKRenderPass(
 
     if (properties.renderTargets.size() == 0)
         LOG_WARN("Render pass with no render targets created");
-    generateRenderTargets(properties.renderTargets);
+    generateRenderTargets();
     LOG_TRACE("VKRenderPass instance created");
 }
 
@@ -238,21 +238,16 @@ void VKRenderPass::end(CommandBuffer& commandBuffer) {
     vkBuffer->setState(VKCommandBuffer::State::recording);
 }
 
-void VKRenderPass::regenerateRenderTargets(
-  const std::vector<RenderTarget>& renderTargets
-) {
+void VKRenderPass::regenerateRenderTargets(const Vec2<u32>& viewportSize) {
     LOG_TRACE("Regenerating render targets for render pass");
-    ASSERT(
-      m_framebuffers.size() == renderTargets.size(),
-      "regenerateRenderTargets invalid size of input render target vector"
-    );
+    for (auto& renderTarget : m_props.renderTargets)
+        renderTarget.size = viewportSize;
     m_framebuffers.clear();
-    generateRenderTargets(renderTargets);
+    generateRenderTargets();
 }
 
-void VKRenderPass::generateRenderTargets(
-  const std::vector<RenderTarget>& renderTargets
-) {
+void VKRenderPass::generateRenderTargets() {
+    auto& renderTargets = m_props.renderTargets;
     LOG_TRACE("Generating render targets for render pass");
     for (const auto& [size, attachments] : renderTargets) {
         std::vector<VkImageView> attachmentViews;
