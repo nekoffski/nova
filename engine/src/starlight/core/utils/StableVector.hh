@@ -3,13 +3,17 @@
 #include <vector>
 
 #include "starlight/core/Core.hh"
+#include "starlight/core/Log.hh"
 #include "starlight/core/memory/Memory.hh"
+
+#include <iostream>
 
 namespace sl {
 
 template <typename T> class StableVector {
 public:
-    explicit StableVector(u64 size) : m_size(size), m_buffer(m_size, nullptr) {}
+    explicit StableVector(u64 capacity
+    ) : m_capacity(capacity), m_size(0u), m_buffer(m_capacity) {}
 
     template <typename C>
     requires Callable<C, void, T&>
@@ -22,8 +26,9 @@ public:
     requires std::is_constructible_v<T, Args...>
     T* emplace(Args&&... args) {
         for (auto& slot : m_buffer) {
-            if (slot) {
-                slot.emplace<T>(std::forward<Args>(args)...);
+            if (not slot) {
+                ++m_size;
+                slot.emplace(std::forward<Args>(args)...);
                 return slot.get();
             }
         }
@@ -33,6 +38,7 @@ public:
     bool erase(T* value) {
         for (auto& slot : m_buffer) {
             if (slot && slot.get() == value) {
+                --m_size;
                 slot.clear();
                 return true;
             }
@@ -40,10 +46,12 @@ public:
         return false;
     }
 
-    const u64 getCapacity() const { return m_size; }
+    u64 getCapacity() const { return m_capacity; }
+    u64 getSize() const { return m_size; }
 
 private:
-    const u64 m_size;
+    const u64 m_capacity;
+    u64 m_size;
     std::vector<LocalPtr<T>> m_buffer;
 };
 
