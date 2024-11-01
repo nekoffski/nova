@@ -49,6 +49,7 @@ void RendererFrontend::renderFrame(float deltaTime, const RenderPacket& packet) 
         } else {
             m_frameStatistics.renderedVertices = 0;
         }
+        return;
     }
 
     m_frameStatistics.renderedVertices = m_backend.renderFrame(

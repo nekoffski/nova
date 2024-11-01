@@ -18,6 +18,7 @@ VKPhysicalDevice::DeviceProperties VKPhysicalDevice::DeviceProperties::fetch(
     return properties;
 }
 
+// TODO: physical device picker or something
 VKPhysicalDevice::VKPhysicalDevice(
   VKContext& context, const Requirements& requirements
 ) : m_context(context), m_requirements(requirements), m_handle(VK_NULL_HANDLE) {
@@ -48,6 +49,10 @@ const VKPhysicalDevice::DeviceInfo& VKPhysicalDevice::getDeviceInfo() const {
 const VKPhysicalDevice::DeviceProperties& VKPhysicalDevice::getDeviceProperties(
 ) const {
     return m_deviceProperties;
+}
+
+VKPhysicalDevice::SwapchainSupportInfo VKPhysicalDevice::getSwapchainSupport() {
+    return queryDeviceSwapchainSupport(m_handle);
 }
 
 std::vector<VkPhysicalDevice> VKPhysicalDevice::getPhysicalDevices() const {
@@ -243,8 +248,6 @@ std::optional<VKPhysicalDevice::DeviceInfo>
         swapchainSupport.formats.empty() || swapchainSupport.presentModes.empty()) {
         LOG_INFO("Required swapchain support not present, skipping device.");
         return {};
-    } else {
-        result.swapchainSupport = swapchainSupport;
     }
 
     if (not m_requirements.extensions.empty() && not validateExtensions(device)) {

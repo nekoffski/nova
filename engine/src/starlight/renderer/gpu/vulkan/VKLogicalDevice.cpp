@@ -33,7 +33,7 @@ VkCommandPool VKLogicalDevice::getGraphicsCommandPool() {
 }
 
 VKPhysicalDevice::SwapchainSupportInfo VKLogicalDevice::getSwapchainSupport() const {
-    return m_physicalDevice.getDeviceInfo().swapchainSupport;
+    return m_physicalDevice.getSwapchainSupport();
 }
 
 VKPhysicalDevice::DeviceProperties VKLogicalDevice::getDeviceProperties() const {

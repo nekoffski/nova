@@ -48,15 +48,14 @@ VkExtent2D createSwapchainExtent(
 ) {
     VkExtent2D swapchainExtent = { viewportWidth, viewportHeight };
 
-    // if (swapchainSupport.capabilities.currentExtent.width != UINT32_MAX) {
-    // LOG_INFO("mamy cie", viewportWidth, viewportHeight);
-
-    // swapchainExtent = swapchainSupport.capabilities.currentExtent;
-    // }
-
     // Clamp to the value allowed by the GPU.bonestent.width, min.width, max.width);
     auto& min = swapchainSupport.capabilities.minImageExtent;
-    auto& max = swapchainSupport.capabilities.minImageExtent;
+    auto& max = swapchainSupport.capabilities.maxImageExtent;
+
+    LOG_INFO(
+      "Swapchain capabilities min/max - {} - {}/{} - {}", min.width, min.height,
+      max.width, max.height
+    );
 
     swapchainExtent.height =
       std::clamp(swapchainExtent.height, min.height, max.height);
@@ -89,13 +88,16 @@ VkSurfaceFormatKHR VKSwapchain::getSurfaceFormat() const { return m_imageFormat;
 std::span<LocalPtr<VKTexture>> VKSwapchain::getTextures() { return m_textures; }
 
 struct SwapchainCreateInfo {
+    explicit SwapchainCreateInfo() { clearMemory(&handle); }
+
     VkSwapchainCreateInfoKHR handle;
     std::vector<uint32_t> queueFamilyIndices;
 };
 
 SwapchainCreateInfo createSwapchainCreateInfo(
   VKLogicalDevice& device, VkSurfaceKHR surface, uint32_t imageCount,
-  VkSurfaceFormatKHR imageFormat, VkExtent2D extent, VkPresentModeKHR presentMode
+  VkSurfaceFormatKHR imageFormat, VkExtent2D extent, VkPresentModeKHR presentMode,
+  const VKPhysicalDevice::SwapchainSupportInfo& swapchainSupport
 ) {
     SwapchainCreateInfo createInfo;
     auto& handle = createInfo.handle;
@@ -108,8 +110,6 @@ SwapchainCreateInfo createSwapchainCreateInfo(
     handle.imageExtent      = extent;
     handle.imageArrayLayers = 1;
     handle.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    handle.pNext            = nullptr;
-    handle.flags            = 0;
 
     const auto& queueIndices = device.getQueueIndices();
 
@@ -129,7 +129,7 @@ SwapchainCreateInfo createSwapchainCreateInfo(
         handle.pQueueFamilyIndices   = 0;
     }
 
-    handle.preTransform = device.getSwapchainSupport().capabilities.currentTransform;
+    handle.preTransform   = swapchainSupport.capabilities.currentTransform;
     handle.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     handle.presentMode    = presentMode;
     handle.clipped        = VK_TRUE;
@@ -154,7 +154,7 @@ VkImageViewCreateInfo createImageViewCreateInfo(VkImage image, VkFormat format) 
 }
 
 void VKSwapchain::createSwapchain() {
-    auto swapchainSupport = m_device.getSwapchainSupport();
+    const auto swapchainSupport = m_device.getSwapchainSupport();
 
     m_imageFormat    = pickSurfaceFormat(swapchainSupport);
     auto presentMode = pickPresentMode(swapchainSupport);
@@ -169,7 +169,7 @@ void VKSwapchain::createSwapchain() {
 
     auto swapchainCreateInfo = createSwapchainCreateInfo(
       m_device, m_context.getSurface(), deviceImageCount, m_imageFormat,
-      m_swapchainExtent, presentMode
+      m_swapchainExtent, presentMode, swapchainSupport
     );
 
     VK_ASSERT(vkCreateSwapchainKHR(

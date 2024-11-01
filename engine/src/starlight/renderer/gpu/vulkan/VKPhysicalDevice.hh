@@ -53,7 +53,6 @@ public:
 
     struct DeviceInfo {
         QueueIndices queueIndices;
-        SwapchainSupportInfo swapchainSupport;
         bool supportsDeviceLocalHostVisibleMemory;
     };
 
@@ -64,6 +63,7 @@ public:
 
     const DeviceInfo& getDeviceInfo() const;
     const DeviceProperties& getDeviceProperties() const;
+    SwapchainSupportInfo getSwapchainSupport();
 
 private:
     std::vector<VkPhysicalDevice> getPhysicalDevices() const;

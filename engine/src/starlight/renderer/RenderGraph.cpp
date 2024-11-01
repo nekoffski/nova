@@ -61,8 +61,10 @@ RenderGraph::Nodes& RenderGraph::getNodes() { return m_nodes; }
 const RenderGraph::Nodes& RenderGraph::getNodes() const { return m_nodes; }
 
 void RenderGraph::onViewportResize(const Vec2<u32>& viewport) {
-    for (auto& renderPass : m_renderPasses)
+    for (auto& renderPass : m_renderPasses) {
         renderPass->regenerateRenderTargets(viewport);
+        renderPass->setRectSize(viewport);
+    }
 }
 
 }  // namespace sl
