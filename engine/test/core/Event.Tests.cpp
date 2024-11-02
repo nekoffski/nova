@@ -71,7 +71,7 @@ TEST_F(EventTests, givenTwoHandlers_whenEmittingEventWithStop_shouldNotCallBoth)
     bool called  = false;
     bool called2 = false;
 
-    [[maybe_unused]] auto id =
+    auto id =
       proxy.pushEventHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
           called = true;
           return EventChainBehaviour::stop;
