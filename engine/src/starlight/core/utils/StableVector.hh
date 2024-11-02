@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <queue>
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/Log.hh"
@@ -13,7 +14,9 @@ namespace sl {
 template <typename T> class StableVector {
 public:
     explicit StableVector(u64 capacity
-    ) : m_capacity(capacity), m_size(0u), m_buffer(m_capacity) {}
+    ) : m_capacity(capacity), m_buffer(m_capacity) {
+        for (u64 i = 0; i < capacity; ++i) m_freeSlots.push(i);
+    }
 
     template <typename C>
     requires Callable<C, void, T&>
@@ -25,20 +28,19 @@ public:
     template <typename... Args>
     requires std::is_constructible_v<T, Args...>
     T* emplace(Args&&... args) {
-        for (auto& slot : m_buffer) {
-            if (not slot) {
-                ++m_size;
-                slot.emplace(std::forward<Args>(args)...);
-                return slot.get();
-            }
-        }
-        return nullptr;
+        if (m_freeSlots.empty()) return nullptr;
+
+        auto& slot = m_buffer[m_freeSlots.front()];
+        m_freeSlots.pop();
+
+        slot.emplace(std::forward<Args>(args)...);
+        return slot.get();
     }
 
     bool erase(T* value) {
-        for (auto& slot : m_buffer) {
-            if (slot && slot.get() == value) {
-                --m_size;
+        for (u64 i = 0; i < m_capacity; ++i) {
+            if (auto& slot = m_buffer[i]; slot && slot.get() == value) {
+                m_freeSlots.push(i);
                 slot.clear();
                 return true;
             }
@@ -47,12 +49,12 @@ public:
     }
 
     u64 getCapacity() const { return m_capacity; }
-    u64 getSize() const { return m_size; }
+    u64 getSize() const { return m_capacity - m_freeSlots.size(); }
 
 private:
     const u64 m_capacity;
-    u64 m_size;
     std::vector<LocalPtr<T>> m_buffer;
+    std::queue<u64> m_freeSlots;
 };
 
 }  // namespace sl

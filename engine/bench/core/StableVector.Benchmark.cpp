@@ -12,6 +12,7 @@ struct Foo {
 static void emplace_std_vector(benchmark::State& state) {
     const auto n = state.range(0);
     std::vector<Foo> c;
+    c.reserve(n);
 
     for (auto _ : state) {
         for (int i = 0; i < n; ++i) {
@@ -33,5 +34,5 @@ static void emplace_stable_vector(benchmark::State& state) {
     }
 }
 
-BENCHMARK(emplace_std_vector)->RangeMultiplier(8)->Range(8, 1024 * 16);
-BENCHMARK(emplace_stable_vector)->RangeMultiplier(8)->Range(8, 1024 * 16);
+BENCHMARK(emplace_std_vector)->RangeMultiplier(8)->Range(4, 1024 * 16);
+BENCHMARK(emplace_stable_vector)->RangeMultiplier(8)->Range(4, 1024 * 16);
