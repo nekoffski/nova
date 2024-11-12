@@ -4,7 +4,7 @@
 
 #include <fmt/core.h>
 
-#include "starlight/core/Log.h"
+#include "starlight/core/Log.hh"
 
 class Logger {
     enum class Severity { info, debug, warning };

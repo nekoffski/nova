@@ -2,20 +2,20 @@
 
 #include <optional>
 
-#include "starlight/core/Core.h"
-#include "starlight/ui/UI.h"
+#include "starlight/core/Core.hh"
+#include "starlight/ui/UI.hh"
 
-#include "starlight/renderer/RendererFrontend.h"
+#include "starlight/renderer/RendererFrontend.hh"
 
-#include "starlight/scene/Scene.h"
+#include "starlight/scene/Scene.hh"
 
-#include "ScenePanel.h"
-#include "EntityInspectorPanel.h"
-#include "ResourceInspectorPanel.h"
-#include "ResourcesPanel.h"
-#include "Console.h"
+#include "ScenePanel.hh"
+#include "EntityInspectorPanel.hh"
+#include "ResourceInspectorPanel.hh"
+#include "ResourcesPanel.hh"
+#include "Console.hh"
 
-#include "Core.h"
+#include "Core.hh"
 
 class UI {
 public:

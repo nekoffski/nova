@@ -1,13 +1,10 @@
-#include "UI.h"
+#include "UI.hh"
 
-#include "starlight/core/Log.h"
-#include "starlight/core/math/Core.h"
-#include "starlight/core/event/Event.h"
+#include "starlight/core/Log.hh"
+#include "starlight/core/math/Core.hh"
+#include "starlight/core/event/Event.hh"
 
-#include "starlight/ui/fonts/FontAwesome.h"
-
-#include "starlight/scene/components/MeshComponent.h"
-#include "starlight/scene/components/TransformComponent.h"
+#include "starlight/ui/fonts/FontAwesome.hh"
 
 #include "Events.h"
 
@@ -16,8 +13,8 @@ UI::UI(sl::u64 w, sl::u64 h, sl::RendererFrontend& renderer, sl::Scene* scene) :
     m_leftCombo(
       "left-combo",
       sl::ui::PanelCombo::Properties{
-        .position             = {0,                     0},
-        .size                 = { panelWidthFactor * w, h},
+        .position             = { 0,                    0 },
+        .size                 = { panelWidthFactor * w, h },
         .alignWithMainMenuBar = true,
         .orientation          = sl::ui::PanelCombo::Orientation::vertical
 }

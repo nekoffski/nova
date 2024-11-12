@@ -2,10 +2,10 @@
 
 #include <optional>
 
-#include "starlight/core/Core.h"
-#include "starlight/core/math/Core.h"
-#include "starlight/renderer/camera/Camera.h"
-#include "starlight/ui/UI.h"
+#include "starlight/core/Core.hh"
+#include "starlight/core/math/Core.hh"
+#include "starlight/renderer/camera/Camera.hh"
+#include "starlight/ui/UI.hh"
 
 enum class ResourceType { mesh = 0, texture, shader, material };
 

@@ -1,7 +1,6 @@
-#include "ScenePanel.h"
+#include "ScenePanel.hh"
 
-#include "starlight/ui/UI.h"
-#include "starlight/scene/components/All.h"
+#include "starlight/ui/UI.hh"
 
 ScenePanel::ScenePanel(sl::Scene* scene, UIState* state, Logger* logger) :
     m_scene(scene), m_state(state), m_logger(logger), m_tabs("scene-tabs") {

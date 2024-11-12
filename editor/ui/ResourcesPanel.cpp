@@ -1,8 +1,6 @@
-#include "ResourcesPanel.h"
+#include "ResourcesPanel.hh"
 
 #include <thread>
-
-#include "starlight/resource/All.h"
 
 template <typename Resource, typename Manager>
 void renderResourceTab(Manager* manager, ResourceType resourceType, UIState* state) {

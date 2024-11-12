@@ -1,4 +1,4 @@
-#include "Core.h"
+#include "Core.hh"
 
 std::string resourceTypeToString(ResourceType type) {
     switch (type) {

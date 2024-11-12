@@ -1,28 +1,22 @@
-#include "Application.h"
+#include "Application.hh"
 
-#include "starlight/core/event/Quit.h"
-#include "starlight/core/event/WindowResized.h"
-#include "starlight/core/event/Input.h"
+#include "starlight/core/event/Quit.hh"
+#include "starlight/core/event/WindowResized.hh"
+#include "starlight/core/event/Input.hh"
 
-#include "starlight/renderer/views/UIRenderView.h"
-#include "starlight/renderer/views/WorldRenderView.h"
-#include "starlight/renderer/views/SkyboxRenderView.h"
-#include "starlight/renderer/RenderPacket.h"
+#include "starlight/renderer/views/UIRenderView.hh"
+#include "starlight/renderer/views/WorldRenderView.hh"
+#include "starlight/renderer/views/SkyboxRenderView.hh"
+#include "starlight/renderer/RenderPacket.hh"
 
-#include "starlight/ui/UI.h"
-#include "starlight/ui/fonts/FontAwesome.h"
+#include "starlight/ui/UI.hh"
+#include "starlight/ui/fonts/FontAwesome.hh"
 
-#include "starlight/scene/components/MeshComponent.h"
-#include "starlight/scene/components/TransformComponent.h"
-
-#include "starlight/resource/All.h"
-
-#include "Events.h"
+#include "Events.hh"
 
 Application::Application(int argc, char** argv) :
     m_isRunning(false), m_update(false), m_context("Starlight Editor"),
-    m_window(m_context.getWindow()), m_renderer(m_context),
-    m_resourceContext(*m_renderer.getResourcePools()), m_activeCamera(nullptr),
+    m_window(m_context.getWindow()), m_renderer(m_context), m_activeCamera(nullptr),
     m_ui(
       m_window.getSize().w,
       m_window.getSize().h,  // TODO: no comment required
@@ -31,11 +25,6 @@ Application::Application(int argc, char** argv) :
     m_logger(m_ui.getLogger()), m_sceneSerializer(m_fileSystem),
     m_sceneDeserializer(m_fileSystem) {
     const auto framebufferSize = m_window.getFramebufferSize();
-
-    sl::ModelManager::get().load("falcon");
-    sl::ModelManager::get().load("tower");
-
-    if (argc == 2) m_sceneDeserializer.deserialize(m_scene, argv[1]);
 
     m_eulerCamera = sl::createUniqPtr<sl::EulerCamera>(sl::EulerCamera::Properties{
       .target       = sl::Vec3<sl::f32>{ 0.0f },
@@ -68,10 +57,11 @@ int Application::run() {
         .subfonts = { icons }
     };
 
-    sl::UIRenderView::Properties uiProperties;
-    uiProperties.fonts = { font };
+    // sl::UIRenderView::Properties uiProperties;
+    // uiProperties.fonts = { font };
 
-    sl::UIRenderView uiView(m_activeCamera, uiProperties, [&]() { m_ui.render(); });
+    // sl::UIRenderView uiView(m_activeCamera, uiProperties, [&]() { m_ui.render();
+    // });
 
     auto materialShader = sl::ShaderManager::get().load("Builtin.Shader.Material");
     sl::WorldRenderView worldView{ m_activeCamera, materialShader };
@@ -80,24 +70,20 @@ int Application::run() {
     auto skybox = sl::SkyboxManager::get().load("skybox2/skybox", *skyboxShader);
 
     ASSERT(skybox, "Could not load skybox");
-    sl::SkyboxRenderView skyboxView{ m_activeCamera, skyboxShader, skybox };
-
-    m_views.push_back(&skyboxView);
-    m_views.push_back(&worldView);
-    m_views.push_back(&uiView);
+    // sl::SkyboxRenderView skyboxView{ m_activeCamera, skyboxShader, skybox };
 
     LOG_INFO("Starlight Editor starting");
 
     m_isRunning = true;
-    m_renderer.init(m_views);
+    // m_renderer.init(m_views);
 
     while (m_isRunning && not m_ui.shouldExit()) {
         m_context.beginFrame([&](float deltaTime) {
             LOG_VAR(deltaTime);
             LOG_VAR(m_activeCamera->getPosition());
 
-            auto renderPacket     = m_scene.getRenderPacket();
-            renderPacket.viewport = m_viewport;
+            auto renderPacket = m_scene.getRenderPacket();
+            // renderPacket.viewport = m_viewport;
 
             m_renderer.renderFrame(deltaTime, renderPacket);
 

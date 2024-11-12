@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core.h"
-#include "Console.h"
+#include "Core.hh"
+#include "Console.hh"
 
 #include "kc/async/TaskScheduler.hpp"
 

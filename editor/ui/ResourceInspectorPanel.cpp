@@ -1,17 +1,15 @@
-#include "ResourceInspectorPanel.h"
+#include "ResourceInspectorPanel.hh"
 
-#include "starlight/scene/components/All.h"
-#include "starlight/resource/All.h"
+#include "starlight/scene/components/All.hh"
+#include "starlight/resource/All.hh"
 
 #include "backends/imgui_impl_vulkan.h"
 
-#include "starlight/renderer/gpu/vulkan/VKTexture.h"
+#include "starlight/renderer/gpu/vulkan/VKTexture.hh"
 
 ResourceInspectorPanel::ResourceInspectorPanel(
   sl::Scene* scene, UIState* state, Logger* logger
-) :
-    m_scene(scene),
-    m_state(state), m_logger(logger) {}
+) : m_scene(scene), m_state(state), m_logger(logger) {}
 
 void ResourceInspectorPanel::render() {
     if (m_state->selectedResourceId) {

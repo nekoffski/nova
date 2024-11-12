@@ -2,24 +2,22 @@
 
 #include <vector>
 
-#include "starlight/core/Core.h"
-#include "starlight/core/memory/Memory.hpp"
-#include "starlight/core/window/Window.h"
-#include "starlight/core/Context.h"
-#include "starlight/core/FileSystem.h"
+#include "starlight/core/Core.hh"
+#include "starlight/core/memory/Memory.hh"
+#include "starlight/core/window/Window.hh"
+#include "starlight/core/Context.hh"
+#include "starlight/core/FileSystem.hh"
 
-#include "starlight/renderer/camera/EulerCamera.h"
-#include "starlight/renderer/camera/FirstPersonCamera.h"
-#include "starlight/renderer/RendererFrontend.h"
-#include "starlight/renderer/views/RenderView.h"
+#include "starlight/renderer/camera/EulerCamera.hh"
+#include "starlight/renderer/camera/FirstPersonCamera.hh"
+#include "starlight/renderer/RendererFrontend.hh"
+#include "starlight/renderer/views/RenderView.hh"
 
-#include "starlight/resource/ResourceContext.h"
+#include "starlight/scene/Scene.hh"
+// #include "starlight/scene/SceneSerializer.hh"
+// #include "starlight/scene/SceneDeserializer.hh"
 
-#include "starlight/scene/Scene.h"
-#include "starlight/scene/SceneSerializer.h"
-#include "starlight/scene/SceneDeserializer.h"
-
-#include "ui/UI.h"
+#include "ui/UI.hh"
 
 class Application {
 public:
@@ -39,7 +37,6 @@ private:
     sl::Context m_context;
     sl::Window& m_window;
     sl::RendererFrontend m_renderer;
-    sl::ResourceContext m_resourceContext;
 
     UI m_ui;
     Logger* m_logger;

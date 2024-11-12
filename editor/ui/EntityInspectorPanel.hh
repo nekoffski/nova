@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "starlight/scene/Scene.h"
+#include "starlight/scene/Scene.hh"
 
-#include "Core.h"
-#include "Console.h"
+#include "Core.hh"
+#include "Console.hh"
 
-#include "starlight/renderer/gpu/Texture.h"
+#include "starlight/renderer/gpu/Texture.hh"
 
 class EntityInspectorPanel {
     struct EntityData {

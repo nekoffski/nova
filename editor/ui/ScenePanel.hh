@@ -1,12 +1,10 @@
 #pragma once
 
-#include "starlight/scene/Scene.h"
+#include "starlight/scene/Scene.hh"
+#include "starlight/ui/UI.hh"
 
-#include "Core.h"
-
-#include "starlight/ui/UI.h"
-
-#include "Console.h"
+#include "Core.hh"
+#include "Console.hh"
 
 class ScenePanel {
 public:
