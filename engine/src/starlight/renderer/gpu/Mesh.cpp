@@ -29,7 +29,7 @@ ResourceRef<Mesh> Mesh::getCube() {
     static CubeProperties properties{
         10.0f, 10.0f, 10.0f, 1, 1, "Internal.Mesh.SkyboxCube", ""
     };
-    return load(MeshConfig3D::generateCube(properties));
+    return load(properties);
 }
 
 const Mesh::BufferDescription& Mesh::getDataDescription() const {
@@ -82,14 +82,46 @@ ResourceRef<Mesh> MeshManager::load(const MeshConfig3D& config) {
     return store(config.name, createMesh(m_renderer, data, properties));
 }
 
-MeshConfig3D MeshConfig3D::generatePlane(const PlaneProperties& props) {
-    MeshConfig3D out;
+MeshConfig3D::MeshConfig3D(const SphereProperties& props) {
+    for (int i = 0; i <= props.stacks; ++i) {
+        float V   = (float)i / (float)props.stacks;
+        float phi = V * pi;
 
+        for (int j = 0; j <= props.slices; ++j) {
+            float U     = (float)j / (float)props.slices;
+            float theta = U * (pi * 2);
+
+            // use spherical coordinates to calculate the positions.
+            float x = props.radius * cos(theta) * sin(phi);
+            float y = props.radius * cos(phi);
+            float z = props.radius * sin(theta) * sin(phi);
+
+            Vertex3 v;
+
+            v.position.x = x;
+            v.position.y = y;
+            v.position.z = z;
+
+            vertices.push_back(v);
+        }
+    }
+    for (int i = 0; i < props.slices * props.stacks + props.slices; ++i) {
+        indices.push_back(i);
+        indices.push_back(i + props.slices + 1);
+        indices.push_back(i + props.slices);
+
+        indices.push_back(i + props.slices + 1);
+        indices.push_back(i);
+        indices.push_back(i + 1);
+    }
+}
+
+MeshConfig3D::MeshConfig3D(const PlaneProperties& props) {
     const auto vertexCount = props.xSegments * props.ySegments * 4;
     const auto indexCount  = props.xSegments * props.ySegments * 6;
 
-    out.vertices.resize(vertexCount);
-    out.indices.resize(indexCount);
+    vertices.resize(vertexCount);
+    indices.resize(indexCount);
 
     float segWidth   = (float)props.width / props.xSegments;
     float segHeight  = (float)props.height / props.ySegments;
@@ -110,10 +142,10 @@ MeshConfig3D MeshConfig3D::generatePlane(const PlaneProperties& props) {
 
             uint32_t vOffset = ((y * props.xSegments) + x) * 4;
 
-            auto v0 = &out.vertices[vOffset + 0];
-            auto v1 = &out.vertices[vOffset + 1];
-            auto v2 = &out.vertices[vOffset + 2];
-            auto v3 = &out.vertices[vOffset + 3];
+            auto v0 = &vertices[vOffset + 0];
+            auto v1 = &vertices[vOffset + 1];
+            auto v2 = &vertices[vOffset + 2];
+            auto v3 = &vertices[vOffset + 3];
 
             v0->position           = glm::vec3{ minX, minY, 0.0f };
             v0->textureCoordinates = glm::vec2{ minUVX, minUVY };
@@ -129,20 +161,18 @@ MeshConfig3D MeshConfig3D::generatePlane(const PlaneProperties& props) {
 
             uint32_t iOffset = ((y * props.xSegments) + x) * 6;
 
-            out.indices[iOffset + 0] = vOffset + 0;
-            out.indices[iOffset + 1] = vOffset + 1;
-            out.indices[iOffset + 2] = vOffset + 2;
-            out.indices[iOffset + 3] = vOffset + 0;
-            out.indices[iOffset + 4] = vOffset + 3;
-            out.indices[iOffset + 5] = vOffset + 1;
+            indices[iOffset + 0] = vOffset + 0;
+            indices[iOffset + 1] = vOffset + 1;
+            indices[iOffset + 2] = vOffset + 2;
+            indices[iOffset + 3] = vOffset + 0;
+            indices[iOffset + 4] = vOffset + 3;
+            indices[iOffset + 5] = vOffset + 1;
         }
     }
-    out.name = props.name;
-
-    return out;
+    name = props.name;
 }
 
-MeshConfig3D MeshConfig3D::generateCube(const CubeProperties& props) {
+MeshConfig3D::MeshConfig3D(const CubeProperties& props) {
     const auto& [width, height, depth, xTile, yTile, name, materialName] = props;
 
     ASSERT(
@@ -150,13 +180,11 @@ MeshConfig3D MeshConfig3D::generateCube(const CubeProperties& props) {
       "Invalid properties for cube, dimensions must be greater than 0"
     );
 
-    MeshConfig3D out;
-
     const auto vertexCount = 4 * 6;
     const auto indexCount  = 6 * 6;
 
-    out.vertices.resize(vertexCount);
-    out.indices.resize(indexCount);
+    vertices.resize(vertexCount);
+    indices.resize(indexCount);
 
     float halfWidth  = width * 0.5f;
     float halfHeight = height * 0.5f;
@@ -173,102 +201,101 @@ MeshConfig3D MeshConfig3D::generateCube(const CubeProperties& props) {
     float max_uvy    = yTile;
 
     // Front face
-    out.vertices[(0 * 4) + 0].position           = Vec3<f32>{ min_x, min_y, max_z };
-    out.vertices[(0 * 4) + 1].position           = Vec3<f32>{ max_x, max_y, max_z };
-    out.vertices[(0 * 4) + 2].position           = Vec3<f32>{ min_x, max_y, max_z };
-    out.vertices[(0 * 4) + 3].position           = Vec3<f32>{ max_x, min_y, max_z };
-    out.vertices[(0 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
-    out.vertices[(0 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
-    out.vertices[(0 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
-    out.vertices[(0 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
-    out.vertices[(0 * 4) + 0].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
-    out.vertices[(0 * 4) + 1].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
-    out.vertices[(0 * 4) + 2].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
-    out.vertices[(0 * 4) + 3].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
+    vertices[(0 * 4) + 0].position           = Vec3<f32>{ min_x, min_y, max_z };
+    vertices[(0 * 4) + 1].position           = Vec3<f32>{ max_x, max_y, max_z };
+    vertices[(0 * 4) + 2].position           = Vec3<f32>{ min_x, max_y, max_z };
+    vertices[(0 * 4) + 3].position           = Vec3<f32>{ max_x, min_y, max_z };
+    vertices[(0 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
+    vertices[(0 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
+    vertices[(0 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
+    vertices[(0 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
+    vertices[(0 * 4) + 0].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
+    vertices[(0 * 4) + 1].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
+    vertices[(0 * 4) + 2].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
+    vertices[(0 * 4) + 3].normal             = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
 
     // Back face
-    out.vertices[(1 * 4) + 0].position           = Vec3<f32>{ max_x, min_y, min_z };
-    out.vertices[(1 * 4) + 1].position           = Vec3<f32>{ min_x, max_y, min_z };
-    out.vertices[(1 * 4) + 2].position           = Vec3<f32>{ max_x, max_y, min_z };
-    out.vertices[(1 * 4) + 3].position           = Vec3<f32>{ min_x, min_y, min_z };
-    out.vertices[(1 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
-    out.vertices[(1 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
-    out.vertices[(1 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
-    out.vertices[(1 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
-    out.vertices[(1 * 4) + 0].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
-    out.vertices[(1 * 4) + 1].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
-    out.vertices[(1 * 4) + 2].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
-    out.vertices[(1 * 4) + 3].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
+    vertices[(1 * 4) + 0].position           = Vec3<f32>{ max_x, min_y, min_z };
+    vertices[(1 * 4) + 1].position           = Vec3<f32>{ min_x, max_y, min_z };
+    vertices[(1 * 4) + 2].position           = Vec3<f32>{ max_x, max_y, min_z };
+    vertices[(1 * 4) + 3].position           = Vec3<f32>{ min_x, min_y, min_z };
+    vertices[(1 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
+    vertices[(1 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
+    vertices[(1 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
+    vertices[(1 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
+    vertices[(1 * 4) + 0].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
+    vertices[(1 * 4) + 1].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
+    vertices[(1 * 4) + 2].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
+    vertices[(1 * 4) + 3].normal             = Vec3<f32>{ 0.0f, 0.0f, -1.0f };
 
     // Left
-    out.vertices[(2 * 4) + 0].position           = Vec3<f32>{ min_x, min_y, min_z };
-    out.vertices[(2 * 4) + 1].position           = Vec3<f32>{ min_x, max_y, max_z };
-    out.vertices[(2 * 4) + 2].position           = Vec3<f32>{ min_x, max_y, min_z };
-    out.vertices[(2 * 4) + 3].position           = Vec3<f32>{ min_x, min_y, max_z };
-    out.vertices[(2 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
-    out.vertices[(2 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
-    out.vertices[(2 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
-    out.vertices[(2 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
-    out.vertices[(2 * 4) + 0].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
-    out.vertices[(2 * 4) + 1].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
-    out.vertices[(2 * 4) + 2].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
-    out.vertices[(2 * 4) + 3].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
+    vertices[(2 * 4) + 0].position           = Vec3<f32>{ min_x, min_y, min_z };
+    vertices[(2 * 4) + 1].position           = Vec3<f32>{ min_x, max_y, max_z };
+    vertices[(2 * 4) + 2].position           = Vec3<f32>{ min_x, max_y, min_z };
+    vertices[(2 * 4) + 3].position           = Vec3<f32>{ min_x, min_y, max_z };
+    vertices[(2 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
+    vertices[(2 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
+    vertices[(2 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
+    vertices[(2 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
+    vertices[(2 * 4) + 0].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
+    vertices[(2 * 4) + 1].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
+    vertices[(2 * 4) + 2].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
+    vertices[(2 * 4) + 3].normal             = Vec3<f32>{ -1.0f, 0.0f, 0.0f };
 
     // Right face
-    out.vertices[(3 * 4) + 0].position           = Vec3<f32>{ max_x, min_y, max_z };
-    out.vertices[(3 * 4) + 1].position           = Vec3<f32>{ max_x, max_y, min_z };
-    out.vertices[(3 * 4) + 2].position           = Vec3<f32>{ max_x, max_y, max_z };
-    out.vertices[(3 * 4) + 3].position           = Vec3<f32>{ max_x, min_y, min_z };
-    out.vertices[(3 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
-    out.vertices[(3 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
-    out.vertices[(3 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
-    out.vertices[(3 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
-    out.vertices[(3 * 4) + 0].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
-    out.vertices[(3 * 4) + 1].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
-    out.vertices[(3 * 4) + 2].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
-    out.vertices[(3 * 4) + 3].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
+    vertices[(3 * 4) + 0].position           = Vec3<f32>{ max_x, min_y, max_z };
+    vertices[(3 * 4) + 1].position           = Vec3<f32>{ max_x, max_y, min_z };
+    vertices[(3 * 4) + 2].position           = Vec3<f32>{ max_x, max_y, max_z };
+    vertices[(3 * 4) + 3].position           = Vec3<f32>{ max_x, min_y, min_z };
+    vertices[(3 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
+    vertices[(3 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
+    vertices[(3 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
+    vertices[(3 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
+    vertices[(3 * 4) + 0].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
+    vertices[(3 * 4) + 1].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
+    vertices[(3 * 4) + 2].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
+    vertices[(3 * 4) + 3].normal             = Vec3<f32>{ 1.0f, 0.0f, 0.0f };
 
     // Bottom face
-    out.vertices[(4 * 4) + 0].position           = Vec3<f32>{ max_x, min_y, max_z };
-    out.vertices[(4 * 4) + 1].position           = Vec3<f32>{ min_x, min_y, min_z };
-    out.vertices[(4 * 4) + 2].position           = Vec3<f32>{ max_x, min_y, min_z };
-    out.vertices[(4 * 4) + 3].position           = Vec3<f32>{ min_x, min_y, max_z };
-    out.vertices[(4 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
-    out.vertices[(4 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
-    out.vertices[(4 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
-    out.vertices[(4 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
-    out.vertices[(4 * 4) + 0].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
-    out.vertices[(4 * 4) + 1].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
-    out.vertices[(4 * 4) + 2].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
-    out.vertices[(4 * 4) + 3].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
+    vertices[(4 * 4) + 0].position           = Vec3<f32>{ max_x, min_y, max_z };
+    vertices[(4 * 4) + 1].position           = Vec3<f32>{ min_x, min_y, min_z };
+    vertices[(4 * 4) + 2].position           = Vec3<f32>{ max_x, min_y, min_z };
+    vertices[(4 * 4) + 3].position           = Vec3<f32>{ min_x, min_y, max_z };
+    vertices[(4 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
+    vertices[(4 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
+    vertices[(4 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
+    vertices[(4 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
+    vertices[(4 * 4) + 0].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
+    vertices[(4 * 4) + 1].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
+    vertices[(4 * 4) + 2].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
+    vertices[(4 * 4) + 3].normal             = Vec3<f32>{ 0.0f, -1.0f, 0.0f };
 
     // Top face
-    out.vertices[(5 * 4) + 0].position           = Vec3<f32>{ min_x, max_y, max_z };
-    out.vertices[(5 * 4) + 1].position           = Vec3<f32>{ max_x, max_y, min_z };
-    out.vertices[(5 * 4) + 2].position           = Vec3<f32>{ min_x, max_y, min_z };
-    out.vertices[(5 * 4) + 3].position           = Vec3<f32>{ max_x, max_y, max_z };
-    out.vertices[(5 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
-    out.vertices[(5 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
-    out.vertices[(5 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
-    out.vertices[(5 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
-    out.vertices[(5 * 4) + 0].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
-    out.vertices[(5 * 4) + 1].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
-    out.vertices[(5 * 4) + 2].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
-    out.vertices[(5 * 4) + 3].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
+    vertices[(5 * 4) + 0].position           = Vec3<f32>{ min_x, max_y, max_z };
+    vertices[(5 * 4) + 1].position           = Vec3<f32>{ max_x, max_y, min_z };
+    vertices[(5 * 4) + 2].position           = Vec3<f32>{ min_x, max_y, min_z };
+    vertices[(5 * 4) + 3].position           = Vec3<f32>{ max_x, max_y, max_z };
+    vertices[(5 * 4) + 0].textureCoordinates = Vec2<f32>{ min_uvx, min_uvy };
+    vertices[(5 * 4) + 1].textureCoordinates = Vec2<f32>{ max_uvx, max_uvy };
+    vertices[(5 * 4) + 2].textureCoordinates = Vec2<f32>{ min_uvx, max_uvy };
+    vertices[(5 * 4) + 3].textureCoordinates = Vec2<f32>{ max_uvx, min_uvy };
+    vertices[(5 * 4) + 0].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
+    vertices[(5 * 4) + 1].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
+    vertices[(5 * 4) + 2].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
+    vertices[(5 * 4) + 3].normal             = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
 
     for (u32 i = 0; i < 6; ++i) {
-        u32 v_offset              = i * 4;
-        u32 i_offset              = i * 6;
-        out.indices[i_offset + 0] = v_offset + 0;
-        out.indices[i_offset + 1] = v_offset + 1;
-        out.indices[i_offset + 2] = v_offset + 2;
-        out.indices[i_offset + 3] = v_offset + 0;
-        out.indices[i_offset + 4] = v_offset + 3;
-        out.indices[i_offset + 5] = v_offset + 1;
+        u32 v_offset          = i * 4;
+        u32 i_offset          = i * 6;
+        indices[i_offset + 0] = v_offset + 0;
+        indices[i_offset + 1] = v_offset + 1;
+        indices[i_offset + 2] = v_offset + 2;
+        indices[i_offset + 3] = v_offset + 0;
+        indices[i_offset + 4] = v_offset + 3;
+        indices[i_offset + 5] = v_offset + 1;
     }
 
-    out.name = name;
-    return out;
+    this->name = name;
 }
 
 void MeshConfig3D::generateTangents() { sl::generateTangents(vertices, indices); }

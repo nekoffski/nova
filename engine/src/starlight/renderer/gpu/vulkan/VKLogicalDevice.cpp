@@ -119,6 +119,7 @@ void VKLogicalDevice::createLogicalDeviceInstance() {
     std::vector<const char*> extensionNames = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
     VkDeviceCreateInfo deviceCreateInfo;
+    clearMemory(&deviceCreateInfo);
     deviceCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.queueCreateInfoCount    = queueCreateInfos.size();
     deviceCreateInfo.pQueueCreateInfos       = queueCreateInfos.data();

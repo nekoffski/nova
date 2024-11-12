@@ -124,7 +124,7 @@ private:
     void* m_mappedUniformBufferBlock;
     Config m_config;
     VkDescriptorPool m_descriptorPool;
-    std::array<VkDescriptorSetLayout, 2> m_descriptorSetLayouts;
+    std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
     std::array<VkDescriptorSet, 3> m_globalDescriptorSets;
 
     LocalPtr<VKPipeline> m_pipeline;
@@ -162,7 +162,7 @@ private:
     std::array<VkDescriptorPoolSize, 2> m_poolSizes;
     u16 m_maxDescriptorSetCount;
     u8 m_descriptorSetCount;
-    std::array<DescriptorSetConfig, 2> m_descriptorSets;
+    std::vector<DescriptorSetConfig> m_descriptorSets;
     std::vector<VkVertexInputAttributeDescription> m_attributeDescriptions;
 
     u8 m_globalUniformCount;

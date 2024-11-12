@@ -26,6 +26,7 @@ RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
         props.renderTargets.push_back(renderTarget);
     }
 
+    props.includeDepthAttachment = false;
     return props;
 }
 
@@ -68,21 +69,5 @@ void SkyboxRenderView::render(
 
     renderer.drawMesh(*m_skybox->getMesh());
 }
-
-//   RendererBackend& renderer, Vec2<u32> viewportSize
-// ) {
-//     // TODO: make it generic
-//     std::vector<RenderTarget> renderTargets;
-//     renderTargets.reserve(3);
-
-//     RenderTarget renderTarget{ .size = viewportSize, .attachments = {} };
-
-//     for (u8 i = 0; i < 3; ++i) {
-//         renderTarget.attachments = { renderer.getSwapchainTexture(i) };
-//         renderTargets.push_back(renderTarget);
-//     }
-//     m_renderPass->regenerateRenderTargets(renderTargets);
-//     m_renderPass->setRectSize(viewportSize);
-// }
 
 }  // namespace sl

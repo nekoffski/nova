@@ -35,6 +35,7 @@ public:
         Vec4<f32> clearColor;
         ClearFlags clearFlags;
         std::vector<RenderTarget> renderTargets;
+        bool includeDepthAttachment;
     };
 
     static OwningPtr<RenderPass> create(

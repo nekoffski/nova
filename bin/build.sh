@@ -8,7 +8,7 @@ if [ "$MODE" = 'dev' ]; then
     conan install ${SRC}/conan/ --output-folder=${SRC}/build --build=missing --profile ${SRC}/conan/profiles/debug
     cd ${SRC}/build
     cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug -DSL_ENABLE_UNIT_TESTS=On \
-        -DSL_ENABLE_COVERAGE=On -DSL_ENABLE_BENCHMARKS=On -DSL_BUILD_TYPE=DEV
+        -DSL_ENABLE_COVERAGE=Off -DSL_ENABLE_BENCHMARKS=On -DSL_BUILD_TYPE=DEV
 elif [ "$MODE" = 'debug' ]; then
     conan install ${SRC}/conan/ --output-folder=${SRC}/build --build=missing --profile ${SRC}/conan/profiles/debug
     cd ${SRC}/build

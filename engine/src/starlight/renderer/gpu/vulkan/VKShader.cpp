@@ -155,7 +155,8 @@ VKShader::VKShader(
     // HERE!!
 
     if (m_globalUniformCount > 0 || m_globalUniformSamplerCount > 0) {
-        auto& descriptorSetConfig = m_descriptorSets[m_descriptorSetCount];
+        m_descriptorSets.emplace_back();
+        auto& descriptorSetConfig = m_descriptorSets.back();
         auto& bindingIndex        = descriptorSetConfig.bindingCount;
 
         if (m_globalUniformCount > 0) {
@@ -185,7 +186,8 @@ VKShader::VKShader(
     }
     // TODO: unify
     if (m_instanceUniformCount > 0 || m_instanceUniformSamplerCount > 0) {
-        auto& descriptorSetConfig = m_descriptorSets[m_descriptorSetCount];
+        m_descriptorSets.emplace_back();
+        auto& descriptorSetConfig = m_descriptorSets.back();
         auto& bindingIndex        = descriptorSetConfig.bindingCount;
 
         if (m_instanceUniformCount > 0) {
@@ -213,6 +215,7 @@ VKShader::VKShader(
         m_descriptorSetCount++;
     }
 
+    m_descriptorSetLayouts.resize(m_descriptorSetCount);
     m_instanceStates.resize(1024);
 
     createModules(props.stages);
@@ -383,7 +386,7 @@ void VKShader::bindInstance(u32 instanceId) {
 }
 
 void VKShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
-    // // Apply UBO
+    // Apply UBO
     VkDescriptorBufferInfo bufferInfo;
     bufferInfo.buffer = m_uniformBuffer->getHandle();
     bufferInfo.offset = m_globalUboOffset;

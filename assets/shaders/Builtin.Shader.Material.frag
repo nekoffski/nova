@@ -53,10 +53,10 @@ struct DirectionalLight {
 };
 
 
-DirectionalLight light = {
-    vec3(-0.57735, -0.57735, -0.57735),
-    vec4(0.8, 0.8, 0.8, 1.0)
-};
+// DirectionalLight light = {
+    // vec3(-0.57735, -0.57735, -0.57735),
+    // vec4(0.8, 0.8, 0.8, 1.0)
+// };
 
 
 vec4 calculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection) {
@@ -122,7 +122,8 @@ void main() {
 
     if (renderMode == 0 || renderMode == 1) {
         vec3 viewDirection = normalize(dto.viewPosition - dto.fragmentPosition);
-        outColor = calculateDirectionalLight(light, normal, viewDirection);
+        // outColor = calculateDirectionalLight(light, normal, viewDirection);
+        outColor = vec4(0.0, 0.0, 0.0, 1.0);
         for (int i = 0; i < globalUBO.pointLightCount; ++i)
             outColor += calculatePointLight(globalUBO.pointLights[i], normal, dto.fragmentPosition, viewDirection);
     } else {

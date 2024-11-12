@@ -8,8 +8,9 @@
 #include "starlight/core/event/Quit.hh"
 
 #include "starlight/renderer/views/WorldRenderView.hh"
-#include "starlight/renderer/camera/EulerCamera.hh"
+#include "starlight/renderer/views/LightsDebugRenderView.hh"
 #include "starlight/renderer/views/SkyboxRenderView.hh"
+#include "starlight/renderer/camera/EulerCamera.hh"
 #include "starlight/renderer/RendererFrontend.hh"
 #include "starlight/renderer/RenderGraph.hh"
 #include "starlight/renderer/gpu/Shader.hh"
@@ -55,21 +56,24 @@ int main() {
       sl::RenderGraph::Builder{ rendererBackend, viewportSize }
         .addView<sl::SkyboxRenderView>(skybox.get())
         .addView<sl::WorldRenderView>(worldShader.get())
+        .addView<sl::LightsDebugRenderView>()
         .build();
 
     sl::Scene scene{ window, &camera };
 
     auto& entity = scene.addEntity();
 
-    entity
-      .addComponent<sl::MeshComposite>(
-        sl::Mesh::getCube(), sl::Material::load("Builtin.Material.Test")
-      )
-      .data()
-      .getRoot()
-      .getInstances()
-      .front()
-      .scale(sl::Vec3<sl::f32>{ 0.25f });
+    auto& instance =
+      entity
+        .addComponent<sl::MeshComposite>(
+          sl::Mesh::getCube(), sl::Material::load("Builtin.Material.Test")
+        )
+        .data()
+        .getRoot()
+        .getInstances()
+        .front();
+
+    instance.scale(sl::Vec3<sl::f32>{ 0.1f });
 
     renderer.setRenderGraph(renderGraph.get());
 
@@ -77,6 +81,8 @@ int main() {
         context.beginFrame([&](float deltaTime) {
             renderer.renderFrame(deltaTime, scene.getRenderPacket());
             camera.update(deltaTime);
+
+            instance.rotate(sl::Vec3<sl::f32>{ 0.0f, 1.0f, 0.0f }, 0.5f * deltaTime);
         });
     }
 

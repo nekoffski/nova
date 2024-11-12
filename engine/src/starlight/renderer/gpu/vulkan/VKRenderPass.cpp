@@ -15,8 +15,7 @@ struct RenderPassCreateInfo {
     ) : props(props), chainFlags(chainFlags) {
         createColorAttachment(surfaceFormat);
 
-        if (isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::depth))
-            createDepthAttachment(depthFormat);
+        if (props.includeDepthAttachment) createDepthAttachment(depthFormat);
 
         createSubpass();
 
@@ -31,7 +30,7 @@ struct RenderPassCreateInfo {
 
         subpass.pDepthStencilAttachment = nullptr;
 
-        if (isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::depth))
+        if (props.includeDepthAttachment)
             subpass.pDepthStencilAttachment = &depthAttachmentReference;
 
         // Input from a shader
@@ -79,13 +78,15 @@ struct RenderPassCreateInfo {
     }
 
     void createDepthAttachment(VkFormat depthFormat) {
-        depthAttachment.format        = depthFormat;
-        depthAttachment.samples       = VK_SAMPLE_COUNT_1_BIT;
-        depthAttachment.loadOp        = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        depthAttachment.storeOp       = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        depthAttachment.finalLayout =
-          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthAttachment.format  = depthFormat;
+        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.loadOp =
+          isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::depth)
+            ? VK_ATTACHMENT_LOAD_OP_CLEAR
+            : VK_ATTACHMENT_LOAD_OP_LOAD;
+        depthAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+        depthAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachment.finalLayout    = VK_IMAGE_LAYOUT_GENERAL;
         depthAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.flags          = 0;
@@ -94,8 +95,7 @@ struct RenderPassCreateInfo {
 
         // Depth attachment reference
         depthAttachmentReference.attachment = 1;
-        depthAttachmentReference.layout =
-          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthAttachmentReference.layout     = VK_IMAGE_LAYOUT_GENERAL;
     }
 
     void createRenderPassDependencies() {
@@ -202,6 +202,7 @@ VkRenderPassBeginInfo VKRenderPass::createRenderPassBeginInfo(
   const std::vector<VkClearValue>& clearValues, VkFramebuffer framebuffer
 ) const {
     VkRenderPassBeginInfo beginInfo;
+    clearMemory(&beginInfo);
     beginInfo.sType                    = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     beginInfo.renderPass               = m_handle;
     beginInfo.framebuffer              = framebuffer;

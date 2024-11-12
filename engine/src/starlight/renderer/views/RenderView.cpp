@@ -12,8 +12,9 @@ RenderPass::Properties RenderView::getDefaultRenderPassProperties() {
         Vec2<u32>{ 0u, 0u },
         Window::get().getFramebufferSize()
     };
-    props.clearColor = Vec4<f32>{ 1.0f };
-    props.clearFlags = RenderPass::ClearFlags::none;
+    props.clearColor             = Vec4<f32>{ 1.0f };
+    props.clearFlags             = RenderPass::ClearFlags::none;
+    props.includeDepthAttachment = false;
 
     return props;
 }

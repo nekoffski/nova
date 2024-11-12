@@ -79,6 +79,7 @@ void VKCommandBuffer::createAndBeginSingleUse() {
 
 VkSubmitInfo VKCommandBuffer::createSubmitQueueInfo() const {
     VkSubmitInfo submitInfo;
+    clearMemory(&submitInfo);
     submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.pNext                = nullptr;
     submitInfo.commandBufferCount   = 1;

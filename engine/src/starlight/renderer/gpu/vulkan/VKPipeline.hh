@@ -182,7 +182,6 @@ public:
         pipeline_layout_create_info.sType =
           VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-        std::vector<VkPushConstantRange> ranges;
         VkPushConstantRange push_constant;
         clearMemory(&push_constant);
 
@@ -194,38 +193,25 @@ public:
               pushConstantRangeCount
             );
 
-            ranges.reserve(pushConstantRangeCount);
+            u64 totalSize = 0u;
 
             for (const auto& range : props.pushConstantRanges) {
                 LOG_TRACE("Push constant range: {}-{}", range.offset, range.size);
-                ranges.push_back(VkPushConstantRange{
-                  .stageFlags =
-                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                  .offset = static_cast<u32>(range.offset),
-                  .size   = static_cast<u32>(range.size) });
+                totalSize += range.size;
+                // ranges.push_back(VkPushConstantRange{
+                //   .stageFlags =
+                //     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                //   .offset = static_cast<u32>(range.offset),
+                //   .size   = static_cast<u32>(range.size) });
             }
 
-            LOG_TRACE(
-              "Total push constants for pipeline: {}", pushConstantRangeCount
-            );
+            push_constant.stageFlags =
+              VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+            push_constant.offset = 0u;
+            push_constant.size   = totalSize;
 
-            pipeline_layout_create_info.pushConstantRangeCount =
-              pushConstantRangeCount;
-            pipeline_layout_create_info.pPushConstantRanges = ranges.data();
-
-        } else {
-            // TEMPORARY: todo remove
-            push_constant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-            push_constant.offset     = sizeof(glm::mat4) * 0;
-            push_constant.size       = sizeof(glm::mat4) * 2;
             pipeline_layout_create_info.pushConstantRangeCount = 1;
             pipeline_layout_create_info.pPushConstantRanges    = &push_constant;
-
-            pipeline_layout_create_info.pPushConstantRanges    = &push_constant;
-            pipeline_layout_create_info.pushConstantRangeCount = 1;
-
-            // pipeline_layout_create_info.pushConstantRangeCount = 0;
-            // pipeline_layout_create_info.pPushConstantRanges    = nullptr;
         }
 
         // Descriptor set layouts

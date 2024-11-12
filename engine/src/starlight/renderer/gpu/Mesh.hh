@@ -70,11 +70,17 @@ struct CubeProperties {
     std::string_view materialName;
 };
 
-struct MeshConfig3D final : public detail::MeshConfigBase {
-    std::vector<Vertex3> vertices;
+struct SphereProperties {
+    u32 stacks;
+    u32 slices;
+    float radius;
+};
 
-    static MeshConfig3D generatePlane(const PlaneProperties& props);
-    static MeshConfig3D generateCube(const CubeProperties& props);
+struct MeshConfig3D final : public detail::MeshConfigBase {
+    explicit MeshConfig3D() = default;
+    explicit MeshConfig3D(const PlaneProperties& props);
+    explicit MeshConfig3D(const CubeProperties& props);
+    explicit MeshConfig3D(const SphereProperties& props);
 
     Extent3 calculateExtent() const {
         return detail::calculateExtent<Extent3, Vertex3, Vec3<f32>>(vertices);
@@ -82,6 +88,8 @@ struct MeshConfig3D final : public detail::MeshConfigBase {
 
     void generateTangents();
     void generateNormals();
+
+    std::vector<Vertex3> vertices;
 };
 
 struct MeshConfig2D final : public detail::MeshConfigBase {
@@ -125,6 +133,13 @@ public:
 
     static ResourceRef<Mesh> load(const MeshConfig2D& config);
     static ResourceRef<Mesh> load(const MeshConfig3D& config);
+
+    template <typename T>
+    requires std::is_constructible_v<MeshConfig3D, const T&>
+    static ResourceRef<Mesh> load(const T& properties) {
+        return load(MeshConfig3D{ properties });
+    }
+
     static ResourceRef<Mesh> find(const std::string& name);
 
     static ResourceRef<Mesh> getCube();

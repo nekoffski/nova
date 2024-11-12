@@ -241,6 +241,7 @@ VkInstanceCreateInfo createInstanceCreateInfo(
   std::vector<const char*>& layers
 ) {
     VkInstanceCreateInfo instanceCreateInfo;
+    clearMemory(&instanceCreateInfo);
     instanceCreateInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
     instanceCreateInfo.enabledExtensionCount   = extensions.size();

@@ -31,6 +31,7 @@ RenderPass::Properties WorldRenderView::getRenderPassProperties(
         props.renderTargets.push_back(renderTarget);
     }
 
+    props.includeDepthAttachment = true;
     return props;
 }
 
@@ -120,24 +121,5 @@ void WorldRenderView::render(
         renderer.drawMesh(*mesh);
     }
 }
-
-// void WorldRenderView::onViewportResize(
-//   RendererBackend& renderer, Vec2<u32> viewportSize
-// ) {
-//     // TODO: get swapchain images count from backend
-//     std::vector<RenderTarget> renderTargets;
-//     renderTargets.reserve(3);
-
-//     RenderTarget renderTarget{ .size = viewportSize, .attachments = {} };
-
-//     for (u8 i = 0; i < 3; ++i) {
-//         renderTarget.attachments = {
-//             renderer.getSwapchainTexture(i), renderer.getDepthTexture()
-//         };
-//         renderTargets.push_back(renderTarget);
-//     }
-//     m_renderPass->regenerateRenderTargets(renderTargets);
-//     m_renderPass->setRectSize(viewportSize);
-// }
 
 }  // namespace sl

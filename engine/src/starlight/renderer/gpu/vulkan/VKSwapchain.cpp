@@ -279,6 +279,7 @@ VkPresentInfoKHR createPresentInfo(
 ) {
     // Return the image to the swapchain for presentation.
     VkPresentInfoKHR presentInfo;
+    clearMemory(&presentInfo);
     presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores    = renderSemaphore;
