@@ -114,6 +114,9 @@ MeshConfig3D::MeshConfig3D(const SphereProperties& props) {
         indices.push_back(i);
         indices.push_back(i + 1);
     }
+
+    this->generateTangents();
+    this->generateNormals();
 }
 
 MeshConfig3D::MeshConfig3D(const PlaneProperties& props) {
@@ -170,6 +173,8 @@ MeshConfig3D::MeshConfig3D(const PlaneProperties& props) {
         }
     }
     name = props.name;
+    this->generateTangents();
+    this->generateNormals();
 }
 
 MeshConfig3D::MeshConfig3D(const CubeProperties& props) {
@@ -296,6 +301,8 @@ MeshConfig3D::MeshConfig3D(const CubeProperties& props) {
     }
 
     this->name = name;
+    this->generateTangents();
+    this->generateNormals();
 }
 
 void MeshConfig3D::generateTangents() { sl::generateTangents(vertices, indices); }

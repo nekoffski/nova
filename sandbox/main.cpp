@@ -38,7 +38,14 @@ int main() {
           return sl::EventChainBehaviour::propagate;
       })
       .pushHandler<sl::KeyEvent>([&]([[maybe_unused]] const auto& ev) {
-          if (ev.key == SL_KEY_ESCAPE) isRunning = false;
+          if (ev.key == SL_KEY_ESCAPE)
+              isRunning = false;
+          else if (ev.key == SL_KEY_Z)
+              renderer.setRenderMode(sl::RenderMode::lights);
+          else if (ev.key == SL_KEY_X)
+              renderer.setRenderMode(sl::RenderMode::normals);
+          else if (ev.key == SL_KEY_C)
+              renderer.setRenderMode(sl::RenderMode::standard);
           return sl::EventChainBehaviour::propagate;
       });
 

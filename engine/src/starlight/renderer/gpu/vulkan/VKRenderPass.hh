@@ -14,15 +14,6 @@ namespace sl::vk {
 
 class VKRenderPass : public RenderPass {
 public:
-    enum class State : unsigned char {
-        ready,
-        recording,
-        inRenderPass,
-        recordingEnded,
-        submitted,
-        notAllocated
-    };
-
     explicit VKRenderPass(
       VKContext& context, VKLogicalDevice& device, const VKSwapchain& swapchain,
       const Properties& properties, ChainFlags chainFlags

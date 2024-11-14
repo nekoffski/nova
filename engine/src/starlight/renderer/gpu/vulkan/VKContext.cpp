@@ -96,7 +96,6 @@ VkInstance VKContext::createInstance() {
 
     auto instanceCreateInfo =
       createInstanceCreateInfo(applicationInfo, requiredExtensions, layers);
-
     VK_ASSERT(vkCreateInstance(&instanceCreateInfo, m_allocator, &instance));
     LOG_INFO("Vulkan Instance initialized");
 
@@ -151,7 +150,7 @@ VkApplicationInfo createApplicationInfo(const Config& config) {
     applicationInfo.sType            = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.apiVersion       = VK_API_VERSION_1_3;
     applicationInfo.pApplicationName = config.window.name.c_str();
-    applicationInfo.pEngineName      = "Nova Engine";
+    applicationInfo.pEngineName      = "Starlight Engine";
     applicationInfo.engineVersion    = VK_MAKE_VERSION(
       config.version.major, config.version.minor, config.version.build
     );
@@ -242,6 +241,7 @@ VkInstanceCreateInfo createInstanceCreateInfo(
 ) {
     VkInstanceCreateInfo instanceCreateInfo;
     clearMemory(&instanceCreateInfo);
+
     instanceCreateInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
     instanceCreateInfo.enabledExtensionCount   = extensions.size();

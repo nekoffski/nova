@@ -1,4 +1,5 @@
 // clang-format off
+
 #version 450
 
 layout (location = 0) out vec4 outColor;
@@ -9,6 +10,6 @@ layout (push_constant) uniform pushConstants_t {
 } pushConstants;
 
 void main() { 
-    outColor = pushConstants.color;
+    outColor = vec4(pushConstants.color);
 }
    

@@ -8,10 +8,7 @@ static const std::string shaderName = "Builtin.Shader.LightsDebug";
 
 LightsDebugRenderView::LightsDebugRenderView() :
     m_shader(Shader::load(shaderName)),
-    // m_mesh(Mesh::getCube())
-
-    // change the interface! SphereProperties
-    m_mesh(Mesh::load(SphereProperties{ 25, 25, 0.25f })) {}
+    m_mesh(Mesh::load(SphereProperties{ 16, 16, 0.25f })) {}
 
 RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
@@ -60,11 +57,15 @@ void LightsDebugRenderView::render(
     });
 
     for (auto& light : packet.pointLights) {
+        const auto model =
+          math::translate(identityMatrix, Vec3<f32>{ light.position });
+
+        auto color = light.color;
+        color.a    = 1.0f;
+
         m_shader->setLocalUniforms(commandBuffer, [&](auto& proxy) {
-            proxy.set(
-              "model", math::translate(identityMatrix, Vec3<f32>{ light.position })
-            );
-            proxy.set("color", light.color);
+            proxy.set("model", math::scale(model, Vec3<f32>{ 0.1f }));
+            proxy.set("color", color);
         });
         renderer.drawMesh(*m_mesh);
     }

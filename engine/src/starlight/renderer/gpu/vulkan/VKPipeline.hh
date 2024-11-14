@@ -198,11 +198,6 @@ public:
             for (const auto& range : props.pushConstantRanges) {
                 LOG_TRACE("Push constant range: {}-{}", range.offset, range.size);
                 totalSize += range.size;
-                // ranges.push_back(VkPushConstantRange{
-                //   .stageFlags =
-                //     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                //   .offset = static_cast<u32>(range.offset),
-                //   .size   = static_cast<u32>(range.size) });
             }
 
             push_constant.stageFlags =

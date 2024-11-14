@@ -6,7 +6,7 @@
 
 namespace sl {
 
-enum class RenderMode : u8 { standard, normals, lights };
+enum class RenderMode : u8 { standard = 0, normals = 1, lights = 2 };
 
 }
 

@@ -33,7 +33,7 @@ RenderPacket Scene::getRenderPacket() {
     light.position.z = 1.0f;
     light.position.x = 0.0f;
     light.color      = Vec4<f32>{ 0.5f, 0.5f, 0.1f, 1.0f };
-    packet.pointLights.push_back(light);
+    // packet.pointLights.push_back(light);
 
     return packet;
 }

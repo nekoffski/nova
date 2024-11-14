@@ -30,6 +30,15 @@ public:
         hasPrevious = 0x2
     };
 
+    enum class State : unsigned char {
+        ready,
+        recording,
+        inRenderPass,
+        recordingEnded,
+        submitted,
+        notAllocated
+    };
+
     struct Properties {
         Rect2u32 rect;
         Vec4<f32> clearColor;

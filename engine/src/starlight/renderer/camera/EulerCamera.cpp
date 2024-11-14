@@ -24,7 +24,7 @@ Mat4<f32> EulerCamera::getProjectionMatrix() const {
 Vec3<f32> EulerCamera::getPosition() const { return m_position; }
 
 void EulerCamera::update(float deltaTime) {
-    static constexpr float speed = 150.0f;
+    static constexpr float speed = 50.0f;
 
     processInput(speed * deltaTime);
     truncateCoefficients();
