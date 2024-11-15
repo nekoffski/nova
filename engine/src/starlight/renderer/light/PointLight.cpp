@@ -40,6 +40,7 @@ void PointLight::generateLODs() {
               "Could not solve attenuation equation for light: {}",
               m_attenuationFactors
             );
+            continue;
         }
 
         const auto distance = std::max(roots->first, roots->second);
