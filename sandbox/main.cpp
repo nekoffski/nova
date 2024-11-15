@@ -89,7 +89,9 @@ int main() {
             renderer.renderFrame(deltaTime, scene.getRenderPacket());
             camera.update(deltaTime);
 
-            instance.rotate(sl::Vec3<sl::f32>{ 0.0f, 1.0f, 0.0f }, 0.5f * deltaTime);
+            instance.rotate(
+              sl::Vec3<sl::f32>{ 0.0f, 1.0f, 0.0f }, 0.25f * deltaTime
+            );
         });
     }
 

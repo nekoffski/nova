@@ -83,11 +83,11 @@ ResourceRef<Mesh> MeshManager::load(const MeshConfig3D& config) {
 }
 
 MeshConfig3D::MeshConfig3D(const SphereProperties& props) {
-    for (int i = 0; i <= props.stacks; ++i) {
+    for (u32 i = 0; i <= props.stacks; ++i) {
         float V   = (float)i / (float)props.stacks;
         float phi = V * pi;
 
-        for (int j = 0; j <= props.slices; ++j) {
+        for (u32 j = 0; j <= props.slices; ++j) {
             float U     = (float)j / (float)props.slices;
             float theta = U * (pi * 2);
 
@@ -105,7 +105,7 @@ MeshConfig3D::MeshConfig3D(const SphereProperties& props) {
             vertices.push_back(v);
         }
     }
-    for (int i = 0; i < props.slices * props.stacks + props.slices; ++i) {
+    for (u32 i = 0; i < props.slices * props.stacks + props.slices; ++i) {
         indices.push_back(i);
         indices.push_back(i + props.slices + 1);
         indices.push_back(i + props.slices);
