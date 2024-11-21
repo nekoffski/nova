@@ -38,6 +38,8 @@ RenderPacket Scene::getRenderPacket() {
     return packet;
 }
 
+void Scene::setCamera(Camera* camera) { m_camera = camera; }
+
 Entity& Scene::addEntity(std::optional<std::string> name) {
     m_entities.emplace_back(m_componentManager, name);
     return m_entities.back();

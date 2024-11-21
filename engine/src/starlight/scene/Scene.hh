@@ -17,6 +17,7 @@ public:
     explicit Scene(Window& window, Camera* camera);
 
     RenderPacket getRenderPacket();
+    void setCamera(Camera* camera);
 
     Entity& addEntity(std::optional<std::string> name = {});
 

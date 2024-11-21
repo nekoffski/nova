@@ -147,6 +147,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
 
 VkApplicationInfo createApplicationInfo(const Config& config) {
     VkApplicationInfo applicationInfo;
+    clearMemory(&applicationInfo);
     applicationInfo.sType            = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.apiVersion       = VK_API_VERSION_1_3;
     applicationInfo.pApplicationName = config.window.name.c_str();
@@ -223,13 +224,13 @@ VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo() {
       | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    clearMemory(&debugCreateInfo);
     debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     debugCreateInfo.messageSeverity = logSeverity;
     debugCreateInfo.messageType =
       VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
       | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
       | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-    debugCreateInfo.pNext           = nullptr;
     debugCreateInfo.pfnUserCallback = debugMessengerCallback;
 
     return debugCreateInfo;
@@ -246,7 +247,6 @@ VkInstanceCreateInfo createInstanceCreateInfo(
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
     instanceCreateInfo.enabledExtensionCount   = extensions.size();
     instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
-    instanceCreateInfo.pNext                   = nullptr;
 
     const auto layersSize = layers.size();
 
