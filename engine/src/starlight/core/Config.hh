@@ -1,21 +1,37 @@
 #pragma once
 
+#include <optional>
 #include <string>
+
+#include "starlight/core/Core.hh"
+#include "FileSystem.hh"
 
 namespace sl {
 
 struct Config {
+    static std::optional<Config> fromJson(
+      const std::string& path, const FileSystem& fs = fileSystem
+    );
+
+    std::string loggerIdent;
+
     struct Window {
-        const int width        = 1920;
-        const int height       = 1080;
-        const std::string name = "Starlight";
+        u32 width;
+        u32 height;
+        std::string name;
     } window;
 
     struct Version {
-        const int major = 0;
-        const int minor = 1;
-        const int build = 1;
+        u32 major;
+        u32 minor;
+        u32 build;
     } version;
+
+    struct Paths {
+        std::string textures;
+        std::string shaders;
+        std::string materials;
+    } paths;
 };
 
 }  // namespace sl

@@ -20,13 +20,18 @@
 
 static std::atomic_bool isRunning = true;
 
-int main() {
+int main(int argc, char** argv) {
+    ASSERT(argc >= 2, "Config path required");
+    auto config = sl::Config::fromJson(std::string{ argv[1] });
+    ASSERT(config, "Could not load config file");
+
     std::signal(SIGINT, []([[maybe_unused]] int) { isRunning = false; });
 
-    sl::Context context;
-    sl::RendererFrontend renderer{ context };
+    sl::Context context{ *config };
+    auto& window = context.getWindow();
 
-    auto& window            = context.getWindow();
+    sl::RendererFrontend renderer{ window, *config };
+
     const auto viewportSize = window.getFramebufferSize();
 
     auto& eventProxy = sl::EventProxy::get();
@@ -63,7 +68,6 @@ int main() {
       sl::RenderGraph::Builder{ rendererBackend, viewportSize }
         .addView<sl::SkyboxRenderView>(skybox.get())
         .addView<sl::WorldRenderView>(worldShader.get())
-        .addView<sl::LightsDebugRenderView>()
         .build();
 
     sl::Scene scene{ window, &camera };

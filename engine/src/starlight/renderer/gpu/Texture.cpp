@@ -14,6 +14,7 @@ struct TextureComponents {
     std::vector<u8> buffer;
 };
 
+// TODO: rename
 static std::optional<TextureComponents> prepareComponents(
   std::string_view name, Texture::Type textureType
 ) {
@@ -97,10 +98,8 @@ static std::optional<TextureComponents> prepareComponents(
     return args;
 }
 
-ResourceRef<Texture> Texture::load(
-  const std::string& name, Type textureType, std::string_view texturesPath
-) {
-    return TextureManager::get().load(name, textureType, texturesPath);
+ResourceRef<Texture> Texture::load(const std::string& name, Type textureType) {
+    return TextureManager::get().load(name, textureType);
 }
 
 ResourceRef<Texture> Texture::find(const std::string& name) {
@@ -112,10 +111,9 @@ const Texture::Properties& Texture::getProperties() const { return m_props; }
 Texture::Texture(const Properties& props) : m_props(props) {}
 
 std::optional<Texture::ImageData> Texture::ImageData::loadFromFile(
-  std::string_view name, Orientation orientation, std::string_view imagesPath
+  std::string_view path, Orientation orientation
 ) {
     static constexpr int requiredChannels = 4;
-    const auto path                       = fmt::format("{}/{}", imagesPath, name);
 
     LOG_TRACE("Loading image: '{}'", path);
 
@@ -176,14 +174,15 @@ std::optional<Texture::ImageData> Texture::ImageData::loadFromFile(
 }
 
 ResourceRef<Texture> TextureManager::load(
-  const std::string& name, Texture::Type textureType, std::string_view texturesPath
+  const std::string& name, Texture::Type textureType
 ) {
     if (auto resource = find(name); resource) return resource;
 
-    const auto components = prepareComponents(name, textureType);
+    const auto components =
+      prepareComponents(fmt::format("{}/{}", m_texturesPath, name), textureType);
 
     if (not components) {
-        LOG_WARN("Could not process texture: {}/{}", texturesPath, name);
+        LOG_WARN("Could not process texture: {}/{}", m_texturesPath, name);
         return nullptr;
     }
 
@@ -202,6 +201,7 @@ ResourceRef<Texture> TextureManager::load(
 #endif
 }
 
-TextureManager::TextureManager(RendererBackend& renderer) : m_renderer(renderer) {}
+TextureManager::TextureManager(const std::string& path, RendererBackend& renderer) :
+    m_texturesPath(path), m_renderer(renderer) {}
 
 }  // namespace sl

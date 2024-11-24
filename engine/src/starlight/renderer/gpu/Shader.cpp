@@ -152,10 +152,8 @@ std::string Shader::scopeToString(Shader::Scope scope) {
     __builtin_unreachable();
 }
 
-ResourceRef<Shader> Shader::load(
-  const std::string& name, std::string_view shadersPath, const FileSystem& fs
-) {
-    return sl::ShaderManager::get().load(name, shadersPath, fs);
+ResourceRef<Shader> Shader::load(const std::string& name, const FileSystem& fs) {
+    return sl::ShaderManager::get().load(name, fs);
 }
 
 ResourceRef<Shader> Shader::find(const std::string& name) {
@@ -167,7 +165,7 @@ ResourceRef<Shader> Shader::find(const u64 id) {
 }
 
 ResourceRef<Shader> ShaderManager::load(
-  const std::string& name, std::string_view shadersPath, const FileSystem& fs
+  const std::string& name, const FileSystem& fs
 ) {
     if (auto resource = find(name); resource) {
         LOG_TRACE("Shader '{}' found, returning from cache", name);
@@ -175,10 +173,10 @@ ResourceRef<Shader> ShaderManager::load(
     }
 
     const auto properties =
-      loadPropertiesFromFile(name, Texture::defaultDiffuse, shadersPath, fs);
+      loadPropertiesFromFile(name, Texture::defaultDiffuse, m_shadersPath, fs);
 
     if (not properties) {
-        LOG_WARN("Could not load properties from '{}/{}' pa.hh", shadersPath, name);
+        LOG_WARN("Could not load properties from '{}/{}'", m_shadersPath, name);
         return nullptr;
     }
 
@@ -394,6 +392,7 @@ void Shader::UniformProxy::set(const std::string& uniform, const Texture* value)
 Shader::UniformProxy::UniformProxy(Shader& shader, CommandBuffer& commandBuffer) :
     m_shader(shader), m_commandBuffer(commandBuffer) {}
 
-ShaderManager::ShaderManager(RendererBackend& renderer) : m_renderer(renderer) {}
+ShaderManager::ShaderManager(const std::string& path, RendererBackend& renderer) :
+    m_shadersPath(path), m_renderer(renderer) {}
 
 }  // namespace sl

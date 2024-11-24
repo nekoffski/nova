@@ -17,8 +17,6 @@ namespace sl {
 using namespace std::string_literals;
 
 class Material : public NonMovable, public Identificable<Material> {
-    inline static const std::string baseMaterialsPath =
-      SL_ASSETS_PATH + std::string("/materials");
     inline static auto defaultDiffuseColor = Vec4<f32>{ 1.0f };
     inline static auto defaultDiffuseMap   = "Internal.Texture.Default"s;
     inline static auto defaultNormalMap    = "Internal.Texture.DefaultNormalMap"s;
@@ -65,8 +63,7 @@ public:
     const Properties& getProperties() const;
 
     static ResourceRef<Material> load(
-      const std::string& name, std::string_view materialsPath = baseMaterialsPath,
-      const FileSystem& fs = fileSystem
+      const std::string& name, const FileSystem& fs = fileSystem
     );
     static ResourceRef<Material> find(const std::string& name);
 
@@ -80,12 +77,16 @@ private:
     std::unordered_map<u64, u32> m_shaderInstanceIds;
 };
 
-struct MaterialManager
+class MaterialManager
     : public ResourceManager<Material>,
       public kc::core::Singleton<MaterialManager> {
-    ResourceRef<Material> load(
-      const std::string& name, std::string_view materialsPath, const FileSystem& fs
-    );
+public:
+    explicit MaterialManager(const std::string& path);
+
+    ResourceRef<Material> load(const std::string& name, const FileSystem& fs);
+
+private:
+    std::string m_materialsPath;
 };
 
 }  // namespace sl

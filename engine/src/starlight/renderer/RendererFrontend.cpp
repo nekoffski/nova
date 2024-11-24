@@ -10,13 +10,15 @@
 
 namespace sl {
 
-RendererFrontend::RendererFrontend(Context& context) :
-    m_backend(context.getWindow(), context.getConfig()),
+RendererFrontend::RendererFrontend(Window& window, const Config& config) :
+    m_window(window), m_backend(m_window, config),
     m_eventSentinel(EventProxy::get()), m_renderMode(RenderMode::standard),
     m_framesSinceResize(0u), m_resizing(false),
-    m_viewportSize(context.getWindow().getFramebufferSize()),
-    m_shaderManager(m_backend), m_textureManager(m_backend),
-    m_meshManager(m_backend), m_renderGraph(nullptr) {
+    m_viewportSize(m_window.getFramebufferSize()),
+    m_shaderManager(config.paths.shaders, m_backend),
+    m_textureManager(config.paths.textures, m_backend),
+    m_materialManager(config.paths.materials), m_meshManager(m_backend),
+    m_renderGraph(nullptr) {
     m_eventSentinel.pushHandler<WindowResized>(
       [&](const auto& event) -> EventChainBehaviour {
           onViewportResize(event.size);
@@ -61,7 +63,6 @@ void RendererFrontend::renderFrame(float deltaTime, const RenderPacket& packet) 
 
           for (auto& [view, renderPass] : m_renderGraph->getNodes()) {
               view->preRender(m_backend);
-
               renderPass->run(
                 commandBuffer, imageIndex,
                 [&](CommandBuffer& commandBuffer, u8 imageIndex) {

@@ -38,12 +38,13 @@ static MouseAction glfwToNovaMouseAction(int action) {
     return MouseAction::unknown;
 }
 
-GLFWWindow::GLFWWindow() {
+GLFWWindow::GLFWWindow(const Config::Window& config) {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    m_windowHandle =
-      glfwCreateWindow(1920, 1080, "starlight-engine", nullptr, nullptr);
+    m_windowHandle = glfwCreateWindow(
+      config.width, config.height, config.name.c_str(), nullptr, nullptr
+    );
 
     glfwMakeContextCurrent(GLFW_WINDOW_PTR(m_windowHandle));
     glfwSetWindowUserPointer(GLFW_WINDOW_PTR(m_windowHandle), &m_callbacks);

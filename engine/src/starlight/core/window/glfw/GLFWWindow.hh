@@ -2,6 +2,7 @@
 
 #include "starlight/core/window/WindowImpl.hh"
 #include "starlight/core/math/Core.hh"
+#include "starlight/core/Config.hh"
 
 namespace sl::glfw {
 
@@ -15,7 +16,7 @@ class GLFWWindow : public WindowImpl {
     };
 
 public:
-    explicit GLFWWindow();
+    explicit GLFWWindow(const Config::Window& config);
 
     void showCursor() override;
     void hideCursor() override;

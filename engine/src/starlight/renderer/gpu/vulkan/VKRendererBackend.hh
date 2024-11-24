@@ -64,7 +64,7 @@ public:
 private:
     void gpuCall(std::function<void(CommandBuffer&)>&& callback);
 
-    void createCoreComponents(sl::Window& window, const Config& config);
+    void createCoreComponents(sl::Window& window);
     void createCommandBuffers();
     void createSemaphoresAndFences();
     void freeDataRange(VKBuffer& buffer, uint64_t offset, uint64_t size);

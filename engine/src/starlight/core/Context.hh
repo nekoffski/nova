@@ -20,7 +20,7 @@ class Context : public NonCopyable {
     };
 
 public:
-    explicit Context(const std::string& applicationName = "starlight");
+    explicit Context(const Config& config);
 
     template <typename C>
     requires Callable<C, void, float>
@@ -30,15 +30,13 @@ public:
     }
 
     Window& getWindow();
-    Config& getConfig();
+    const Config& getConfig() const;
 
 private:
     float beginFrame();
     void endFrame();
 
     LoggerInitializator m_loggerInitializator;
-
-    Config m_config;
     EventBroker m_eventBroker;
 
     WindowVendor m_windowImpl;

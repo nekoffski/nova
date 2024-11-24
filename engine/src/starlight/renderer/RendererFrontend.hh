@@ -23,7 +23,7 @@ namespace sl {
 
 class RendererFrontend : public NonCopyable {
 public:
-    explicit RendererFrontend(Context& context);
+    explicit RendererFrontend(Window& window, const Config& config);
 
     FrameStatistics getFrameStatistics();
     RendererBackend& getRendererBackend();
@@ -36,6 +36,8 @@ public:
     void onViewportResize(const Vec2<u32>& viewportSize);
 
 private:
+    Window& m_window;
+
     RendererBackendVendor m_backend;
     EventHandlerSentinel m_eventSentinel;
 

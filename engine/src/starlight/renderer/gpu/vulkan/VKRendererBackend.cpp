@@ -32,7 +32,7 @@ VKRendererBackend::VKRendererBackend(Window& window, const Config& config) :
     m_framebufferWidth  = size.w;
     m_framebufferHeight = size.h;
 
-    createCoreComponents(window, config);
+    createCoreComponents(window);
     createSemaphoresAndFences();
     createCommandBuffers();
 }
@@ -129,9 +129,7 @@ VKTexture* VKRendererBackend::getDepthTexture() {
 
 Window& VKRendererBackend::getWindow() { return m_window; }
 
-void VKRendererBackend::createCoreComponents(
-  sl::Window& window, [[maybe_unused]] const Config& config
-) {
+void VKRendererBackend::createCoreComponents(sl::Window& window) {
     m_swapchain = createUniqPtr<VKSwapchain>(
       m_context, m_logicalDevice, window.getFramebufferWidth(),
       window.getFramebufferHeight()

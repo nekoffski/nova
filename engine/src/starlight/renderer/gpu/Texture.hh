@@ -12,15 +12,11 @@ namespace sl {
 
 class Texture : public NonMovable, public Identificable<Texture> {
 public:
-    inline static const std::string baseTexturesPath =
-      SL_ASSETS_PATH + std::string("/textures");
-
     struct ImageData {
         enum class Orientation { vertical, horizontal };
 
         static std::optional<ImageData> loadFromFile(
-          std::string_view name, Orientation orientation = Orientation::vertical,
-          std::string_view imagesPath = baseTexturesPath
+          std::string_view path, Orientation orientation = Orientation::vertical
         );
 
         std::vector<u8> pixels;
@@ -51,10 +47,7 @@ public:
         Repeat wRepeat       = Repeat::repeat;
     };
 
-    static ResourceRef<Texture> load(
-      const std::string& name, Type textureType,
-      std::string_view texturesPath = baseTexturesPath
-    );
+    static ResourceRef<Texture> load(const std::string& name, Type textureType);
     static ResourceRef<Texture> find(const std::string& name);
 
     virtual ~Texture() = default;
@@ -78,14 +71,12 @@ class TextureManager
     : public ResourceManager<Texture>,
       public kc::core::Singleton<TextureManager> {
 public:
-    explicit TextureManager(RendererBackend& renderer);
+    explicit TextureManager(const std::string& path, RendererBackend& renderer);
 
-    ResourceRef<Texture> load(
-      const std::string& name, Texture::Type textureType,
-      std::string_view texturesPath
-    );
+    ResourceRef<Texture> load(const std::string& name, Texture::Type textureType);
 
 private:
+    const std::string m_texturesPath;
     RendererBackend& m_renderer;
 };
 

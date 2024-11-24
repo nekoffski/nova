@@ -66,20 +66,21 @@ const std::string& Material::getName() const { return m_props.name; }
 
 const Material::Properties& Material::getProperties() const { return m_props; }
 
-ResourceRef<Material> Material::load(
-  const std::string& name, std::string_view materialsPath, const FileSystem& fs
-) {
-    return MaterialManager::get().load(name, materialsPath, fs);
+ResourceRef<Material> Material::load(const std::string& name, const FileSystem& fs) {
+    return MaterialManager::get().load(name, fs);
 }
 
 ResourceRef<Material> Material::find(const std::string& name) {
     return MaterialManager::get().find(name);
 }
 
+MaterialManager::MaterialManager(const std::string& path) : m_materialsPath(path) {}
+
 ResourceRef<Material> MaterialManager::load(
-  const std::string& name, std::string_view materialsPath, const FileSystem& fs
+  const std::string& name, const FileSystem& fs
 ) {
-    if (auto config = Material::Config::load(name, materialsPath, fs); not config) {
+    if (auto config = Material::Config::load(name, m_materialsPath, fs);
+        not config) {
         LOG_WARN("Could not load material config for '{}'", name);
         return nullptr;
     } else {

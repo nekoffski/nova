@@ -32,9 +32,6 @@ concept GlmCompatible = requires(T object) {
 };
 
 class Shader : public NonMovable, public Identificable<Shader> {
-    inline static const std::string baseShadersPath =
-      SL_ASSETS_PATH + std::string("/shaders");
-
 public:
     enum class Scope : u8 {
         global   = 0,  // updated once per frame
@@ -46,8 +43,7 @@ public:
     static std::string scopeToString(Scope scope);
 
     static ResourceRef<Shader> load(
-      const std::string& name, std::string_view shadersPath = baseShadersPath,
-      const FileSystem& fs = fileSystem
+      const std::string& name, const FileSystem& fs = fileSystem
     );
 
     static ResourceRef<Shader> find(const std::string& name);
@@ -206,13 +202,12 @@ class ShaderManager
     : public ResourceManager<Shader>,
       public kc::core::Singleton<ShaderManager> {
 public:
-    explicit ShaderManager(RendererBackend& renderer);
+    explicit ShaderManager(const std::string& path, RendererBackend& renderer);
 
-    ResourceRef<Shader> load(
-      const std::string& name, std::string_view shadersPath, const FileSystem& fs
-    );
+    ResourceRef<Shader> load(const std::string& name, const FileSystem& fs);
 
 private:
+    const std::string m_shadersPath;
     RendererBackend& m_renderer;
 };
 

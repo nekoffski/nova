@@ -9,9 +9,9 @@ Context::LoggerInitializator::LoggerInitializator(const std::string& application
     sl::initLogging(applicationName);
 }
 
-Context::Context(const std::string& applicationName) :
-    m_loggerInitializator(applicationName), m_window(m_windowImpl),
-    m_input(m_windowImpl) {}
+Context::Context(const Config& config) :
+    m_loggerInitializator(config.loggerIdent), m_windowImpl(config.window),
+    m_window(m_windowImpl), m_input(m_windowImpl) {}
 
 float Context::beginFrame() {
     const auto deltaTime = m_clock.getDeltaTime();
@@ -31,7 +31,6 @@ void Context::endFrame() {
     m_input.update();
 }
 
-Config& Context::getConfig() { return m_config; }
 Window& Context::getWindow() { return m_window; }
 
 }  // namespace sl
