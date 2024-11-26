@@ -111,7 +111,6 @@ static std::optional<Shader::Properties> loadPropertiesFromFile(
     try {
         auto root = kc::json::loadJson(fs.readFile(fullPath));
         return Shader::Properties{
-            .name         = getField<std::string>(root, "name"),
             .useInstances = getField<bool>(root, "use-instances"),
             .useLocals    = getField<bool>(root, "use-local"),
             .attributes   = processAttributes(getArray(root, "attributes")),
@@ -172,8 +171,9 @@ ResourceRef<Shader> ShaderManager::load(
         return resource;
     }
 
-    const auto properties =
-      loadPropertiesFromFile(name, Texture::defaultDiffuse, m_shadersPath, fs);
+    const auto properties = loadPropertiesFromFile(
+      name, Texture::getDefaultDiffuseMap(), m_shadersPath, fs
+    );
 
     if (not properties) {
         LOG_WARN("Could not load properties from '{}/{}'", m_shadersPath, name);
@@ -378,12 +378,9 @@ void Shader::setLocalUniforms(
     callback(proxy);
 }
 
-const std::string& Shader::getName() const { return m_name; }
-
 Shader::Shader(const Properties& props) :
-    m_name(props.name), m_useInstances(props.useInstances),
-    m_useLocals(props.useLocals), m_cullMode(props.cullMode),
-    m_polygonMode(props.polygonMode) {}
+    m_useInstances(props.useInstances), m_useLocals(props.useLocals),
+    m_cullMode(props.cullMode), m_polygonMode(props.polygonMode) {}
 
 void Shader::UniformProxy::set(const std::string& uniform, const Texture* value) {
     m_shader.setSampler(uniform, value);

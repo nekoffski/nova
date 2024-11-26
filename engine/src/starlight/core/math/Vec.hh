@@ -66,22 +66,40 @@ template <typename T> struct Vec4Base {
 };
 
 template <typename T> struct Mat2Picker {};
-template <> struct Mat2Picker<f32> { using Type = math::mat2; };
+template <> struct Mat2Picker<f32> {
+    using Type = math::mat2;
+};
 
 template <typename T> struct Mat3Picker {};
-template <> struct Mat3Picker<f32> { using Type = math::mat3; };
+template <> struct Mat3Picker<f32> {
+    using Type = math::mat3;
+};
 
 template <typename T> struct Mat4Picker {};
-template <> struct Mat4Picker<f32> { using Type = math::mat4; };
+template <> struct Mat4Picker<f32> {
+    using Type = math::mat4;
+};
 
-template <typename T> struct Vec2Picker { using Type = Vec2Base<T>; };
-template <> struct Vec2Picker<f32> { using Type = math::vec2; };
+template <typename T> struct Vec2Picker {
+    using Type = Vec2Base<T>;
+};
+template <> struct Vec2Picker<f32> {
+    using Type = math::vec2;
+};
 
-template <typename T> struct Vec3Picker { using Type = Vec3Base<T>; };
-template <> struct Vec3Picker<f32> { using Type = math::vec3; };
+template <typename T> struct Vec3Picker {
+    using Type = Vec3Base<T>;
+};
+template <> struct Vec3Picker<f32> {
+    using Type = math::vec3;
+};
 
-template <typename T> struct Vec4Picker { using Type = Vec4Base<T>; };
-template <> struct Vec4Picker<f32> { using Type = math::vec4; };
+template <typename T> struct Vec4Picker {
+    using Type = Vec4Base<T>;
+};
+template <> struct Vec4Picker<f32> {
+    using Type = math::vec4;
+};
 
 }  // namespace detail
 
@@ -95,21 +113,12 @@ template <typename T> using Mat4 = detail::Mat4Picker<T>::Type;
 
 inline Vec3<f32> operator*(const Mat4<f32>& lhs, const Vec3<f32>& rhs) {
     return Vec3<f32>{
-        lhs * Vec4<f32>{rhs, 1.0f}
+        lhs * Vec4<f32>{ rhs, 1.0f }
     };
 }
 
 const Vec3<f32> worldUp    = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
 const Vec3<f32> worldRight = Vec3<f32>{ 1.0f, 0.0f, 0.0 };
 const Vec3<f32> worldFront = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
-
-template <typename T> constexpr u8 getVectorComponentCount() {
-    if constexpr (std::is_same_v<T, Vec2<f32>>)
-        return 2u;
-    else if constexpr (std::is_same_v<T, Vec3<f32>>)
-        return 3u;
-    else if constexpr (std::is_same_v<T, Vec4<f32>>)
-        return 4u;
-}
 
 }  // namespace sl

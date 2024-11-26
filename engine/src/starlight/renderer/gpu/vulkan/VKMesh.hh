@@ -15,7 +15,7 @@ class VKMesh : public Mesh {
 public:
     explicit VKMesh(
       VKContext& context, VKLogicalDevice& device, VKBuffer& vertexBuffer,
-      VKBuffer& indexBuffer, const Properties& props, const Data& data
+      VKBuffer& indexBuffer, const Data& data
     );
     ~VKMesh();
 

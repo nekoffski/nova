@@ -21,20 +21,20 @@ concept ExtentType = kc::core::is_one_of2_v<T, Extent2, Extent3>;
 template <typename T>
 concept VertexType = kc::core::is_one_of2_v<T, Vertex2, Vertex3>;
 
-template <typename T>
-concept VectorType = kc::core::is_one_of2_v<T, Vec2<f32>, Vec3<f32>>;
-
-struct MeshConfigBase {
-    std::string name;
-    std::vector<u32> indices;
-};
-
-template <ExtentType Extent, VertexType Vertex, VectorType Vector>
+template <ExtentType Extent, VertexType Vertex>
 Extent calculateExtent(const std::vector<Vertex>& vertices) {
+    ASSERT(vertices.size() > 0, "vertices.size() == 0");
+    using Vector = std::remove_cv_t<typeof(vertices[0].position)>;
+
     Vector min(0.0f);
     Vector max(0.0f);
 
-    const auto components = getVectorComponentCount<Vector>();
+    constexpr auto components = []() {
+        if constexpr (std::is_same_v<Vertex, Vertex2>)
+            return 2u;
+        else
+            return 3u;
+    }();
 
     for (const auto& vertex : vertices) {
         for (u8 i = 0; i < components; ++i) {
@@ -56,8 +56,6 @@ struct PlaneProperties {
     u32 ySegments;
     u32 xTile;
     u32 yTile;
-    std::string_view name;
-    std::string_view materialName;
 };
 
 struct CubeProperties {
@@ -66,8 +64,6 @@ struct CubeProperties {
     float depth;
     u32 xTile;
     u32 yTile;
-    std::string_view name;
-    std::string_view materialName;
 };
 
 struct SphereProperties {
@@ -76,39 +72,8 @@ struct SphereProperties {
     float radius;
 };
 
-struct MeshConfig3D final : public detail::MeshConfigBase {
-    explicit MeshConfig3D() = default;
-    explicit MeshConfig3D(const PlaneProperties& props);
-    explicit MeshConfig3D(const CubeProperties& props);
-    explicit MeshConfig3D(const SphereProperties& props);
-
-    Extent3 calculateExtent() const {
-        return detail::calculateExtent<Extent3, Vertex3, Vec3<f32>>(vertices);
-    }
-
-    void generateTangents();
-    void generateNormals();
-
-    std::vector<Vertex3> vertices;
-};
-
-struct MeshConfig2D final : public detail::MeshConfigBase {
-    std::vector<Vertex2> vertices;
-
-    Extent2 calculateExtent() const {
-        return detail::calculateExtent<Extent2, Vertex2, Vec2<f32>>(vertices);
-    }
-};
-
-template <typename T>
-concept MeshConfig = kc::core::is_one_of2_v<T, MeshConfig3D, MeshConfig2D>;
-
 class Mesh : public NonMovable, public Identificable<Mesh> {
 public:
-    struct Properties {
-        std::string name;
-    };
-
     struct Data {
         u64 vertexSize;
         u64 vertexCount;
@@ -116,6 +81,35 @@ public:
         std::span<const u32> indices;
         Extent3 extent;
     };
+
+    template <detail::VertexType Vertex, detail::ExtentType Extent>
+    struct Properties {
+        std::vector<u32> indices;
+        std::vector<Vertex> vertices;
+
+        Extent calculateExtent() const {
+            return detail::calculateExtent<Extent, Vertex>(vertices);
+        }
+
+        Data toMeshData() const& {
+            return Data(
+              sizeof(Vertex), vertices.size(), vertices.data(), indices,
+              calculateExtent()
+            );
+        }
+    };
+
+    struct Properties3D final : public Properties<Vertex3, Extent3> {
+        explicit Properties3D() = default;
+        explicit Properties3D(const PlaneProperties& props);
+        explicit Properties3D(const CubeProperties& props);
+        explicit Properties3D(const SphereProperties& props);
+
+        void generateTangents();
+        void generateNormals();
+    };
+
+    struct Properties2D final : public Properties<Vertex2, Extent2> {};
 
     struct BufferDescription {
         u64 vertexCount;
@@ -131,27 +125,29 @@ public:
 
     virtual ~Mesh() = default;
 
-    static ResourceRef<Mesh> load(const MeshConfig2D& config);
-    static ResourceRef<Mesh> load(const MeshConfig3D& config);
+    static ResourceRef<Mesh> load(
+      const Properties2D& config, const std::string& name
+    );
+    static ResourceRef<Mesh> load(
+      const Properties3D& config, const std::string& name
+    );
 
     template <typename T>
-    requires std::is_constructible_v<MeshConfig3D, const T&>
-    static ResourceRef<Mesh> load(const T& properties) {
-        return load(MeshConfig3D{ properties });
+    requires std::is_constructible_v<Properties3D, const T&>
+    static ResourceRef<Mesh> load(const T& properties, const std::string& name) {
+        return load(Properties3D{ properties }, name);
     }
 
     static ResourceRef<Mesh> find(const std::string& name);
-
     static ResourceRef<Mesh> getCube();
+    static ResourceRef<Mesh> getUnitSphere();
 
     const BufferDescription& getDataDescription() const;
-    const Properties& getProperties() const;
     const Extent3& getExtent() const;
 
 protected:
-    explicit Mesh(const Properties& props, const Data& data);
+    explicit Mesh(const Data& data);
 
-    Properties m_props;
     BufferDescription m_dataDescription;
     Extent3 m_extent;
 };
@@ -162,10 +158,22 @@ class MeshManager
 public:
     explicit MeshManager(RendererBackend& renderer);
 
-    ResourceRef<Mesh> load(const MeshConfig2D& config);
-    ResourceRef<Mesh> load(const MeshConfig3D& config);
+    ResourceRef<Mesh> load(
+      const Mesh::Properties2D& config, const std::string& name
+    );
+    ResourceRef<Mesh> load(
+      const Mesh::Properties3D& config, const std::string& name
+    );
+
+    ResourceRef<Mesh> getCube();
+    ResourceRef<Mesh> getUnitSphere();
 
 private:
+    void createDefaults();
+
+    OwningPtr<Mesh> m_cube;
+    OwningPtr<Mesh> m_unitSphere;
+
     RendererBackend& m_renderer;
 };
 

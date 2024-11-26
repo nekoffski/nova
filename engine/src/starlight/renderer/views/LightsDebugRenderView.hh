@@ -26,7 +26,7 @@ public:
 
 private:
     ResourceRef<Shader> m_shader;
-    ResourceRef<Mesh> m_mesh;
+    Mesh* m_mesh;
 };
 
 }  // namespace sl

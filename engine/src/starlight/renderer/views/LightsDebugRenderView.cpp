@@ -7,8 +7,7 @@ namespace sl {
 static const std::string shaderName = "Builtin.Shader.LightsDebug";
 
 LightsDebugRenderView::LightsDebugRenderView() :
-    m_shader(Shader::load(shaderName)),
-    m_mesh(Mesh::load(SphereProperties{ 16, 16, 1.0f })) {}
+    m_shader(Shader::load(shaderName)), m_mesh(Mesh::getUnitSphere()) {}
 
 RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags

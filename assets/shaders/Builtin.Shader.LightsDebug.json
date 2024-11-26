@@ -1,6 +1,5 @@
 {
   "version": 1.0,
-  "name": "Builtin.Shader.LightsDebug",
   "cullMode": "none",
   "polygonMode": "fill",
   "stages": [

@@ -37,7 +37,6 @@ public:
         u32 channels;
         bool isTransparent;
         bool isWritable;
-        std::string name;
         Type type;
         Use use              = Use::unknown;
         Filter minifyFilter  = Filter::linear;
@@ -57,9 +56,9 @@ public:
 
     const Properties& getProperties() const;
 
-    static inline Texture* defaultDiffuse  = nullptr;
-    static inline Texture* defaultNormal   = nullptr;
-    static inline Texture* defaultSpecular = nullptr;
+    static ResourceRef<Texture> getDefaultDiffuseMap();
+    static ResourceRef<Texture> getDefaultNormalMap();
+    static ResourceRef<Texture> getDefaultSpecularMap();
 
 protected:
     explicit Texture(const Properties& props);

@@ -116,7 +116,6 @@ public:
     };
 
     struct Properties {
-        std::string name;
         bool useInstances;
         bool useLocals;
 
@@ -173,8 +172,6 @@ public:
       UniformCallback&& callback
     );
     void setLocalUniforms(CommandBuffer& commandBuffer, UniformCallback&& callback);
-
-    const std::string& getName() const;
 
 protected:
     explicit Shader(const Properties& props);

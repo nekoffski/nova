@@ -22,7 +22,6 @@ static std::optional<TextureComponents> prepareComponents(
 
     auto& props = args.props;
     props.type  = textureType;
-    props.name  = name;
 
     if (textureType == Texture::Type::flat) {
         LOG_DEBUG("Loading texture '{}'", name);
@@ -33,7 +32,6 @@ static std::optional<TextureComponents> prepareComponents(
             props.channels      = imageData->channels;
             props.isTransparent = imageData->isTransparent;
             props.isWritable    = false;
-            props.name          = std::string{ name };
             args.buffer         = imageData->pixels;
 
         } else {
@@ -105,6 +103,12 @@ ResourceRef<Texture> Texture::load(const std::string& name, Type textureType) {
 ResourceRef<Texture> Texture::find(const std::string& name) {
     return TextureManager::get().find(name);
 }
+
+ResourceRef<Texture> Texture::getDefaultDiffuseMap() { return nullptr; }
+
+ResourceRef<Texture> Texture::getDefaultNormalMap() { return nullptr; }
+
+ResourceRef<Texture> Texture::getDefaultSpecularMap() { return nullptr; }
 
 const Texture::Properties& Texture::getProperties() const { return m_props; }
 

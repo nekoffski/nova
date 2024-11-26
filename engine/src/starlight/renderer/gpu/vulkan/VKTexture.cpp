@@ -107,7 +107,7 @@ VKTexture::VKTexture(
       pixels
     ),
     m_generation(1u) {
-    LOG_TRACE("Texture created: {}", m_props.name);
+    LOG_TRACE("Texture created");
     createSampler(props);
 }
 
@@ -121,7 +121,7 @@ VKTexture::VKTexture(
       getImageProperties(props.width, props.height, props.type, format), handle
     ),
     m_generation(1u) {
-    LOG_TRACE("Texture created: {} from existing VKImage", m_props.name);
+    LOG_TRACE("Texture created from existing VKImage");
     createSampler(props);
 }
 
@@ -134,7 +134,6 @@ VKTexture::VKTexture(
       props.channels,
       true,
       false,
-      "InternalTexture",
       Type::flat,
     }),
     m_context(context), m_device(device), m_image(m_context, m_device, props) {
@@ -146,7 +145,7 @@ VKTexture::~VKTexture() {
 
     vkDeviceWaitIdle(logicalDeviceHandle);
     vkDestroySampler(logicalDeviceHandle, m_sampler, m_context.getAllocator());
-    LOG_TRACE("Texture destroyed: {}", m_props.name);
+    LOG_TRACE("Texture destroyed");
 }
 
 const VKImage* VKTexture::getImage() const { return &m_image; }

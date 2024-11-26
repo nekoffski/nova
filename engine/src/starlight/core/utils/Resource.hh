@@ -18,17 +18,22 @@ public:
       T* resource, ResourceManager<T>* manager, const std::string& name
     );
 
-    ResourceRef(T* resource);
     ResourceRef(std::nullptr_t);
     ResourceRef();
 
     ResourceRef(const ResourceRef& oth);
     ResourceRef(ResourceRef&& oth);
 
+    // for compatibility with interface, lifetime managed by caller not by reference
+    // counter
+    ResourceRef(T* resource, const std::string& name);
+
     ResourceRef& operator=(const ResourceRef& oth);
     ResourceRef& operator=(ResourceRef&& oth);
 
     ~ResourceRef();
+
+    const std::string& getName() const;
 
     operator bool() const;
 
@@ -143,13 +148,15 @@ ResourceRef<T>::ResourceRef(
     ASSERT(manager->acquire(name), "Could not acquire resource: {}", name);
 }
 
-template <typename T>
-ResourceRef<T>::ResourceRef(T* resource
-) : m_resource(resource), m_manager(nullptr) {}
+template <typename T> const std::string& ResourceRef<T>::getName() const {
+    return m_name.value_or("<undefined>");
+}
+
+template <typename T> ResourceRef<T>::ResourceRef(std::nullptr_t) : ResourceRef() {}
 
 template <typename T>
-ResourceRef<T>::ResourceRef(std::nullptr_t
-) : m_resource(nullptr), m_manager(nullptr) {}
+ResourceRef<T>::ResourceRef::ResourceRef(T* resource, const std::string& name) :
+    m_resource(resource), m_manager(nullptr), m_name(name) {}
 
 template <typename T>
 ResourceRef<T>::ResourceRef() : m_resource(nullptr), m_manager(nullptr) {}

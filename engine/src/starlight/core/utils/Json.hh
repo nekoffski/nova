@@ -50,6 +50,12 @@ T getFieldOr(auto& root, const std::string& name, const T& defaultValue) {
     return defaultValue;
 }
 
+template <typename T, typename C>
+requires Callable<C, void, const T&>
+void getOptField(auto& root, const std::string& name, C&& callback) {
+    if (root.isMember(name)) callback(getField<T>(root, name));
+}
+
 auto getArray(auto& root, const std::string& name) {
     return fieldFrom(root).withName(name).asArray().get();
 }

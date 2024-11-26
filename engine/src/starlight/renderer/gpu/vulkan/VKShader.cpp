@@ -225,7 +225,7 @@ VKShader::VKShader(
     createUniformBuffer();
 
     LOG_DEBUG(
-      "Shader: {}, global ubo size={} offset={}", props.name, m_globalUboSize,
+      "Shader_{}: global ubo size={} offset={}", getId(), m_globalUboSize,
       m_globalUboOffset
     );
 }
@@ -296,7 +296,7 @@ void VKShader::addSampler(
           globalTextureCount
         );
         location = globalTextureCount;
-        m_globalTextures.push_back(Texture::defaultDiffuse);
+        m_globalTextures.push_back(Texture::getDefaultDiffuseMap());
     } else {
         ASSERT(
           m_instanceTextureCount + 1 <= maxInstanceTextures,
@@ -530,7 +530,7 @@ u32 VKShader::acquireInstanceResources(const std::vector<Texture*>& textures) {
           "Provided texture map range size doesn't match with instance texture count, ignoring and setting all to default map"
         );
         instanceState.instanceTextures.resize(
-          m_instanceTextureCount, Texture::defaultDiffuse
+          m_instanceTextureCount, Texture::getDefaultDiffuseMap()
         );
     } else {
         instanceState.instanceTextures.reserve(m_instanceTextureCount);

@@ -8,11 +8,11 @@ Material::Material(const Properties& props) :
     m_props(props), m_renderFrameNumber(0), m_textures{
         m_props.diffuseMap.get(), m_props.specularMap.get(), m_props.normalMap.get()
     } {
-    LOG_TRACE("Creating Material: {}", m_props.name);
+    LOG_TRACE("Creating Material");
 }
 
 Material::~Material() {
-    LOG_TRACE("Destroying Material - '{}'", m_props.name);
+    LOG_TRACE("Destroying Material");
 
     for (const auto [shaderId, instanceId] : m_shaderInstanceIds) {
         if (auto shader = Shader::find(shaderId); shader) {
@@ -62,8 +62,6 @@ u64 Material::getShaderInstanceId(Shader& shader) {
     return instanceId;
 }
 
-const std::string& Material::getName() const { return m_props.name; }
-
 const Material::Properties& Material::getProperties() const { return m_props; }
 
 ResourceRef<Material> Material::load(const std::string& name, const FileSystem& fs) {
@@ -79,62 +77,56 @@ MaterialManager::MaterialManager(const std::string& path) : m_materialsPath(path
 ResourceRef<Material> MaterialManager::load(
   const std::string& name, const FileSystem& fs
 ) {
-    if (auto config = Material::Config::load(name, m_materialsPath, fs);
-        not config) {
-        LOG_WARN("Could not load material config for '{}'", name);
-        return nullptr;
-    } else {
-        Material::Properties properties;
+    const auto fullPath = fmt::format("{}/{}.json", m_materialsPath, name);
 
-        properties.name         = config->name;
-        properties.diffuseColor = config->diffuseColor;
-        properties.shininess    = config->shininess;
-        properties.diffuseMap =
-          Texture::load(config->diffuseMap, Texture::Type::flat);
-        properties.normalMap = Texture::load(config->normalMap, Texture::Type::flat);
-        properties.specularMap =
-          Texture::load(config->specularMap, Texture::Type::flat);
+    if (auto properties = Material::Properties::fromFile(fullPath, fs); properties)
+        return store(name, createOwningPtr<Material>(*properties));
 
-        return store(name, createOwningPtr<Material>(properties));
-    }
+    LOG_WARN("Could not load material config for '{}'", name);
+    return nullptr;
 }
 
-Material::Config Material::Config::createDefault(const std::string& name) {
-    return Material::Config{
-        .name         = name,
-        .diffuseColor = defaultDiffuseColor,
-        .shininess    = defaultShininess,
-        .diffuseMap   = defaultDiffuseMap,
-        .specularMap  = defaultSpecularMap,
-        .normalMap    = defaultNormalMap,
-    };
-}
+Material::Properties::Properties() :
+    diffuseColor(Material::defaultDiffuseColor),
+    diffuseMap(Texture::getDefaultDiffuseMap()),
+    specularMap(Texture::getDefaultSpecularMap()),
+    normalMap(Texture::getDefaultNormalMap()),
+    shininess(Material::defaultShininess) {}
 
-std::optional<Material::Config> Material::Config::load(
-  const std::string& name, std::string_view materialsPath, const FileSystem& fs
+std::optional<Material::Properties> Material::Properties::fromFile(
+  const std::string& path, const FileSystem& fs
 ) {
-    const auto fullPath = fmt::format("{}/{}.json", materialsPath, name);
+    LOG_TRACE("Loading material properties file: {}", path);
 
-    LOG_TRACE("Loading material config file: {}", fullPath);
-
-    if (not fs.isFile(fullPath)) {
-        LOG_ERROR("Could not find file: '{}'", fullPath);
+    if (not fs.isFile(path)) {
+        LOG_ERROR("Could not find file: '{}'", path);
         return {};
     }
 
     try {
-        const auto root = kc::json::loadJson(fs.readFile(fullPath));
+        const auto root = kc::json::loadJson(fs.readFile(path));
 
-        return Material::Config{
-            .name         = name,
-            .diffuseColor = getFieldOr(root, "diffuse-color", defaultDiffuseColor),
-            .shininess    = getFieldOr(root, "shininess", defaultShininess),
-            .diffuseMap   = getFieldOr(root, "diffuse-map", defaultDiffuseMap),
-            .specularMap  = getFieldOr(root, "specular-map", defaultSpecularMap),
-            .normalMap    = getFieldOr(root, "normal-map", defaultNormalMap),
-        };
+        Properties props;
+
+        getOptField<Vec4<f32>>(root, "diffuse-color", [&](const auto& value) {
+            props.diffuseColor = value;
+        });
+        getOptField<std::string>(root, "diffuse-map", [&](const auto& value) {
+            props.diffuseMap = Texture::load(value, Texture::Type::flat);
+        });
+        getOptField<std::string>(root, "specular-map", [&](const auto& value) {
+            props.specularMap = Texture::load(value, Texture::Type::flat);
+        });
+        getOptField<std::string>(root, "normal-map", [&](const auto& value) {
+            props.normalMap = Texture::load(value, Texture::Type::flat);
+        });
+        getOptField<float>(root, "shininess", [&](const auto& value) {
+            props.shininess = value;
+        });
+
+        return props;
     } catch (kc::json::JsonError& e) {
-        LOG_ERROR("Could not parse material '{}' file: {}", name, e.asString());
+        LOG_ERROR("Could not parse material '{}' file: {}", path, e.asString());
     }
     return {};
 }

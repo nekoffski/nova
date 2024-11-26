@@ -18,36 +18,21 @@ using namespace std::string_literals;
 
 class Material : public NonMovable, public Identificable<Material> {
     inline static auto defaultDiffuseColor = Vec4<f32>{ 1.0f };
-    inline static auto defaultDiffuseMap   = "Internal.Texture.Default"s;
-    inline static auto defaultNormalMap    = "Internal.Texture.DefaultNormalMap"s;
-    inline static auto defaultSpecularMap  = "Internal.Texture.DefaultSpecularMap"s;
     inline static auto defaultShininess    = 32.0f;
 
 public:
-    struct Config {
-        static Config createDefault(const std::string& name);
-
-        static std::optional<Config> load(
-          const std::string& name, std::string_view materialsPath,
-          const FileSystem& fs
+    struct Properties {
+        static std::optional<Properties> fromFile(
+          const std::string& path, const FileSystem& fs
         );
 
-        std::string name;
+        explicit Properties();
 
-        Vec4<f32> diffuseColor;
-        float shininess;
-        std::string diffuseMap;
-        std::string specularMap;
-        std::string normalMap;
-    };
-
-    struct Properties {
         Vec4<f32> diffuseColor;
         ResourceRef<Texture> diffuseMap;
         ResourceRef<Texture> specularMap;
         ResourceRef<Texture> normalMap;
         float shininess;
-        std::string name;
     };
 
     explicit Material(const Properties& props);
@@ -59,7 +44,6 @@ public:
       const u64 renderFrameNumber
     );
 
-    const std::string& getName() const;
     const Properties& getProperties() const;
 
     static ResourceRef<Material> load(

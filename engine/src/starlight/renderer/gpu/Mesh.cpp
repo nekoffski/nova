@@ -10,79 +10,86 @@
 
 namespace sl {
 
-Mesh::Mesh(const Properties& props, const Data& data) :
-    m_props(props), m_extent(data.extent) {}
+Mesh::Mesh(const Data& data) : m_extent(data.extent) {}
 
-ResourceRef<Mesh> Mesh::load(const MeshConfig2D& config) {
-    return MeshManager::get().load(config);
+ResourceRef<Mesh> Mesh::load(const Properties2D& config, const std::string& name) {
+    return MeshManager::get().load(config, name);
 }
 
-ResourceRef<Mesh> Mesh::load(const MeshConfig3D& config) {
-    return MeshManager::get().load(config);
+ResourceRef<Mesh> Mesh::load(const Properties3D& config, const std::string& name) {
+    return MeshManager::get().load(config, name);
 }
 
 ResourceRef<Mesh> Mesh::find(const std::string& name) {
     return MeshManager::get().find(name);
 }
 
-ResourceRef<Mesh> Mesh::getCube() {
-    static CubeProperties properties{
-        10.0f, 10.0f, 10.0f, 1, 1, "Internal.Mesh.SkyboxCube", ""
-    };
-    return load(properties);
+ResourceRef<Mesh> Mesh::getCube() { return MeshManager::get().getCube(); }
+
+ResourceRef<Mesh> Mesh::getUnitSphere() {
+    return MeshManager::get().getUnitSphere();
 }
 
 const Mesh::BufferDescription& Mesh::getDataDescription() const {
     return m_dataDescription;
 }
 
-const Mesh::Properties& Mesh::getProperties() const { return m_props; }
-
 const Extent3& Mesh::getExtent() const { return m_extent; }
 
 static OwningPtr<Mesh> createMesh(
-  RendererBackend& renderer, const Mesh::Data& data,
-  const Mesh::Properties& properties
+  RendererBackend& renderer, const Mesh::Data& data
 ) {
 #ifdef SL_USE_VK
     auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
 
     return createOwningPtr<vk::VKMesh>(
       vkRenderer.getContext(), vkRenderer.getLogicalDevice(),
-      vkRenderer.getVertexBuffer(), vkRenderer.getIndexBuffer(), properties, data
+      vkRenderer.getVertexBuffer(), vkRenderer.getIndexBuffer(), data
     );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
 #endif
 }
 
-MeshManager::MeshManager(RendererBackend& renderer) : m_renderer(renderer) {}
-
-ResourceRef<Mesh> MeshManager::load(const MeshConfig2D& config) {
-    if (auto resource = find(config.name); resource) return resource;
-
-    Mesh::Data data{
-        sizeof(Vertex2), config.vertices.size(),   config.vertices.data(),
-        config.indices,  config.calculateExtent(),
-    };
-    Mesh::Properties properties{ config.name };
-
-    return store(config.name, createMesh(m_renderer, data, properties));
+MeshManager::MeshManager(RendererBackend& renderer) : m_renderer(renderer) {
+    createDefaults();
 }
 
-ResourceRef<Mesh> MeshManager::load(const MeshConfig3D& config) {
-    if (auto resource = find(config.name); resource) return resource;
-
-    Mesh::Data data{
-        sizeof(Vertex3), config.vertices.size(),   config.vertices.data(),
-        config.indices,  config.calculateExtent(),
-    };
-    Mesh::Properties properties{ config.name };
-
-    return store(config.name, createMesh(m_renderer, data, properties));
+ResourceRef<Mesh> MeshManager::load(
+  const Mesh::Properties2D& config, const std::string& name
+) {
+    if (auto resource = find(name); resource) return resource;
+    return store(name, createMesh(m_renderer, config.toMeshData()));
 }
 
-MeshConfig3D::MeshConfig3D(const SphereProperties& props) {
+ResourceRef<Mesh> MeshManager::load(
+  const Mesh::Properties3D& config, const std::string& name
+) {
+    if (auto resource = find(name); resource) return resource;
+    return store(name, createMesh(m_renderer, config.toMeshData()));
+}
+
+ResourceRef<Mesh> MeshManager::getCube() {
+    return ResourceRef{ m_cube.get(), "Cube" };
+}
+
+ResourceRef<Mesh> MeshManager::getUnitSphere() {
+    return ResourceRef{ m_unitSphere.get(), "UnitSphere" };
+}
+
+void MeshManager::createDefaults() {
+    Mesh::Properties3D cubeConfig{
+        CubeProperties{ 10.0f, 10.0f, 10.0f, 1, 1 }
+    };
+    m_cube = createMesh(m_renderer, cubeConfig.toMeshData());
+
+    Mesh::Properties3D unitSphereConfig{
+        SphereProperties{ 16, 16, 1.0f }
+    };
+    m_unitSphere = createMesh(m_renderer, unitSphereConfig.toMeshData());
+}
+
+Mesh::Properties3D::Properties3D(const SphereProperties& props) {
     for (u32 i = 0; i <= props.stacks; ++i) {
         float V   = (float)i / (float)props.stacks;
         float phi = V * pi;
@@ -91,7 +98,6 @@ MeshConfig3D::MeshConfig3D(const SphereProperties& props) {
             float U     = (float)j / (float)props.slices;
             float theta = U * (pi * 2);
 
-            // use spherical coordinates to calculate the positions.
             float x = props.radius * cos(theta) * sin(phi);
             float y = props.radius * cos(phi);
             float z = props.radius * sin(theta) * sin(phi);
@@ -119,7 +125,7 @@ MeshConfig3D::MeshConfig3D(const SphereProperties& props) {
     this->generateNormals();
 }
 
-MeshConfig3D::MeshConfig3D(const PlaneProperties& props) {
+Mesh::Properties3D::Properties3D(const PlaneProperties& props) {
     const auto vertexCount = props.xSegments * props.ySegments * 4;
     const auto indexCount  = props.xSegments * props.ySegments * 6;
 
@@ -172,13 +178,12 @@ MeshConfig3D::MeshConfig3D(const PlaneProperties& props) {
             indices[iOffset + 5] = vOffset + 1;
         }
     }
-    name = props.name;
     this->generateTangents();
     this->generateNormals();
 }
 
-MeshConfig3D::MeshConfig3D(const CubeProperties& props) {
-    const auto& [width, height, depth, xTile, yTile, name, materialName] = props;
+Mesh::Properties3D::Properties3D(const CubeProperties& props) {
+    const auto& [width, height, depth, xTile, yTile] = props;
 
     ASSERT(
       width > 0 && depth > 0 && height > 0 && xTile > 0 && yTile > 0,
@@ -299,14 +304,16 @@ MeshConfig3D::MeshConfig3D(const CubeProperties& props) {
         indices[i_offset + 4] = v_offset + 3;
         indices[i_offset + 5] = v_offset + 1;
     }
-
-    this->name = name;
     this->generateTangents();
     this->generateNormals();
 }
 
-void MeshConfig3D::generateTangents() { sl::generateTangents(vertices, indices); }
+void Mesh::Properties3D::generateTangents() {
+    sl::generateTangents(vertices, indices);
+}
 
-void MeshConfig3D::generateNormals() { sl::generateFaceNormals(vertices, indices); }
+void Mesh::Properties3D::generateNormals() {
+    sl::generateFaceNormals(vertices, indices);
+}
 
 }  // namespace sl
