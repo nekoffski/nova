@@ -9,91 +9,117 @@
 
 namespace sl {
 
-struct TextureComponents {
+struct TextureData {
+    static std::optional<TextureData> fromFile(
+      std::string_view path, Texture::Type textureType
+    );
+
     Texture::Properties props;
-    std::vector<u8> buffer;
+    Texture::Pixels buffer;
 };
 
-// TODO: rename
-static std::optional<TextureComponents> prepareComponents(
-  std::string_view name, Texture::Type textureType
-) {
-    TextureComponents args;
+std::optional<TextureData> loadFlatTextureData(std::string_view path) {
+    LOG_DEBUG("Loading texture '{}'", path);
 
-    auto& props = args.props;
-    props.type  = textureType;
-
-    if (textureType == Texture::Type::flat) {
-        LOG_DEBUG("Loading texture '{}'", name);
-
-        if (auto imageData = Texture::ImageData::loadFromFile(name); imageData) {
-            props.width         = imageData->width;
-            props.height        = imageData->height;
-            props.channels      = imageData->channels;
-            props.isTransparent = imageData->isTransparent;
-            props.isWritable    = false;
-            args.buffer         = imageData->pixels;
-
-        } else {
-            LOG_TRACE("Could not load image");
-            return {};
-        }
-    } else {  // cubemap
-        // +X, -X, +Y, -Y, +Z, -Z
-        LOG_DEBUG("Loading cube map: {}", name);
-
-        // TODO: assuming jpg for now but implement some enum to make it configurable
-        static std::string extension  = "jpg";
-        static constexpr u8 cubeFaces = 6u;
-
-        std::array<std::string, cubeFaces> texturePaths = {
-            fmt::format("{}_r.{}", name, extension),
-            fmt::format("{}_l.{}", name, extension),
-            fmt::format("{}_u.{}", name, extension),
-            fmt::format("{}_d.{}", name, extension),
-            fmt::format("{}_f.{}", name, extension),
-            fmt::format("{}_b.{}", name, extension)
-        };
-
-        props.isTransparent = false;
+    if (auto imageData = Texture::ImageData::loadFromFile(path); imageData) {
+        auto props          = Texture::Properties::createDefault();
+        props.width         = imageData->width;
+        props.height        = imageData->height;
+        props.channels      = imageData->channels;
+        props.isTransparent = imageData->isTransparent;
         props.isWritable    = false;
 
-        auto& buffer = args.buffer;
-
-        for (u8 i = 0u; i < cubeFaces; ++i) {
-            const auto& path = texturePaths[i];
-
-            const auto imageData = Texture::ImageData::loadFromFile(
-              path, Texture::ImageData::Orientation::horizontal
-            );
-
-            if (not imageData) {
-                LOG_ERROR("Could not load cubemap face: '{}'", path);
-                return {};
-            }
-
-            const auto chunkSize =
-              imageData->width * imageData->height * imageData->channels;
-
-            if (buffer.empty()) {
-                props.width    = imageData->width;
-                props.height   = imageData->height;
-                props.channels = imageData->channels;
-
-                buffer.resize(chunkSize * cubeFaces, 0u);
-            }
-
-            ASSERT(
-              imageData->width == props.width && imageData->height == props.height
-                && imageData->channels == props.channels,
-              "Cube map faces have different size"
-            );
-
-            u64 offset = i * chunkSize;
-            std::memcpy(&buffer[offset], imageData->pixels.data(), chunkSize);
-        }
+        return TextureData{ props, imageData->pixels };
+    } else {
+        LOG_ERROR("Could not load image: {}", path);
     }
-    return args;
+    return {};
+}
+
+std::optional<TextureData> loadCubemapData(std::string_view path) {
+    // +X, -X, +Y, -Y, +Z, -Z
+    LOG_DEBUG("Loading cube map: {}", path);
+
+    // TODO: assuming jpg for now but implement some enum to make it
+    // configurable
+    static std::string extension  = "jpg";
+    static constexpr u8 cubeFaces = 6u;
+
+    std::array<std::string, cubeFaces> texturePaths = {
+        fmt::format("{}_r.{}", path, extension),
+        fmt::format("{}_l.{}", path, extension),
+        fmt::format("{}_u.{}", path, extension),
+        fmt::format("{}_d.{}", path, extension),
+        fmt::format("{}_f.{}", path, extension),
+        fmt::format("{}_b.{}", path, extension)
+    };
+
+    auto props = Texture::Properties::createDefault();
+
+    props.type          = Texture::Type::cubemap;
+    props.isTransparent = false;
+    props.isWritable    = false;
+
+    Texture::Pixels buffer;
+
+    u64 offset = 0;
+
+    for (const auto& path : texturePaths) {
+        const auto imageData = Texture::ImageData::loadFromFile(
+          path, Texture::ImageData::Orientation::horizontal
+        );
+
+        if (not imageData) {
+            LOG_ERROR("Could not load cubemap face: '{}'", path);
+            return {};
+        }
+
+        const auto chunkSize =
+          imageData->width * imageData->height * imageData->channels;
+
+        if (buffer.empty()) {
+            props.width    = imageData->width;
+            props.height   = imageData->height;
+            props.channels = imageData->channels;
+            buffer.resize(chunkSize * cubeFaces, 0u);
+        }
+
+        ASSERT(
+          imageData->width == props.width && imageData->height == props.height
+            && imageData->channels == props.channels,
+          "Cube map faces have different size"
+        );
+
+        std::memcpy(&buffer[offset], imageData->pixels.data(), chunkSize);
+        offset += chunkSize;
+    }
+    return TextureData{ props, buffer };
+}
+
+std::optional<TextureData> TextureData::fromFile(
+  std::string_view path, Texture::Type textureType
+) {
+    return textureType == Texture::Type::flat
+             ? loadFlatTextureData(path)
+             : loadCubemapData(path);
+}
+
+Texture::Properties Texture::Properties::createDefault(
+  u32 width, u32 height, u32 channels
+) {
+    return Texture::Properties{
+        .width         = width,
+        .height        = height,
+        .channels      = channels,
+        .isTransparent = false,
+        .isWritable    = false,
+        .type          = Texture::Type::flat,
+        .minifyFilter  = Filter::linear,
+        .magnifyFilter = Filter::linear,
+        .uRepeat       = Repeat::repeat,
+        .vRepeat       = Repeat::repeat,
+        .wRepeat       = Repeat::repeat,
+    };
 }
 
 ResourceRef<Texture> Texture::load(const std::string& name, Type textureType) {
@@ -104,11 +130,17 @@ ResourceRef<Texture> Texture::find(const std::string& name) {
     return TextureManager::get().find(name);
 }
 
-ResourceRef<Texture> Texture::getDefaultDiffuseMap() { return nullptr; }
+ResourceRef<Texture> Texture::getDefaultDiffuseMap() {
+    return TextureManager::get().getDefaultDiffuseMap();
+}
 
-ResourceRef<Texture> Texture::getDefaultNormalMap() { return nullptr; }
+ResourceRef<Texture> Texture::getDefaultNormalMap() {
+    return TextureManager::get().getDefaultNormalMap();
+}
 
-ResourceRef<Texture> Texture::getDefaultSpecularMap() { return nullptr; }
+ResourceRef<Texture> Texture::getDefaultSpecularMap() {
+    return TextureManager::get().getDefaultSpecularMap();
+}
 
 const Texture::Properties& Texture::getProperties() const { return m_props; }
 
@@ -180,32 +212,86 @@ std::optional<Texture::ImageData> Texture::ImageData::loadFromFile(
 ResourceRef<Texture> TextureManager::load(
   const std::string& name, Texture::Type textureType
 ) {
-    if (auto resource = find(name); resource) return resource;
+    if (auto resource = find(name); resource) [[unlikely]]
+        return resource;
 
-    const auto components =
-      prepareComponents(fmt::format("{}/{}", m_texturesPath, name), textureType);
+    const auto fullPath = fmt::format("{}/{}", m_texturesPath, name);
 
-    if (not components) {
-        LOG_WARN("Could not process texture: {}/{}", m_texturesPath, name);
-        return nullptr;
+    if (auto data = TextureData::fromFile(fullPath, textureType); data)
+        return store(name, createTexture(data->props, data->buffer));
+
+    LOG_WARN("Could not process texture: {}", fullPath);
+    return nullptr;
+}
+
+ResourceRef<Texture> TextureManager::getDefaultDiffuseMap() {
+    return ResourceRef{ m_defaultDiffuseMap.get(), "Default.DiffuseMap" };
+}
+
+ResourceRef<Texture> TextureManager::getDefaultNormalMap() {
+    return ResourceRef{ m_defaultNormalMap.get(), "Default.NormalMap" };
+}
+
+ResourceRef<Texture> TextureManager::getDefaultSpecularMap() {
+    return ResourceRef{ m_defaultSpecularMap.get(), "Default.SpecularMap" };
+}
+
+TextureManager::TextureManager(const std::string& path, RendererBackend& renderer) :
+    m_texturesPath(path), m_renderer(renderer) {
+    createDefaults();
+}
+
+void TextureManager::createDefaults() {
+    auto properties = Texture::Properties::createDefault();
+    const auto bufferSize =
+      properties.width * properties.height * properties.channels;
+    Texture::Pixels buffer(bufferSize, 255);
+
+    m_defaultSpecularMap = createTexture(properties, buffer);
+
+    for (auto index = 0u; index < bufferSize; index += properties.channels) {
+        buffer[index]     = 0;
+        buffer[index + 1] = 255;
+        buffer[index + 2] = 0;
     }
+    m_defaultNormalMap = createTexture(properties, buffer);
 
+    static constexpr u8 white    = 255u;
+    static constexpr u8 black    = 0u;
+    static constexpr u32 squares = 8u;
+
+    const auto gridWidth = properties.width / squares;
+
+    for (auto y = 0u; y < properties.height; ++y) {
+        for (auto x = 0u; x < properties.width; ++x) {
+            const auto index =
+              y * properties.width * properties.channels + x * properties.channels;
+
+            const auto u = x / gridWidth;
+            const auto v = y / gridWidth;
+
+            auto color = (u + v) & 1 ? white : black;
+
+            buffer[index]     = color;
+            buffer[index + 1] = color;
+            buffer[index + 2] = color;
+        }
+    }
+    m_defaultDiffuseMap = createTexture(properties, buffer);
+}
+
+OwningPtr<Texture> TextureManager::createTexture(
+  const Texture::Properties& props, const Texture::Pixels& pixels
+) {
 #ifdef SL_USE_VK
     auto& vkRenderer = static_cast<vk::VKRendererBackend&>(m_renderer);
 
-    return store(
-      name,
-      createOwningPtr<vk::VKTexture>(
-        vkRenderer.getContext(), vkRenderer.getLogicalDevice(), components->props,
-        components->buffer
-      )
+    return createOwningPtr<vk::VKTexture>(
+      vkRenderer.getContext(), vkRenderer.getLogicalDevice(), props, pixels
     );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
 #endif
 }
-
-TextureManager::TextureManager(const std::string& path, RendererBackend& renderer) :
-    m_texturesPath(path), m_renderer(renderer) {}
 
 }  // namespace sl

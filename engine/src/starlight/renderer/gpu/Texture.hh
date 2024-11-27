@@ -12,6 +12,14 @@ namespace sl {
 
 class Texture : public NonMovable, public Identificable<Texture> {
 public:
+    static constexpr u32 defaultWidth    = 1024;
+    static constexpr u32 defaultHeight   = 1024;
+    static constexpr u32 defaultChannels = 4;
+
+    using PixelWidth = u8;
+    using Pixels     = std::vector<PixelWidth>;
+    using PixelsView = std::span<PixelWidth>;
+
     struct ImageData {
         enum class Orientation { vertical, horizontal };
 
@@ -19,7 +27,7 @@ public:
           std::string_view path, Orientation orientation = Orientation::vertical
         );
 
-        std::vector<u8> pixels;
+        Pixels pixels;
         u32 width;
         u32 height;
         u8 channels;
@@ -27,23 +35,26 @@ public:
     };
 
     enum class Type : u8 { flat, cubemap };
-    enum class Use { unknown, diffuseMap, specularMap, normalMap, cubeMap };
     enum class Filter { nearest, linear };
     enum class Repeat { repeat, mirroredRepeat, clampToEdge, clampToBorder };
 
     struct Properties {
+        static Properties createDefault(
+          u32 width = defaultWidth, u32 height = defaultHeight,
+          u32 channels = defaultChannels
+        );
+
         u32 width;
         u32 height;
         u32 channels;
         bool isTransparent;
         bool isWritable;
         Type type;
-        Use use              = Use::unknown;
-        Filter minifyFilter  = Filter::linear;
-        Filter magnifyFilter = Filter::linear;
-        Repeat uRepeat       = Repeat::repeat;
-        Repeat vRepeat       = Repeat::repeat;
-        Repeat wRepeat       = Repeat::repeat;
+        Filter minifyFilter;
+        Filter magnifyFilter;
+        Repeat uRepeat;
+        Repeat vRepeat;
+        Repeat wRepeat;
     };
 
     static ResourceRef<Texture> load(const std::string& name, Type textureType);
@@ -74,7 +85,21 @@ public:
 
     ResourceRef<Texture> load(const std::string& name, Texture::Type textureType);
 
+    ResourceRef<Texture> getDefaultDiffuseMap();
+    ResourceRef<Texture> getDefaultNormalMap();
+    ResourceRef<Texture> getDefaultSpecularMap();
+
 private:
+    OwningPtr<Texture> createTexture(
+      const Texture::Properties& props, const Texture::Pixels& pixels
+    );
+
+    void createDefaults();
+
+    OwningPtr<Texture> m_defaultDiffuseMap;
+    OwningPtr<Texture> m_defaultNormalMap;
+    OwningPtr<Texture> m_defaultSpecularMap;
+
     const std::string m_texturesPath;
     RendererBackend& m_renderer;
 };

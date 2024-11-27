@@ -135,6 +135,11 @@ VKTexture::VKTexture(
       true,
       false,
       Type::flat,
+      Filter::linear,
+      Filter::linear,
+      Repeat::repeat,
+      Repeat::repeat,
+      Repeat::repeat,
     }),
     m_context(context), m_device(device), m_image(m_context, m_device, props) {
     createSampler(m_props);
