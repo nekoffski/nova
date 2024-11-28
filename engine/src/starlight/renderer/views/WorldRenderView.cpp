@@ -35,7 +35,9 @@ RenderPass::Properties WorldRenderView::getRenderPassProperties(
     return props;
 }
 
-void WorldRenderView::init(RenderPass& renderPass) {
+void WorldRenderView::init(
+  [[maybe_unused]] RendererBackend&, RenderPass& renderPass
+) {
     m_shader->createPipeline(renderPass);
 }
 

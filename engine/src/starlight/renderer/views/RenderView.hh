@@ -14,7 +14,10 @@ struct RenderView {
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
     ) const = 0;
 
-    virtual void init([[maybe_unused]] RenderPass& renderPass) {}
+    virtual void init(
+      [[maybe_unused]] RendererBackend& renderer,
+      [[maybe_unused]] RenderPass& renderPass
+    ) {}
     virtual void preRender([[maybe_unused]] RendererBackend& renderer) {}
 
     virtual void render(

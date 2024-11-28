@@ -30,7 +30,9 @@ RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
     return props;
 }
 
-void SkyboxRenderView::init(RenderPass& renderPass) {
+void SkyboxRenderView::init(
+  [[maybe_unused]] RendererBackend&, RenderPass& renderPass
+) {
     m_skybox->getShader()->createPipeline(renderPass);
 }
 

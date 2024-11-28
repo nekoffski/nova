@@ -18,7 +18,7 @@ public:
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
     ) const override;
 
-    void init(RenderPass& renderPass) override;
+    void init(RendererBackend& renderer, RenderPass& renderPass) override;
     void preRender(RendererBackend& renderer) override;
 
     void render(

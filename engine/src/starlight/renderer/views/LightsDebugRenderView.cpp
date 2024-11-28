@@ -32,7 +32,9 @@ RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(
     return props;
 }
 
-void LightsDebugRenderView::init(RenderPass& renderPass) {
+void LightsDebugRenderView::init(
+  [[maybe_unused]] RendererBackend&, RenderPass& renderPass
+) {
     m_shader->createPipeline(renderPass);
 }
 

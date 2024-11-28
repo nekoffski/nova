@@ -43,7 +43,7 @@ OwningPtr<RenderGraph> RenderGraph::Builder::build() && {
 
         auto renderPass = renderPasses.back().get();
 
-        view->init(*renderPass);
+        view->init(m_renderer, *renderPass);
         nodes.emplace_back(view, renderPass);
     }
 
