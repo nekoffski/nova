@@ -52,13 +52,11 @@ public:
     static ResourceRef<Material> find(const std::string& name);
 
 private:
-    u64 getShaderInstanceId(Shader&);
-
     Properties m_props;
     u64 m_renderFrameNumber;
 
     std::vector<Texture*> m_textures;
-    std::unordered_map<u64, u32> m_shaderInstanceIds;
+    ShaderInstanceMap m_shaderInstanceMap;
 };
 
 class MaterialManager

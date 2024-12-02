@@ -15,10 +15,6 @@
 namespace sl {
 
 class Context : public NonCopyable {
-    struct LoggerInitializator {
-        explicit LoggerInitializator(const std::string& applicationName);
-    };
-
 public:
     explicit Context(const Config& config);
 
@@ -30,13 +26,13 @@ public:
     }
 
     Window& getWindow();
+    EventProxy& getEventProxy();
     const Config& getConfig() const;
 
 private:
     float beginFrame();
     void endFrame();
 
-    LoggerInitializator m_loggerInitializator;
     EventBroker m_eventBroker;
 
     WindowVendor m_windowImpl;

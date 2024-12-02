@@ -9,7 +9,6 @@
 #include "starlight/core/math/Vertex.hh"
 
 #include "starlight/renderer/fwd.hh"
-#include "starlight/renderer/Material.hh"
 #include "starlight/renderer/gpu/Mesh.hh"
 #include "starlight/renderer/gpu/Texture.hh"
 #include "starlight/renderer/gpu/Shader.hh"

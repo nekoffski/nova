@@ -6,6 +6,7 @@
 #include "light/PointLight.hh"
 #include "camera/Camera.hh"
 #include "Material.hh"
+#include "Skybox.hh"
 
 namespace sl {
 
@@ -16,6 +17,7 @@ struct RenderEntity {
 };
 
 struct RenderPacket {
+    Skybox* skybox;
     Camera* camera;
     std::vector<PointLight> pointLights;
     std::vector<RenderEntity> entities;

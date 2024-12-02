@@ -10,20 +10,19 @@ namespace sl {
 
 class Skybox : public NonMovable, public Identificable<Skybox> {
 public:
-    explicit Skybox(ResourceRef<Texture> cubeMap, ResourceRef<Shader> shader);
+    explicit Skybox(ResourceRef<Texture> cubeMap);
     ~Skybox();
 
     Texture* getCubeMap();
-    Shader* getShader();
-    u32 getInstanceId() const;
+
+    void applyUniforms(Shader& shader, CommandBuffer& commandBuffer, u8 imageIndex);
 
     static ResourceRef<Skybox> load(const std::string& name);
+    static Shader* getDefaultShader();
 
 private:
     ResourceRef<Texture> m_cubeMap;
-    ResourceRef<Shader> m_shader;
-
-    u32 m_instanceId;
+    ShaderInstanceMap m_shaderInstanceMap;
 };
 
 class SkyboxManager
@@ -33,6 +32,7 @@ public:
     explicit SkyboxManager();
 
     ResourceRef<Skybox> load(const std::string& name);
+    Shader* getDefaultShader();
 
 private:
     ResourceRef<Shader> m_defaultSkyboxShader;

@@ -21,7 +21,6 @@ std::optional<Config> Config::fromJson(
         auto paths   = root["paths"];
 
         return Config{
-            .loggerIdent = getField<std::string>(root, "logger-ident"),  
             .window = { 
                 .width  = getField<u32>(window, "width"),
                 .height = getField<u32>(window, "height"),

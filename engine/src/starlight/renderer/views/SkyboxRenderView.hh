@@ -12,7 +12,7 @@ namespace sl {
 
 class SkyboxRenderView : public RenderView {
 public:
-    explicit SkyboxRenderView(Skybox* skybox);
+    explicit SkyboxRenderView(Shader* shader = Skybox::getDefaultShader());
 
     RenderPass::Properties getRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
@@ -28,7 +28,7 @@ public:
     ) override;
 
 private:
-    Skybox* m_skybox;
+    Shader* m_shader;
 };
 
 }  // namespace sl

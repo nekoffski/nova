@@ -11,20 +11,7 @@ Material::Material(const Properties& props) :
     LOG_TRACE("Creating Material");
 }
 
-Material::~Material() {
-    LOG_TRACE("Destroying Material");
-
-    for (const auto [shaderId, instanceId] : m_shaderInstanceIds) {
-        if (auto shader = Shader::find(shaderId); shader) {
-            shader->releaseInstanceResources(instanceId);
-        } else {
-            LOG_WARN(
-              "Could release shader instance resources with id '{}', could not find shader with id '{}'",
-              instanceId, shaderId
-            );
-        }
-    }
-}
+Material::~Material() { LOG_TRACE("Destroying Material"); }
 
 bool Material::isTransparent() const {
     return m_props.diffuseMap->getProperties().isTransparent;
@@ -35,8 +22,10 @@ void Material::applyUniforms(
   const u64 renderFrameNumber
 ) {
     if (m_renderFrameNumber != renderFrameNumber) {
+        const auto instanceId =
+          m_shaderInstanceMap.getInstanceId(shader, m_textures);
         shader.setInstanceUniforms(
-          commandBuffer, getShaderInstanceId(shader), imageIndex,
+          commandBuffer, instanceId, imageIndex,
           [&](Shader::UniformProxy& proxy) {
               proxy.set("diffuseColor", m_props.diffuseColor);
               proxy.set("diffuseTexture", m_props.diffuseMap);
@@ -47,19 +36,6 @@ void Material::applyUniforms(
         );
         m_renderFrameNumber = renderFrameNumber;
     }
-}
-
-u64 Material::getShaderInstanceId(Shader& shader) {
-    const auto shaderId = shader.getId();
-
-    if (const auto record = m_shaderInstanceIds.find(shaderId);
-        record != m_shaderInstanceIds.end()) [[likely]] {
-        return record->second;
-    }
-
-    const auto instanceId         = shader.acquireInstanceResources(m_textures);
-    m_shaderInstanceIds[shaderId] = instanceId;
-    return instanceId;
 }
 
 const Material::Properties& Material::getProperties() const { return m_props; }

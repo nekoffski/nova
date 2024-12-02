@@ -208,4 +208,19 @@ private:
     RendererBackend& m_renderer;
 };
 
+class ShaderInstanceMap : public NonMovable, public NonCopyable {
+    struct Record {
+        u32 instanceId;
+        Shader* shader;
+    };
+
+public:
+    ~ShaderInstanceMap();
+
+    u32 getInstanceId(Shader& shader, const std::vector<Texture*>& textures);
+
+private:
+    std::unordered_map<u64, Record> m_instanceIds;
+};
+
 }  // namespace sl

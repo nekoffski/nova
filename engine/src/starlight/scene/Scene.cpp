@@ -4,7 +4,8 @@
 
 namespace sl {
 
-Scene::Scene(Window& window, Camera* camera) : m_window(window), m_camera(camera) {}
+Scene::Scene(Window& window, Camera* camera) :
+    m_window(window), m_camera(camera), m_skybox(nullptr) {}
 
 RenderPacket Scene::getRenderPacket() {
     RenderPacket packet{};
@@ -35,10 +36,13 @@ RenderPacket Scene::getRenderPacket() {
     // light.color      = Vec4<f32>{ 0.5f, 0.5f, 0.1f, 1.0f };
     // packet.pointLights.push_back(light);
 
+    packet.skybox = m_skybox;
+
     return packet;
 }
 
-void Scene::setCamera(Camera* camera) { m_camera = camera; }
+void Scene::setCamera(Camera& camera) { m_camera = &camera; }
+void Scene::setSkybox(Skybox& skybox) { m_skybox = &skybox; }
 
 Entity& Scene::addEntity(std::optional<std::string> name) {
     m_entities.emplace_back(m_componentManager, name);

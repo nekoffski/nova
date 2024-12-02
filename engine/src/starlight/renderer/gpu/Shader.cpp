@@ -3,6 +3,7 @@
 #include "starlight/core/Log.hh"
 
 #include <numeric>
+#include <ranges>
 #include <concepts>
 
 #include <fmt/core.h>
@@ -391,5 +392,25 @@ Shader::UniformProxy::UniformProxy(Shader& shader, CommandBuffer& commandBuffer)
 
 ShaderManager::ShaderManager(const std::string& path, RendererBackend& renderer) :
     m_shadersPath(path), m_renderer(renderer) {}
+
+ShaderInstanceMap::~ShaderInstanceMap() {
+    for (const auto [instanceId, shader] : m_instanceIds | std::views::values)
+        shader->releaseInstanceResources(instanceId);
+}
+
+u32 ShaderInstanceMap::getInstanceId(
+  Shader& shader, const std::vector<Texture*>& textures
+) {
+    const auto shaderId = shader.getId();
+
+    if (const auto record = m_instanceIds.find(shaderId);
+        record != m_instanceIds.end()) [[likely]] {
+        return record->second.instanceId;
+    }
+
+    const auto instanceId   = shader.acquireInstanceResources(textures);
+    m_instanceIds[shaderId] = Record{ instanceId, &shader };
+    return instanceId;
+}
 
 }  // namespace sl

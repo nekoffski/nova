@@ -4,7 +4,7 @@
 
 namespace sl {
 
-SkyboxRenderView::SkyboxRenderView(Skybox* skybox) : m_skybox(skybox) {}
+SkyboxRenderView::SkyboxRenderView(Shader* shader) : m_shader(shader) {}
 
 RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
@@ -33,7 +33,7 @@ RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
 void SkyboxRenderView::init(
   [[maybe_unused]] RendererBackend&, RenderPass& renderPass
 ) {
-    m_skybox->getShader()->createPipeline(renderPass);
+    m_shader->createPipeline(renderPass);
 }
 
 void SkyboxRenderView::preRender(RendererBackend& renderer) {
@@ -49,12 +49,17 @@ void SkyboxRenderView::render(
   [[maybe_unused]] const RenderProperties& properties,
   [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
 ) {
-    auto shader = m_skybox->getShader();
+    auto skybox = packet.skybox;
+
+    if (not skybox) {
+        LOG_WARN("Skybox == null, skipping SkyboxRenderView");
+        return;
+    }
+
     auto camera = packet.camera;
 
-    shader->use(commandBuffer);
-
-    shader->setGlobalUniforms(commandBuffer, imageIndex, [&](auto& proxy) {
+    m_shader->use(commandBuffer);
+    m_shader->setGlobalUniforms(commandBuffer, imageIndex, [&](auto& proxy) {
         auto viewMatrix  = camera->getViewMatrix();
         viewMatrix[3][0] = 0.0f;
         viewMatrix[3][1] = 0.0f;
@@ -63,11 +68,7 @@ void SkyboxRenderView::render(
         proxy.set("view", viewMatrix);
         proxy.set("projection", camera->getProjectionMatrix());
     });
-
-    shader->setInstanceUniforms(
-      commandBuffer, m_skybox->getInstanceId(), imageIndex,
-      [&](auto& proxy) { proxy.set("cubeTexture", m_skybox->getCubeMap()); }
-    );
+    skybox->applyUniforms(*m_shader, commandBuffer, imageIndex);
 
     renderer.drawMesh(*Mesh::getCube());
 }

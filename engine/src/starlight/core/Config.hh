@@ -13,8 +13,6 @@ struct Config {
       const std::string& path, const FileSystem& fs = fileSystem
     );
 
-    std::string loggerIdent;
-
     struct Window {
         u32 width;
         u32 height;
