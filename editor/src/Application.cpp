@@ -17,7 +17,7 @@ int Application::start() {
 
 void Application::init() { initEvents(); }
 
-void Application::onFrame(float deltaTime) {}
+void Application::onFrame([[maybe_unused]] float deltaTime) {}
 
 void Application::startRenderLoop() {
     while (m_isRunning)
