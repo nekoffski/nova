@@ -24,6 +24,8 @@
 static std::atomic_bool isRunning = true;
 
 int main(int argc, char** argv) {
+    sl::initLogging("sl-sandbox");
+
     ASSERT(argc >= 2, "Config path required");
     auto config = sl::Config::fromJson(std::string{ argv[1] });
     ASSERT(config, "Could not load config file");
@@ -45,7 +47,7 @@ int main(int argc, char** argv) {
           isRunning = false;
           return sl::EventChainBehaviour::propagate;
       })
-      .pushHandler<sl::KeyEvent>([&]([[maybe_unused]] const auto& ev) {
+      .pushHandler<sl::KeyEvent>([&](const auto& ev) {
           if (ev.key == SL_KEY_ESCAPE)
               isRunning = false;
           else if (ev.key == SL_KEY_Z)
@@ -81,7 +83,7 @@ int main(int argc, char** argv) {
 
     auto renderGraph =
       sl::RenderGraph::Builder{ rendererBackend, viewportSize }
-        .addView<sl::SkyboxRenderView>(skybox.get())
+        .addView<sl::SkyboxRenderView>()
         .addView<sl::WorldRenderView>(worldShader.get())
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
@@ -90,6 +92,7 @@ int main(int argc, char** argv) {
         .build();
 
     sl::Scene scene{ window, &camera };
+    scene.setSkybox(*skybox);
 
     auto& entity = scene.addEntity();
 

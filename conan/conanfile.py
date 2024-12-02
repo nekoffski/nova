@@ -8,7 +8,8 @@ requirements = [
     "fmt/10.2.1",
     "spdlog/1.14.1",
     "gtest/1.15.0",
-    "benchmark/1.9.0"
+    "benchmark/1.9.0",
+    "boost/1.86.0"
 ]
 
 
