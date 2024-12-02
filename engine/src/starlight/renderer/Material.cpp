@@ -48,7 +48,18 @@ ResourceRef<Material> Material::find(const std::string& name) {
     return MaterialManager::get().find(name);
 }
 
-MaterialManager::MaterialManager(const std::string& path) : m_materialsPath(path) {}
+ResourceRef<Material> Material::getDefault() {
+    return MaterialManager::get().getDefault();
+}
+
+MaterialManager::MaterialManager(const std::string& path) :
+    m_materialsPath(path),
+    m_defaultMaterial(createOwningPtr<Material>(Material::Properties::createDefault()
+    )) {}
+
+ResourceRef<Material> MaterialManager::getDefault() {
+    return ResourceRef{ m_defaultMaterial.get(), "DefaultMaterial" };
+}
 
 ResourceRef<Material> MaterialManager::load(
   const std::string& name, const FileSystem& fs
@@ -62,12 +73,15 @@ ResourceRef<Material> MaterialManager::load(
     return nullptr;
 }
 
-Material::Properties::Properties() :
-    diffuseColor(Material::defaultDiffuseColor),
-    diffuseMap(Texture::getDefaultDiffuseMap()),
-    specularMap(Texture::getDefaultSpecularMap()),
-    normalMap(Texture::getDefaultNormalMap()),
-    shininess(Material::defaultShininess) {}
+Material::Properties Material::Properties::createDefault() {
+    return Properties{
+        .diffuseColor = Material::defaultDiffuseColor,
+        .diffuseMap   = Texture::getDefaultDiffuseMap(),
+        .specularMap  = Texture::getDefaultSpecularMap(),
+        .normalMap    = Texture::getDefaultNormalMap(),
+        .shininess    = Material::defaultShininess
+    };
+}
 
 std::optional<Material::Properties> Material::Properties::fromFile(
   const std::string& path, const FileSystem& fs
@@ -82,7 +96,7 @@ std::optional<Material::Properties> Material::Properties::fromFile(
     try {
         const auto root = kc::json::loadJson(fs.readFile(path));
 
-        Properties props;
+        auto props = Properties::createDefault();
 
         getOptField<Vec4<f32>>(root, "diffuse-color", [&](const auto& value) {
             props.diffuseColor = value;
