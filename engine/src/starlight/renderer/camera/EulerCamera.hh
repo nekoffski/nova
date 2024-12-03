@@ -17,7 +17,6 @@ public:
     explicit EulerCamera(const Properties& props);
 
     Mat4<f32> getViewMatrix() const override;
-    Mat4<f32> getProjectionMatrix() const override;
     Vec3<f32> getPosition() const override;
 
     void update(float deltaTime) override;
@@ -43,7 +42,6 @@ private:
     float m_pitch;
 
     Mat4<f32> m_viewMatrix;
-    Vec2<u32> m_viewportSize;
 };
 
 }  // namespace sl

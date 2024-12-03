@@ -6,22 +6,36 @@
 
 namespace sl {
 
-// TODO: move some common stuff to the base class
 class Camera {
 public:
-    explicit Camera();
+    struct ProjectionProperties {
+        static ProjectionProperties createDefault();
 
-    virtual Mat4<f32> getViewMatrix() const       = 0;
-    virtual Mat4<f32> getProjectionMatrix() const = 0;
-    virtual Vec3<f32> getPosition() const         = 0;
+        f32 fov;
+        f32 nearZ;
+        f32 farZ;
+    };
 
-    virtual void update(float deltaTime) = 0;
+    explicit Camera(
+      const Vec2<u32>& viewport,
+      const ProjectionProperties& projectionProperties =
+        ProjectionProperties::createDefault()
+    );
+
+    virtual Mat4<f32> getViewMatrix() const = 0;
+    virtual Vec3<f32> getPosition() const   = 0;
+    virtual void update(float deltaTime)    = 0;
+
+    const Mat4<f32>& getProjectionMatrix() const;
+
+    void onViewportResize(const Vec2<u32>& viewport);
 
 protected:
-    Vec2<u32> m_viewportSize;
+    void calculateProjectionMatrix();
 
-private:
-    EventHandlerSentinel m_eventSentinel;
+    Vec2<u32> m_viewportSize;
+    Mat4<f32> m_projectionMatrix;
+    ProjectionProperties m_projectionProperties;
 };
 
 }  // namespace sl

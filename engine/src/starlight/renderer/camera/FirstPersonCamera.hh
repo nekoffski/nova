@@ -16,7 +16,6 @@ public:
     explicit FirstPersonCamera(const Properties& props);
 
     Mat4<f32> getViewMatrix() const override;
-    Mat4<f32> getProjectionMatrix() const override;
     Vec3<f32> getPosition() const override;
 
     void update(float deltaTime) override;
@@ -32,8 +31,6 @@ private:
     float m_yaw;
     float m_pitch;
     float m_speed;
-
-    Vec2<u32> m_viewportSize;
 };
 
 }  // namespace sl

@@ -9,21 +9,12 @@
 namespace sl {
 
 FirstPersonCamera::FirstPersonCamera(const Properties& props) :
-    m_position(props.position), m_front(0.0f, 0.0f, 1.0f), m_up(0.0f, 1.0f, 0.0f),
-    m_right(1.0f, 0.0f, 0.0f), m_yaw(0.0f), m_pitch(0.0f), m_speed(10.0f),
-    m_viewportSize(props.viewportSize) {}
+    Camera(props.viewportSize), m_position(props.position),
+    m_front(0.0f, 0.0f, 1.0f), m_up(0.0f, 1.0f, 0.0f), m_right(1.0f, 0.0f, 0.0f),
+    m_yaw(0.0f), m_pitch(0.0f), m_speed(10.0f) {}
 
 Mat4<f32> FirstPersonCamera::getViewMatrix() const {
     return glm::lookAt(m_position, m_position + m_front, worldUp);
-}
-
-Mat4<f32> FirstPersonCamera::getProjectionMatrix() const {
-    // TODO: make it configurable
-    return glm::perspective(
-      glm::radians(45.0f),
-      static_cast<float>(m_viewportSize.w) / static_cast<float>(m_viewportSize.h),
-      0.1f, 1000.0f
-    );
 }
 
 Vec3<f32> FirstPersonCamera::getPosition() const { return m_position; }

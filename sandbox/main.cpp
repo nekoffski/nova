@@ -5,7 +5,7 @@
 #include "starlight/core/Core.hh"
 #include "starlight/core/window/Window.hh"
 #include "starlight/core/Context.hh"
-#include "starlight/core/event/Quit.hh"
+#include "starlight/core/event/Events.hh"
 
 #include "starlight/renderer/views/WorldRenderView.hh"
 #include "starlight/renderer/views/LightsDebugRenderView.hh"
@@ -39,26 +39,6 @@ int main(int argc, char** argv) {
 
     const auto viewportSize = window.getFramebufferSize();
 
-    auto& eventProxy = sl::EventProxy::get();
-    sl::EventHandlerSentinel sentinel{ eventProxy };
-
-    sentinel
-      .pushHandler<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) {
-          isRunning = false;
-          return sl::EventChainBehaviour::propagate;
-      })
-      .pushHandler<sl::KeyEvent>([&](const auto& ev) {
-          if (ev.key == SL_KEY_ESCAPE)
-              isRunning = false;
-          else if (ev.key == SL_KEY_Z)
-              renderer.setRenderMode(sl::RenderMode::lights);
-          else if (ev.key == SL_KEY_X)
-              renderer.setRenderMode(sl::RenderMode::normals);
-          else if (ev.key == SL_KEY_C)
-              renderer.setRenderMode(sl::RenderMode::standard);
-          return sl::EventChainBehaviour::propagate;
-      });
-
     sl::EulerCamera camera(sl::EulerCamera::Properties{
       .target       = sl::Vec3<sl::f32>{ 0.0f },
       .radius       = 5.0f,
@@ -91,6 +71,32 @@ int main(int argc, char** argv) {
         )
         .build();
 
+    auto& eventProxy = sl::EventProxy::get();
+    sl::EventHandlerSentinel sentinel{ eventProxy };
+
+    sentinel
+      .pushHandler<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) {
+          isRunning = false;
+          return sl::EventChainBehaviour::propagate;
+      })
+      .pushHandler<sl::KeyEvent>([&](const auto& ev) {
+          if (ev.key == SL_KEY_ESCAPE)
+              isRunning = false;
+          else if (ev.key == SL_KEY_Z)
+              renderer.setRenderMode(sl::RenderMode::lights);
+          else if (ev.key == SL_KEY_X)
+              renderer.setRenderMode(sl::RenderMode::normals);
+          else if (ev.key == SL_KEY_C)
+              renderer.setRenderMode(sl::RenderMode::standard);
+          return sl::EventChainBehaviour::propagate;
+      })
+      .pushHandler<sl::WindowResized>([&](const auto& event) {
+          renderer.onViewportResize(event.size);
+          renderGraph->onViewportResize(event.size);
+          camera.onViewportResize(event.size);
+          return sl::EventChainBehaviour::propagate;
+      });
+
     sl::Scene scene{ window, &camera };
     scene.setSkybox(*skybox);
 
@@ -108,11 +114,9 @@ int main(int argc, char** argv) {
 
     instance.scale(sl::Vec3<sl::f32>{ 0.1f });
 
-    renderer.setRenderGraph(renderGraph.get());
-
     while (isRunning) {
         context.beginFrame([&](float deltaTime) {
-            renderer.renderFrame(deltaTime, scene.getRenderPacket());
+            renderer.renderFrame(deltaTime, scene.getRenderPacket(), *renderGraph);
             camera.update(deltaTime);
 
             instance.rotate(

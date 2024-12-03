@@ -17,7 +17,10 @@ RenderPass::Properties UIRenderView::getRenderPassProperties(
 ) const {
     auto props       = getDefaultRenderPassProperties();
     props.clearColor = Vec4<f32>{ 0.0f };
-    props.clearFlags = RenderPass::ClearFlags::none;
+    props.clearFlags =
+      isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious)
+        ? RenderPass::ClearFlags::none
+        : RenderPass::ClearFlags::color;
 
     const auto swapchainImageCount = renderer.getSwapchainImageCount();
     props.renderTargets.reserve(swapchainImageCount);

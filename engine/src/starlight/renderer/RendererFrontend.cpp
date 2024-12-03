@@ -12,28 +12,19 @@ namespace sl {
 
 RendererFrontend::RendererFrontend(Window& window, const Config& config) :
     m_window(window), m_backend(m_window, config),
-    m_eventSentinel(EventProxy::get()), m_renderMode(RenderMode::standard),
-    m_framesSinceResize(0u), m_resizing(false),
+    m_renderMode(RenderMode::standard), m_framesSinceResize(0u), m_resizing(false),
     m_viewportSize(m_window.getFramebufferSize()),
     m_shaderManager(config.paths.shaders, m_backend),
     m_textureManager(config.paths.textures, m_backend),
-    m_materialManager(config.paths.materials), m_meshManager(m_backend),
-    m_renderGraph(nullptr) {
-    m_eventSentinel.pushHandler<WindowResized>(
-      [&](const auto& event) -> EventChainBehaviour {
-          onViewportResize(event.size);
-          return EventChainBehaviour::propagate;
-      }
-    );
-}
+    m_materialManager(config.paths.materials), m_meshManager(m_backend) {}
 
 FrameStatistics RendererFrontend::getFrameStatistics() { return m_frameStatistics; }
 
 RendererBackend& RendererFrontend::getRendererBackend() { return m_backend; }
 
-void RendererFrontend::renderFrame(float deltaTime, const RenderPacket& packet) {
-    ASSERT(m_renderGraph, "Renderer frontend requires render graph to render");
-
+void RendererFrontend::renderFrame(
+  float deltaTime, const RenderPacket& packet, RenderGraph& renderGraph
+) {
     m_frameStatistics.frameNumber++;
     m_frameStatistics.deltaTime = deltaTime;
 
@@ -61,7 +52,7 @@ void RendererFrontend::renderFrame(float deltaTime, const RenderPacket& packet) 
               m_renderMode, m_frameStatistics.frameNumber
           };
 
-          for (auto& [view, renderPass] : m_renderGraph->getNodes()) {
+          for (auto& [view, renderPass] : renderGraph.getNodes()) {
               view->preRender(m_backend);
               renderPass->run(
                 commandBuffer, imageIndex,
@@ -82,14 +73,9 @@ void RendererFrontend::setRenderMode(RenderMode mode) {
     m_renderMode = mode;
 }
 
-void RendererFrontend::setRenderGraph(RenderGraph* renderGraph) {
-    m_renderGraph = renderGraph;
-}
-
 void RendererFrontend::onViewportResize(const Vec2<u32>& viewportSize) {
     m_resizing = true;
     m_backend.onViewportResize(viewportSize);
-    m_renderGraph->onViewportResize(viewportSize);
 }
 
 }  // namespace sl

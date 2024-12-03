@@ -28,18 +28,17 @@ public:
     FrameStatistics getFrameStatistics();
     RendererBackend& getRendererBackend();
 
-    void renderFrame(float deltaTime, const RenderPacket& packet);
+    void renderFrame(
+      float deltaTime, const RenderPacket& packet, RenderGraph& renderGraph
+    );
 
     void setRenderMode(RenderMode mode);
-    void setRenderGraph(RenderGraph* renderGraph);
-
     void onViewportResize(const Vec2<u32>& viewportSize);
 
 private:
     Window& m_window;
 
     RendererBackendVendor m_backend;
-    EventHandlerSentinel m_eventSentinel;
 
     RenderMode m_renderMode;
     u16 m_framesSinceResize;
@@ -54,8 +53,6 @@ private:
     MaterialManager m_materialManager;
     MeshManager m_meshManager;
     SkyboxManager m_skyboxManager;
-
-    RenderGraph* m_renderGraph;
 };
 
 }  // namespace sl

@@ -8,8 +8,8 @@
 namespace sl::glfw {
 
 #define GLFW_WINDOW_PTR(ptr) static_cast<GLFWwindow*>(ptr)
-#define GET_USER_CALLBACKS(window) \
-    static_cast<Callbacks*>(glfwGetWindowUserPointer(window))
+#define GET_WINDOW_DATA(window) \
+    static_cast<GLFWWindow::Data*>(glfwGetWindowUserPointer(GLFW_WINDOW_PTR(window)))
 
 static KeyAction glfwToNovaKeyAction(int action) {
     switch (action) {
@@ -47,7 +47,11 @@ GLFWWindow::GLFWWindow(const Config::Window& config) {
     );
 
     glfwMakeContextCurrent(GLFW_WINDOW_PTR(m_windowHandle));
-    glfwSetWindowUserPointer(GLFW_WINDOW_PTR(m_windowHandle), &m_callbacks);
+    glfwSetWindowUserPointer(GLFW_WINDOW_PTR(m_windowHandle), &m_windowData);
+
+    auto data        = GET_WINDOW_DATA(m_windowHandle);
+    data->lastWidth  = static_cast<i32>(config.width);
+    data->lastHeight = static_cast<i32>(config.height);
 }
 
 bool GLFWWindow::isKeyPressed(WindowImpl::Key keyCode) const {
@@ -60,23 +64,23 @@ bool GLFWWindow::isMouseButtonPressed(WindowImpl::Button buttonCode) const {
 }
 
 void GLFWWindow::onKeyCallback(OnKeyCallback callback) {
-    m_callbacks.onKey = callback;
+    m_windowData.onKey = callback;
 
     static auto onKeyCallback =
       [](
         GLFWwindow* window, int key, [[maybe_unused]] int, int action,
         [[maybe_unused]] int
-      ) { GET_USER_CALLBACKS(window)->onKey(glfwToNovaKeyAction(action), key); };
+      ) { GET_WINDOW_DATA(window)->onKey(glfwToNovaKeyAction(action), key); };
 
     glfwSetKeyCallback(GLFW_WINDOW_PTR(m_windowHandle), onKeyCallback);
 }
 
 void GLFWWindow::onMouseCallback(OnMouseCallback callback) {
-    m_callbacks.onMouse = callback;
+    m_windowData.onMouse = callback;
 
     static auto onMouseButtonCallback =
       [](GLFWwindow* window, int button, int action, [[maybe_unused]] int) {
-          GET_USER_CALLBACKS(window)->onMouse(glfwToNovaMouseAction(action), button);
+          GET_WINDOW_DATA(window)->onMouse(glfwToNovaMouseAction(action), button);
       };
 
     glfwSetMouseButtonCallback(
@@ -85,21 +89,21 @@ void GLFWWindow::onMouseCallback(OnMouseCallback callback) {
 }
 
 void GLFWWindow::onScrollCallback(OnScrollCallback callback) {
-    m_callbacks.onScroll = callback;
+    m_windowData.onScroll = callback;
 
     static auto onScrollCallback =
       [](GLFWwindow* window, [[maybe_unused]] double xOffset, double yOffset) {
-          GET_USER_CALLBACKS(window)->onScroll(static_cast<float>(yOffset));
+          GET_WINDOW_DATA(window)->onScroll(static_cast<float>(yOffset));
       };
 
     glfwSetScrollCallback(GLFW_WINDOW_PTR(m_windowHandle), onScrollCallback);
 }
 
 void GLFWWindow::onWindowCloseCallback(OnWindowCloseCallback callback) {
-    m_callbacks.onWindowClose = callback;
+    m_windowData.onWindowClose = callback;
 
     static auto onWindowCloseCallback = [](GLFWwindow* window) {
-        GET_USER_CALLBACKS(window)->onWindowClose();
+        GET_WINDOW_DATA(window)->onWindowClose();
     };
 
     glfwSetWindowCloseCallback(
@@ -108,13 +112,19 @@ void GLFWWindow::onWindowCloseCallback(OnWindowCloseCallback callback) {
 }
 
 void GLFWWindow::onWindowResizeCallback(OnWindowResizeCallback callback) {
-    m_callbacks.onWindowResize = callback;
+    m_windowData.onWindowResize = callback;
 
     static auto onWindowResizeCallback =
       [](GLFWwindow* window, int width, int height) {
-          GET_USER_CALLBACKS(window)->onWindowResize(
-            static_cast<float>(width), static_cast<float>(height)
-          );
+          auto data = GET_WINDOW_DATA(window);
+
+          if (data->lastWidth != width && data->lastHeight != height) {
+              data->lastWidth  = width;
+              data->lastHeight = height;
+              data->onWindowResize(
+                static_cast<float>(width), static_cast<float>(height)
+              );
+          }
       };
 
     glfwSetWindowSizeCallback(

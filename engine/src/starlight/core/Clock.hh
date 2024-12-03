@@ -20,6 +20,8 @@ public:
     float getFps() const;
     float getDeltaTime() const;
 
+    std::string formatTime(const std::string& format);
+
     void update();
 
 private:

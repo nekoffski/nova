@@ -18,7 +18,7 @@ void Window::setCallbacks() {
 
     m_windowImpl.onWindowResizeCallback([](uint32_t width, uint32_t height) {
         WindowResized event{
-            Vec2<u32>{width, height}
+            Vec2<u32>{ width, height }
         };
         LOG_TRACE("Window resized, emitting event: {}", event);
         EventProxy::get().emit<WindowResized>(event);

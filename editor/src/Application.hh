@@ -2,10 +2,15 @@
 
 #include <atomic>
 
+#include <starlight/core/math/Core.hh>
 #include <starlight/core/Config.hh>
 #include <starlight/core/Context.hh>
 #include <starlight/core/event/EventHandlerSentinel.hh>
 #include <starlight/renderer/RendererFrontend.hh>
+#include <starlight/renderer/camera/Camera.hh>
+
+#include "Cameras.hh"
+#include "ui/UserInterface.hh"
 
 namespace sle {
 
@@ -21,13 +26,18 @@ private:
     void startRenderLoop();
     void exit();
 
-    void onFrame(float deltaTime);
+    void onViewportResize(const sl::Vec2<sl::u32>& viewport);
 
     std::atomic_bool m_isRunning;
 
+    sl::Config m_config;
     sl::Context m_context;
-    sl::EventHandlerSentinel m_eventSentinel;
+    sl::Window& m_window;
     sl::RendererFrontend m_renderer;
+    sl::EventHandlerSentinel m_eventSentinel;
+
+    Cameras m_cameras;
+    UserInterface m_userInterface;
 };
 
 }  // namespace sle

@@ -7,12 +7,15 @@
 namespace sl::glfw {
 
 class GLFWWindow : public WindowImpl {
-    struct Callbacks {
+    struct Data {
         OnWindowCloseCallback onWindowClose;
         OnKeyCallback onKey;
         OnScrollCallback onScroll;
         OnMouseCallback onMouse;
         OnWindowResizeCallback onWindowResize;
+
+        i32 lastWidth;
+        i32 lastHeight;
     };
 
 public:
@@ -42,7 +45,7 @@ public:
 
 private:
     void* m_windowHandle;
-    Callbacks m_callbacks;
+    Data m_windowData;
 };
 
 }  // namespace sl::glfw
