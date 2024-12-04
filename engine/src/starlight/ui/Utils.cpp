@@ -26,13 +26,15 @@ void namedScope(const std::string& name, Callback&& callback) {
     ImGui::PopID();
 }
 
-void treeNode(const std::string& name, std::function<void(bool)>&& callback) {
-    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-    if (ImGui::TreeNode(name.c_str())) {
-        callback(ImGui::IsItemClicked());
+void treeNode(const std::string& name, std::function<void()>&& callback, i32 flags) {
+    // ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::TreeNodeEx(name.c_str(), flags)) {
+        callback();
         ImGui::TreePop();
     }
 }
+
+bool wasItemClicked() { return ImGui::IsItemClicked(); }
 
 bool slider(
   const std::string& name, Vec3<f32>& data, const StepInterval<float>& range

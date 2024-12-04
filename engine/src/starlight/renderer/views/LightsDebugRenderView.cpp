@@ -32,6 +32,10 @@ RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(
     return props;
 }
 
+std::string_view LightsDebugRenderView::getName() const {
+    return "LightsDebugRenderView";
+}
+
 void LightsDebugRenderView::init(
   [[maybe_unused]] RendererBackend&, RenderPass& renderPass
 ) {

@@ -33,21 +33,27 @@ UserInterface::Config UserInterface::Config::createDefault() {
 }
 
 UserInterface::UserInterface(
-  const sl::Vec2<sl::u32>& viewport, const Config& config
+  const sl::Vec2<sl::u32>& viewport, sl::Scene* scene, sl::RenderGraph* renderGraph,
+  const Config& config
 ) :
-    m_viewport(viewport), m_logger(m_console.getLogger()),
+    m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
-    m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)) {
+    m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
+    m_sceneView(scene), m_inspectorView(renderGraph) {
     initMenu();
     initLeftCombo();
     initBottomCombo();
 
-    m_logger->info("UI started!");
-    m_logger->info("Welcome to the Starlight Engine Editor");
+    EDITOR_LOG_INFO("UI started!");
+    EDITOR_LOG_INFO("Welcome to the Starlight Engine Editor");
 }
 
 void UserInterface::onViewportReisze(const sl::Vec2<sl::u32>& viewport) {
     m_viewport = viewport;
+}
+
+void UserInterface::setRenderGraph(sl::RenderGraph& renderGraph) {
+    m_inspectorView.setRenderGraph(renderGraph);
 }
 
 void UserInterface::render() {

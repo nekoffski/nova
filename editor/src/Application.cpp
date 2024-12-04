@@ -15,7 +15,8 @@ Application::Application(const sl::Config& config) :
     m_window(m_context.getWindow()), m_renderer(m_context.getWindow(), config),
     m_eventSentinel(m_context.getEventProxy()),
     m_cameras(m_window.getFramebufferSize()),
-    m_userInterface(m_window.getFramebufferSize()) {}
+    m_scene(m_window, m_cameras.getActive()),
+    m_userInterface(m_window.getFramebufferSize(), &m_scene) {}
 
 int Application::start() {
     init();
@@ -41,24 +42,28 @@ void Application::startRenderLoop() {
         .subfonts = { icons }
     };
 
-    sl::Scene scene{ m_window, m_cameras.getActive() };
+    // auto skybox = sl::Skybox::load("skybox2/skybox");
 
-    auto skybox = sl::Skybox::load("skybox2/skybox");
+    // m_scene.setSkybox(*skybox);
 
-    scene.setSkybox(*skybox);
+    auto worldShader = sl::Shader::load("Builtin.Shader.Material");
 
     auto renderGraph =
       sl::RenderGraph::Builder{ m_renderer.getRendererBackend(), viewport }
-        .addView<sl::SkyboxRenderView>()
+        .addView<sl::WorldRenderView>(worldShader.get())
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
           [&]() { m_userInterface.render(); }
         )
         .build();
 
+    m_userInterface.setRenderGraph(*renderGraph);
+
     while (m_isRunning) {
         m_context.beginFrame([&](float deltaTime) {
-            m_renderer.renderFrame(deltaTime, scene.getRenderPacket(), *renderGraph);
+            m_renderer.renderFrame(
+              deltaTime, m_scene.getRenderPacket(), *renderGraph
+            );
             m_cameras.update(deltaTime);
         });
     }

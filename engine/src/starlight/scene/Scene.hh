@@ -21,6 +21,7 @@ public:
 
     void setCamera(Camera& camera);
     void setSkybox(Skybox& skybox);
+    std::span<Entity> getEntities();
 
     Entity& addEntity(std::optional<std::string> name = {});
 

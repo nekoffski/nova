@@ -73,4 +73,6 @@ void SkyboxRenderView::render(
     renderer.drawMesh(*Mesh::getCube());
 }
 
+std::string_view SkyboxRenderView::getName() const { return "SkyboxRenderView"; }
+
 }  // namespace sl

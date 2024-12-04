@@ -1,6 +1,7 @@
 #pragma once
 
 #include <starlight/ui/UI.hh>
+#include <starlight/scene/Scene.hh>
 
 #include "views/SceneView.hh"
 #include "views/InspectorView.hh"
@@ -18,11 +19,13 @@ public:
     };
 
     explicit UserInterface(
-      const sl::Vec2<sl::u32>& viewport,
-      const Config& config = Config::createDefault()
+      const sl::Vec2<sl::u32>& viewport, sl::Scene* scene,
+      sl::RenderGraph* renderGraph = nullptr,
+      const Config& config         = Config::createDefault()
     );
 
     void onViewportReisze(const sl::Vec2<sl::u32>& viewport);
+    void setRenderGraph(sl::RenderGraph& renderGraph);
 
     void render();
 
@@ -34,7 +37,6 @@ private:
     sl::Vec2<sl::u32> m_viewport;
 
     Console m_console;
-    Logger* m_logger;
 
     sl::ui::MainMenuBar m_menu;
     sl::ui::PanelCombo m_leftCombo;

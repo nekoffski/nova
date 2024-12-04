@@ -26,6 +26,8 @@ struct RenderView {
       u8 imageIndex
     ) = 0;
 
+    virtual std::string_view getName() const = 0;
+
     static RenderPass::Properties getDefaultRenderPassProperties();
 };
 

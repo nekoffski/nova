@@ -12,6 +12,8 @@
 
 namespace sl::ui {
 
+constexpr Vec2<f32> parentWidth = { -1.0f, 0.0f };
+
 using Callback = std::function<void()>;  // TODO: measure if it causes bottlenecks ->
                                          // if yes implement lightweight wrapper
 
@@ -26,12 +28,16 @@ void withColor(const Vec3<f32>& color, Callback&& callback);
 
 void namedScope(const std::string& name, Callback&& callback);
 
-void treeNode(const std::string& name, std::function<void(bool)>&& callback);
+void treeNode(
+  const std::string& name, std::function<void()>&& callback,
+  i32 flags = ImGuiTreeNodeFlags_None
+);
 
-template <typename... Args> bool text(std::string_view fmt, Args&&... args) {
+bool wasItemClicked();
+
+template <typename... Args> bool text(const std::string& fmt, Args&&... args) {
     ImGui::Text(
-      "%s",
-      fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...)).c_str()
+      "%s", fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...).c_str()
     );
     return ImGui::IsItemClicked();
 }

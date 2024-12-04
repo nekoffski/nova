@@ -32,7 +32,7 @@ void UIRenderer::setStyle() {
 
     // light style from Pacôme Danhiez (user itamago)
     // https://github.com/ocornut/imgui/pull/511#issuecomment-175719267
-    style.Alpha                    = 0.85f;
+    style.Alpha                    = 0.99f;
     style.WindowRounding           = 0.0f;
     style.FrameRounding            = 0.0f;
     style.WindowMenuButtonPosition = ImGuiDir_None;

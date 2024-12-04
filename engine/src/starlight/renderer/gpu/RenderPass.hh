@@ -67,6 +67,8 @@ public:
     void setRect(const Rect2u32& extent);
     void setRectSize(const Vec2<u32>& size);
 
+    const Properties& getProperties() const;
+
     virtual void regenerateRenderTargets(const Vec2<u32>& viewportSize) = 0;
 
 private:

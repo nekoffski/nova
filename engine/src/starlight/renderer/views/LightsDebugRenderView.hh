@@ -24,6 +24,8 @@ public:
       u8 imageIndex
     ) override;
 
+    std::string_view getName() const override;
+
 private:
     ResourceRef<Shader> m_shader;
     Mesh* m_mesh;

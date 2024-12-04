@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <kc/core/Singleton.hpp>
 #include <fmt/core.h>
 #include <starlight/core/Log.hh>
 
@@ -14,7 +15,7 @@
 
 namespace sle {
 
-class Logger {
+class Logger : public kc::core::Singleton<Logger> {
     enum class Severity { info, debug, warning };
 
 public:
@@ -63,3 +64,7 @@ private:
 };
 
 }  // namespace sle
+
+#define EDITOR_LOG_DEBUG(...) sle::Logger::get().debug(__VA_ARGS__)
+#define EDITOR_LOG_INFO(...) sle::Logger::get().info(__VA_ARGS__);
+#define EDITOR_LOG_WARN(...) sle::Logger::get().warning(__VA_ARGS__);

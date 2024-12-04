@@ -57,4 +57,6 @@ void UIRenderView::render(
     m_uiRenderer->render(commandBuffer, m_uiCallback);
 }
 
+std::string_view UIRenderView::getName() const { return "UIRenderView"; }
+
 }  // namespace sl

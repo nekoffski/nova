@@ -8,6 +8,7 @@
 #include <starlight/core/event/EventHandlerSentinel.hh>
 #include <starlight/renderer/RendererFrontend.hh>
 #include <starlight/renderer/camera/Camera.hh>
+#include <starlight/core/memory/Memory.hh>
 
 #include "Cameras.hh"
 #include "ui/UserInterface.hh"
@@ -35,8 +36,9 @@ private:
     sl::Window& m_window;
     sl::RendererFrontend m_renderer;
     sl::EventHandlerSentinel m_eventSentinel;
-
     Cameras m_cameras;
+
+    sl::Scene m_scene;
     UserInterface m_userInterface;
 };
 

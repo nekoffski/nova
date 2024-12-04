@@ -26,6 +26,8 @@ public:
       u8 imageIndex
     ) override;
 
+    std::string_view getName() const override;
+
 private:
     Shader* m_shader;
 };

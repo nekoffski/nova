@@ -36,4 +36,6 @@ void RenderPass::setRect(const Rect2u32& extent) { m_props.rect = extent; }
 
 void RenderPass::setRectSize(const Vec2<u32>& size) { m_props.rect.size = size; }
 
+const RenderPass::Properties& RenderPass::getProperties() const { return m_props; }
+
 }  // namespace sl

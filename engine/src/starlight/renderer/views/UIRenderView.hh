@@ -30,6 +30,8 @@ public:
       u8 imageIndex
     ) override;
 
+    std::string_view getName() const override;
+
 private:
     FontsProperties m_fontsProperties;
     UICallback m_uiCallback;

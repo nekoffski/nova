@@ -20,6 +20,8 @@ public:
         return m_componentManager.add<T>(getId(), std::forward<Args>(args)...);
     }
 
+    const std::string& getName();
+
 private:
     ComponentManager& m_componentManager;
     std::string m_name;
