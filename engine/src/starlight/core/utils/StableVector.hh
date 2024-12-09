@@ -37,6 +37,22 @@ public:
         return slot.get();
     }
 
+    template <typename C>
+    requires Callable<C, bool, const T&>
+    T* find(C&& condition) {
+        for (auto& record : m_buffer)
+            if (record && condition(*record)) return record.get();
+        return nullptr;
+    }
+
+    template <typename C>
+    requires Callable<C, bool, const T&>
+    bool has(C&& condition) {
+        for (auto& record : m_buffer)
+            if (record && condition(*record)) return true;
+        return false;
+    }
+
     bool erase(T* value) {
         for (u64 i = 0; i < m_capacity; ++i) {
             if (auto& slot = m_buffer[i]; slot && slot.get() == value) {

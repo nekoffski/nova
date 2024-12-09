@@ -33,7 +33,7 @@ public:
 
     ~ResourceRef();
 
-    const std::string& getName() const;
+    std::string getName() const;
 
     operator bool() const;
 
@@ -148,7 +148,7 @@ ResourceRef<T>::ResourceRef(
     ASSERT(manager->acquire(name), "Could not acquire resource: {}", name);
 }
 
-template <typename T> const std::string& ResourceRef<T>::getName() const {
+template <typename T> std::string ResourceRef<T>::getName() const {
     return m_name.value_or("<undefined>");
 }
 

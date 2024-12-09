@@ -5,9 +5,7 @@
 namespace sl {
 
 Scene::Scene(Window& window, Camera* camera) :
-    m_window(window), m_camera(camera), m_skybox(nullptr) {
-    m_entities.reserve(1024);  // temporary
-}
+    m_window(window), m_camera(camera), m_skybox(nullptr), m_entities(maxEntities) {}
 
 RenderPacket Scene::getRenderPacket() {
     RenderPacket packet{};
@@ -46,11 +44,10 @@ RenderPacket Scene::getRenderPacket() {
 void Scene::setCamera(Camera& camera) { m_camera = &camera; }
 void Scene::setSkybox(Skybox& skybox) { m_skybox = &skybox; }
 
-std::span<Entity> Scene::getEntities() { return m_entities; }
-
 Entity& Scene::addEntity(std::optional<std::string> name) {
-    m_entities.emplace_back(m_componentManager, name);
-    return m_entities.back();
+    auto record = m_entities.emplace(m_componentManager, name);
+    ASSERT(record, "Could not add entity");
+    return *record;
 }
 
 }  // namespace sl

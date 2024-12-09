@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "starlight/core/Core.hh"
+#include "starlight/core/utils/FlatMap.hh"
 
 #include "Component.hh"
 
@@ -13,25 +14,36 @@ struct ComponentContainerBase {
 };
 
 template <typename T> class ComponentContainer : public ComponentContainerBase {
-    using ComponentBuffer = std::vector<Component<T>>;
+    using ComponentBuffer              = FlatMap<u64, Component<T>>;
+    static constexpr u64 maxComponents = 1024;
 
 public:
-    explicit ComponentContainer() {
-        // TODO: replace with StableVector or FlatMap
-        // actually, seems like we can use StableVector as a map as entities id is
-        // just a sequence of numbers
-        m_components.reserve(1000);
-    }
+    explicit ComponentContainer() : m_components(maxComponents) {}
 
     template <typename... Args> Component<T>& add(u64 entityId, Args&&... args) {
-        m_components.emplace_back(entityId, std::forward<Args>(args)...);
-        return m_components.back();
+        // entityId is a key for the map but also Component<T> ctor argument
+        auto record =
+          m_components.emplace(entityId, entityId, std::forward<Args>(args)...);
+        ASSERT(record, "Could not add component");
+        return *record;
     }
+
+    bool has(u64 entityId) { return m_components.has(entityId); }
+
+    Component<T>& get(u64 entityId) { return *m_components.get(entityId); }
 
     template <typename C>
     requires Callable<C, void, Component<T>&>
     void forEach(C&& callback) {
-        for (auto& component : m_components) callback(component);
+        m_components.forEach([&]([[maybe_unused]] const auto& k, auto& v) {
+            callback(v);
+        });
+    }
+
+    template <typename C>
+    requires Callable<C, void, const u64&, Component<T>&>
+    void forEach(C&& callback) {
+        m_components.forEach(std::move(callback));
     }
 
 private:

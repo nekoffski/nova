@@ -112,8 +112,6 @@ int main(int argc, char** argv) {
         .getInstances()
         .front();
 
-    instance.scale(sl::Vec3<sl::f32>{ 0.1f });
-
     while (isRunning) {
         context.beginFrame([&](float deltaTime) {
             renderer.renderFrame(deltaTime, scene.getRenderPacket(), *renderGraph);

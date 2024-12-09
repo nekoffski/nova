@@ -7,6 +7,18 @@
 
 namespace sle {
 
+#define ADD_COMPONENT(Component, ...)                            \
+    if (m_selectedEntity->hasComponent<Component>()) {           \
+        EDITOR_LOG_WARN("Component already added, skipping..."); \
+    } else {                                                     \
+        m_selectedEntity->addComponent<Component>(__VA_ARGS__);  \
+    }
+
+#define RENDER_COMPONENT(Component)                                          \
+    if (m_selectedEntity->hasComponent<Component>()) {                       \
+        renderComponent(m_selectedEntity->getComponent<Component>().data()); \
+    }
+
 InspectorView::InspectorView(sl::RenderGraph* renderGraph
 ) : m_tabMenu("Inspector"), m_rendererTab(renderGraph) {
     m_tabMenu.addTab(ICON_FA_CUBES "  Entity", [&]() { m_entityTab.render(); })
@@ -16,8 +28,11 @@ InspectorView::InspectorView(sl::RenderGraph* renderGraph
 
 void InspectorView::render() { m_tabMenu.render(); }
 
+std::vector<const char*> componentNames = { "MeshComposite", "PointLight" };
+
 InspectorView::EntityTab::EntityTab() :
-    m_eventSentinel(sl::EventProxy::get()), m_selectedEntity(nullptr) {
+    m_eventSentinel(sl::EventProxy::get()), m_selectedEntity(nullptr),
+    m_selectedComponentIndex(0) {
     m_eventSentinel.pushHandler<events::EntitySelected>([&](auto event) {
         m_selectedEntity = event.entity;
         return sl::EventChainBehaviour::propagate;
@@ -36,25 +51,83 @@ void InspectorView::EntityTab::render() {
         sl::ui::text(name);
         sl::ui::separator();
 
-        static int selectedComponentIndex = 0;
-
-        static std::vector<const char*> components = {
-            "MeshTree",
-            "PointLight",
-        };
-
         ImGui::Combo(
-          "##combo2", &selectedComponentIndex, components.data(), components.size()
+          "##combo2", &m_selectedComponentIndex, componentNames.data(),
+          componentNames.size()
         );
 
         sl::ui::sameLine();
 
         if (sl::ui::button("Add Component", sl::ui::parentWidth)) {
-            EDITOR_LOG_DEBUG("Add component clicked");
+            EDITOR_LOG_DEBUG(
+              "Add component clicked: {}/{}", name, m_selectedComponentIndex
+            );
+            addComponent();
         }
 
         sl::ui::separator();
+        sl::ui::namedScope(fmt::format("{}_components", name), [&]() {
+            renderComponents();
+        });
     });
+}
+
+void InspectorView::EntityTab::addComponent() {
+    if (m_selectedComponentIndex == 0) {
+        ADD_COMPONENT(
+          sl::MeshComposite, sl::Mesh::getCube(), sl::Material::getDefault()
+        );
+    } else if (m_selectedComponentIndex == 1) {
+    }
+}
+
+void InspectorView::EntityTab::renderComponents() {
+    RENDER_COMPONENT(sl::MeshComposite);
+}
+
+void InspectorView::EntityTab::renderComponent(sl::MeshComposite& component) {
+    sl::ui::treeNode(
+      ICON_FA_PLANE "  MeshComposite",
+      [&]() {
+          component.traverse([](auto& node) {
+              sl::ui::treeNode(
+                node.getName(),
+                [&]() {
+                    sl::ui::text("Mesh: {}", node.getMesh().getName());
+                    sl::ui::text("Material: {}", node.getMaterial().getName());
+
+                    if (sl::ui::button("Add Instance")) node.addInstance();
+
+                    auto instances = node.getInstances();
+                    for (sl::u64 i = 0; i < instances.size(); ++i) {
+                        auto& instance = instances[i];
+                        sl::ui::treeNode(
+                          fmt::format("Instance_{}", i),
+                          [&]() {
+                              auto position = instance.getPosition();
+                              if (sl::ui::slider(
+                                    "Position", position, { -10.0f, 10.0f, 0.01f }
+                                  )) {
+                                  instance.setPosition(position);
+                              }
+                              auto scale = instance.getScale();
+                              if (sl::ui::slider(
+                                    "Scale", scale, { -5.0f, 5.0f, 0.01f }
+                                  )) {
+                                  instance.setScale(scale);
+                              }
+                          },
+                          ImGuiTreeNodeFlags_DefaultOpen
+                        );
+                    }
+                },
+                ImGuiTreeNodeFlags_DefaultOpen
+              );
+          });
+      },
+      ImGuiTreeNodeFlags_DefaultOpen
+    );
+    sl::ui::separator();
 }
 
 void InspectorView::ResourceTab::render() {}

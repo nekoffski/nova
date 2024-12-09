@@ -20,13 +20,14 @@ public:
         explicit Node(
           ResourceRef<Mesh> mesh, ResourceRef<Material> material, u64 depth,
           u64 index
-        ) : m_mesh(mesh), m_material(material), m_depth(depth), m_index(index) {
-            m_instances.emplace_back();
-        }
+        );
 
-        Mesh* getMesh() { return m_mesh.get(); }
-        Material* getMaterial() { return m_material.get(); }
-        std::span<Transform> getInstances() { return m_instances; }
+        ResourceRef<Mesh> getMesh();
+        ResourceRef<Material> getMaterial();
+        const std::string& getName() const;
+        std::span<Transform> getInstances();
+
+        Transform& addInstance();
 
     private:
         template <typename C>
@@ -41,6 +42,8 @@ public:
 
         u64 m_depth;
         u64 m_index;
+
+        std::string m_name;
 
         std::vector<Transform> m_instances;
         std::vector<Node> m_children;

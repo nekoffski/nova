@@ -79,7 +79,7 @@ ResourceRef<Mesh> MeshManager::getUnitSphere() {
 
 void MeshManager::createDefaults() {
     Mesh::Properties3D cubeConfig{
-        CubeProperties{ 10.0f, 10.0f, 10.0f, 1, 1 }
+        CubeProperties{ 1.0f, 1.0f, 1.0f, 1, 1 }
     };
     m_cube = createMesh(m_renderer, cubeConfig.toMeshData());
 

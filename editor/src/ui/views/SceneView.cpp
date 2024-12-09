@@ -32,7 +32,7 @@ void SceneView::EntitiesTab::render() {
     sl::ui::treeNode(
       "Root",
       [&]() {
-          for (auto& entity : m_scene->getEntities()) {
+          m_scene->forEachEntity([&](sl::Entity& entity) {
               auto flags =
                 ImGuiTreeNodeFlags_OpenOnDoubleClick
                 | ImGuiTreeNodeFlags_DefaultOpen;
@@ -54,7 +54,7 @@ void SceneView::EntitiesTab::render() {
                   m_selectedEntity = &entity;
                   eventProxy.emit<events::EntitySelected>(&entity);
               }
-          }
+          });
       },
       ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen
     );

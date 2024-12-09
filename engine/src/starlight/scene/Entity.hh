@@ -20,6 +20,14 @@ public:
         return m_componentManager.add<T>(getId(), std::forward<Args>(args)...);
     }
 
+    template <typename T> Component<T>& getComponent() {
+        return m_componentManager.get<T>(getId());
+    }
+
+    template <typename T> bool hasComponent() {
+        return m_componentManager.has<T>(getId());
+    }
+
     const std::string& getName();
 
 private:

@@ -4,6 +4,7 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/window/Window.hh"
+#include "starlight/core/utils/FlatMap.hh"
 #include "starlight/renderer/camera/Camera.hh"
 #include "starlight/renderer/RenderPacket.hh"
 #include "starlight/renderer/Skybox.hh"
@@ -14,6 +15,8 @@
 namespace sl {
 
 class Scene {
+    static constexpr u64 maxEntities = 1024;
+
 public:
     explicit Scene(Window& window, Camera* camera);
 
@@ -21,7 +24,12 @@ public:
 
     void setCamera(Camera& camera);
     void setSkybox(Skybox& skybox);
-    std::span<Entity> getEntities();
+
+    template <typename C>
+    requires Callable<C, void, Entity&>
+    void forEachEntity(C&& callback) {
+        m_entities.forEach(std::move(callback));
+    }
 
     Entity& addEntity(std::optional<std::string> name = {});
 
@@ -30,9 +38,8 @@ private:
     Camera* m_camera;
     Skybox* m_skybox;
 
-    // TODO: use StableVector instead
     ComponentManager m_componentManager;
-    std::vector<Entity> m_entities;
+    StableVector<Entity> m_entities;
 };
 
 }  // namespace sl

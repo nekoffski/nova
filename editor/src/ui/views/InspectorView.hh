@@ -6,6 +6,8 @@
 #include <starlight/core/event/EventHandlerSentinel.hh>
 #include <starlight/renderer/RenderGraph.hh>
 
+#include <starlight/renderer/MeshComposite.hh>
+
 #include "Console.hh"
 
 namespace sle {
@@ -18,8 +20,16 @@ class InspectorView {
         void render();
 
     private:
+        void addComponent();
+        void renderComponents();
+
+        // components
+        void renderComponent(sl::MeshComposite& component);
+
         sl::EventHandlerSentinel m_eventSentinel;
         sl::Entity* m_selectedEntity;
+
+        sl::i32 m_selectedComponentIndex;
     };
 
     class ResourceTab {

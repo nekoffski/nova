@@ -29,7 +29,7 @@ static sl::ui::PanelCombo::Properties createBottomComboProperties(
 }
 
 UserInterface::Config UserInterface::Config::createDefault() {
-    return Config{ .panelWidthRatio = 0.20f, .panelHeightRatio = 0.25f };
+    return Config{ .panelWidthRatio = 0.25f, .panelHeightRatio = 0.25f };
 }
 
 UserInterface::UserInterface(
