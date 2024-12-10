@@ -17,7 +17,7 @@ constexpr Vec2<f32> parentWidth = { -1.0f, 0.0f };
 using Callback = std::function<void()>;  // TODO: measure if it causes bottlenecks ->
                                          // if yes implement lightweight wrapper
 
-void checkbox(const std::string& label, bool& value);
+bool checkbox(const std::string& label, bool& value);
 
 void pushFont(Font*);
 void popFont();

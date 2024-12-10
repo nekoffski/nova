@@ -4,6 +4,7 @@
 #include <starlight/renderer/views/UIRenderView.hh>
 #include <starlight/renderer/views/WorldRenderView.hh>
 #include <starlight/renderer/views/SkyboxRenderView.hh>
+#include <starlight/renderer/views/LightsDebugRenderView.hh>
 #include <starlight/ui/fonts/FontAwesome.hh>
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/Scene.hh>
@@ -51,6 +52,7 @@ void Application::startRenderLoop() {
     auto renderGraph =
       sl::RenderGraph::Builder{ m_renderer.getRendererBackend(), viewport }
         .addView<sl::WorldRenderView>(worldShader.get())
+        .addView<sl::LightsDebugRenderView>()
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
           [&]() { m_userInterface.render(); }

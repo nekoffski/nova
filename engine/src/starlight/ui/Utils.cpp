@@ -7,8 +7,8 @@
 
 namespace sl::ui {
 
-void checkbox(const std::string& label, bool& value) {
-    ImGui::Checkbox(label.c_str(), &value);
+bool checkbox(const std::string& label, bool& value) {
+    return ImGui::Checkbox(label.c_str(), &value);
 }
 
 void pushFont(Font* font) { ImGui::PushFont(font->handle); }

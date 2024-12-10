@@ -147,30 +147,39 @@ void InspectorView::RendererTab::render() {
     sl::ui::namedScope("inspector-view-renderer-tab", [&]() {
         sl::ui::text("Render graph");
 
-        for (auto& [view, renderPass] : m_renderGraph->getNodes()) {
-            sl::ui::treeNode(
-              std::string{ view->getName() },
-              [&]() {
-                  auto properties = renderPass->getProperties();
-                  sl::ui::text(
-                    "Rect: {}/{} - {}/{}", properties.rect.offset.x,
-                    properties.rect.offset.y, properties.rect.size.w,
-                    properties.rect.size.h
-                  );
-                  sl::ui::text(
-                    "Render targets: {}", properties.renderTargets.size()
-                  );
-                  sl::ui::text(
-                    "Depth included: {}", properties.includeDepthAttachment
-                  );
+        m_renderGraph->traverse(
+          [&](sl::u32 index, bool active, auto& view, auto& renderPass) {
+              const auto name = std::string{ view.getName() };
+              sl::ui::treeNode(
+                name,
+                [&]() {
+                    sl::ui::sameLine();
+                    sl::ui::namedScope(name, [&]() {
+                        if (sl::ui::checkbox("Active", active))
+                            m_renderGraph->toggleView(index);
+                    });
 
-                  auto colorPtr = sl::math::value_ptr(properties.clearColor);
-                  if (ImGui::ColorEdit4("Clear Color", colorPtr))
-                      renderPass->setClearColor(properties.clearColor);
-              },
-              ImGuiTreeNodeFlags_DefaultOpen
-            );
-        }
+                    auto properties = renderPass.getProperties();
+                    sl::ui::text(
+                      "Rect: {}/{} - {}/{}", properties.rect.offset.x,
+                      properties.rect.offset.y, properties.rect.size.w,
+                      properties.rect.size.h
+                    );
+                    sl::ui::text(
+                      "Render targets: {}", properties.renderTargets.size()
+                    );
+                    sl::ui::text(
+                      "Depth included: {}", properties.includeDepthAttachment
+                    );
+
+                    auto colorPtr = sl::math::value_ptr(properties.clearColor);
+                    if (ImGui::ColorEdit4("Clear Color", colorPtr))
+                        renderPass.setClearColor(properties.clearColor);
+                },
+                ImGuiTreeNodeFlags_DefaultOpen
+              );
+          }
+        );
     });
 }
 

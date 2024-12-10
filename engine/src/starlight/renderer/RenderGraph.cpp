@@ -4,9 +4,7 @@ namespace sl {
 
 RenderGraph::Builder::Builder(
   RendererBackend& renderer, const Vec2<u32>& viewportSize
-) :
-    m_renderer(renderer), m_viewportSize(viewportSize),
-    m_renderGraph(createOwningPtr<RenderGraph>()) {}
+) : m_renderer(renderer), m_viewportSize(viewportSize) {}
 
 namespace {
 
@@ -22,49 +20,53 @@ RenderPass::ChainFlags getChainFlags(u32 index, u32 count) {
 }  // namespace
 
 OwningPtr<RenderGraph> RenderGraph::Builder::build() && {
-    auto& views        = m_renderGraph->getViews();
-    auto& renderPasses = m_renderGraph->getRenderPasses();
-    auto& nodes        = m_renderGraph->getNodes();
+    auto renderGraph = createOwningPtr<RenderGraph>();
+    auto& nodes      = renderGraph->getNodes();
 
-    const auto viewCount = views.size();
-
-    renderPasses.reserve(viewCount);
+    const auto viewCount = m_renderViews.size();
     nodes.reserve(viewCount);
 
     for (u32 i = 0; i < viewCount; ++i) {
-        auto view             = views[i].get();
+        auto& view            = m_renderViews[i];
         const auto chainFlags = getChainFlags(i, viewCount);
-        const auto renderPassProps =
-          view->getRenderPassProperties(m_renderer, chainFlags);
 
-        renderPasses.push_back(
-          RenderPass::create(m_renderer, renderPassProps, chainFlags)
-        );
-
-        auto renderPass = renderPasses.back().get();
-
+        // TODO: kind of a cyclic dependency, try to decouple
+        const auto props = view->getRenderPassProperties(m_renderer, chainFlags);
+        auto renderPass  = RenderPass::create(m_renderer, props, chainFlags);
         view->init(m_renderer, *renderPass);
-        nodes.emplace_back(view, renderPass);
+
+        nodes.emplace_back(i, std::move(view), std::move(renderPass));
     }
 
-    return std::move(m_renderGraph);
+    return renderGraph;
 }
-
-std::vector<OwningPtr<RenderView>>& RenderGraph::getViews() { return m_views; }
-
-std::vector<OwningPtr<RenderPass>>& RenderGraph::getRenderPasses() {
-    return m_renderPasses;
-}
-
-RenderGraph::Nodes& RenderGraph::getNodes() { return m_nodes; }
-
-const RenderGraph::Nodes& RenderGraph::getNodes() const { return m_nodes; }
 
 void RenderGraph::onViewportResize(const Vec2<u32>& viewport) {
-    for (auto& renderPass : m_renderPasses) {
-        renderPass->regenerateRenderTargets(viewport);
-        renderPass->setRectSize(viewport);
+    for (auto& node : m_nodes) {
+        node.renderPass->regenerateRenderTargets(viewport);
+        node.renderPass->setRectSize(viewport);
     }
 }
+
+void RenderGraph::disableView(sl::u32 index) {
+    ASSERT(index < m_nodes.size(), "Render view index out of bounds");
+    m_nodes[index].isActive = false;
+    // FIXME: rebuild
+}
+
+void RenderGraph::toggleView(sl::u32 index) {
+    ASSERT(index < m_nodes.size(), "Render view index out of bounds");
+    auto& node    = m_nodes[index];
+    node.isActive = !node.isActive;
+    // FIXME: rebuild
+}
+
+void RenderGraph::enableView(sl::u32 index) {
+    ASSERT(index < m_nodes.size(), "Render view index out of bounds");
+    m_nodes[index].isActive = true;
+    // FIXME: rebuild
+}
+
+std::vector<RenderGraph::Node>& RenderGraph::getNodes() { return m_nodes; }
 
 }  // namespace sl

@@ -52,18 +52,21 @@ void RendererFrontend::renderFrame(
               m_renderMode, m_frameStatistics.frameNumber
           };
 
-          for (auto& [view, renderPass] : renderGraph.getNodes()) {
-              view->preRender(m_backend);
-              renderPass->run(
-                commandBuffer, imageIndex,
-                [&](CommandBuffer& commandBuffer, u8 imageIndex) {
-                    view->render(
-                      m_backend, packet, renderProperties, deltaTime, commandBuffer,
-                      imageIndex
-                    );
-                }
-              );
-          }
+          renderGraph.traverse(
+            [&](auto& view, auto& renderPass) {
+                view.preRender(m_backend);
+                renderPass.run(
+                  commandBuffer, imageIndex,
+                  [&](CommandBuffer& commandBuffer, u8 imageIndex) {
+                      view.render(
+                        m_backend, packet, renderProperties, deltaTime,
+                        commandBuffer, imageIndex
+                      );
+                  }
+                );
+            },
+            RenderGraph::TraverseMode::activeOnly
+          );
       }
     );
 }
