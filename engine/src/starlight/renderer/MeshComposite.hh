@@ -22,9 +22,6 @@ public:
           u64 index
         );
 
-        ResourceRef<Mesh> getMesh();
-        ResourceRef<Material> getMaterial();
-        const std::string& getName() const;
         std::span<Transform> getInstances();
 
         Transform& addInstance();
@@ -37,13 +34,14 @@ public:
             for (auto& node : m_children) node.traverse(callback);
         }
 
-        ResourceRef<Mesh> m_mesh;
-        ResourceRef<Material> m_material;
+    public:
+        ResourceRef<Mesh> mesh;
+        ResourceRef<Material> material;
+        const std::string name;
 
+    private:
         u64 m_depth;
         u64 m_index;
-
-        std::string m_name;
 
         std::vector<Transform> m_instances;
         std::vector<Node> m_children;

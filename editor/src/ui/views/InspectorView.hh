@@ -9,13 +9,14 @@
 #include <starlight/renderer/MeshComposite.hh>
 
 #include "Console.hh"
+#include "Resources.hh"
 
 namespace sle {
 
 class InspectorView {
     class EntityTab {
     public:
-        explicit EntityTab();
+        explicit EntityTab(Resources& resources);
 
         void render();
 
@@ -26,6 +27,7 @@ class InspectorView {
         // components
         void renderComponent(sl::MeshComposite& component);
 
+        Resources& m_resources;
         sl::EventHandlerSentinel m_eventSentinel;
         sl::Entity* m_selectedEntity;
 
@@ -34,7 +36,11 @@ class InspectorView {
 
     class ResourceTab {
     public:
+        explicit ResourceTab(Resources& resources);
         void render();
+
+    private:
+        Resources& m_resources;
     };
 
     class RendererTab {
@@ -49,7 +55,7 @@ class InspectorView {
     };
 
 public:
-    explicit InspectorView(sl::RenderGraph* renderGraph);
+    explicit InspectorView(Resources& resources, sl::RenderGraph* renderGraph);
 
     void render();
     void setRenderGraph(sl::RenderGraph& renderGraph);

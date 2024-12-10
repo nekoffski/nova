@@ -1,7 +1,6 @@
 #include "InspectorView.hh"
 
 #include <starlight/core/event/EventProxy.hh>
-#include <starlight/ui/UI.hh>
 
 #include "Events.hh"
 
@@ -19,8 +18,9 @@ namespace sle {
         renderComponent(m_selectedEntity->getComponent<Component>().data()); \
     }
 
-InspectorView::InspectorView(sl::RenderGraph* renderGraph
-) : m_tabMenu("Inspector"), m_rendererTab(renderGraph) {
+InspectorView::InspectorView(Resources& resources, sl::RenderGraph* renderGraph) :
+    m_tabMenu("Inspector"), m_entityTab(resources), m_resourceTab(resources),
+    m_rendererTab(renderGraph) {
     m_tabMenu.addTab(ICON_FA_CUBES "  Entity", [&]() { m_entityTab.render(); })
       .addTab(ICON_FA_IMAGE "  Resource", [&]() { m_resourceTab.render(); })
       .addTab(ICON_FA_EYE "  Renderer", [&]() { m_rendererTab.render(); });
@@ -30,9 +30,9 @@ void InspectorView::render() { m_tabMenu.render(); }
 
 std::vector<const char*> componentNames = { "MeshComposite", "PointLight" };
 
-InspectorView::EntityTab::EntityTab() :
-    m_eventSentinel(sl::EventProxy::get()), m_selectedEntity(nullptr),
-    m_selectedComponentIndex(0) {
+InspectorView::EntityTab::EntityTab(Resources& resources) :
+    m_resources(resources), m_eventSentinel(sl::EventProxy::get()),
+    m_selectedEntity(nullptr), m_selectedComponentIndex(0) {
     m_eventSentinel.pushHandler<events::EntitySelected>([&](auto event) {
         m_selectedEntity = event.entity;
         return sl::EventChainBehaviour::propagate;
@@ -86,39 +86,65 @@ void InspectorView::EntityTab::renderComponents() {
 }
 
 void InspectorView::EntityTab::renderComponent(sl::MeshComposite& component) {
+    auto renderInstance = [&](auto& instance, auto i) {
+        sl::ui::treeNode(
+          fmt::format("Instance_{}", i),
+          [&]() {
+              auto position = instance.getPosition();
+              if (sl::ui::slider("Position", position, { -10.0f, 10.0f, 0.01f })) {
+                  instance.setPosition(position);
+              }
+              auto scale = instance.getScale();
+              if (sl::ui::slider("Scale", scale, { -5.0f, 5.0f, 0.01f })) {
+                  instance.setScale(scale);
+              }
+          },
+          ImGuiTreeNodeFlags_DefaultOpen
+        );
+    };
+
     sl::ui::treeNode(
       ICON_FA_PLANE "  MeshComposite",
       [&]() {
-          component.traverse([](auto& node) {
+          component.traverse([&](auto& node) {
               sl::ui::treeNode(
-                node.getName(),
+                node.name,
                 [&]() {
-                    sl::ui::text("Mesh: {}", node.getMesh().getName());
-                    sl::ui::text("Material: {}", node.getMaterial().getName());
+                    auto meshName = node.mesh.getName();
+
+                    sl::ui::text("Mesh: ");
+                    if (ImGui::BeginCombo("##mesh-combo", meshName.c_str())) {
+                        for (auto& mesh : m_resources.meshes) {
+                            bool selected = mesh.getName() == meshName;
+                            if (ImGui::Selectable(mesh.getName().c_str(), selected))
+                                node.mesh = mesh;
+                            if (selected) ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    auto materialName = node.material.getName();
+                    sl::ui::text("Material: ");
+                    if (ImGui::BeginCombo(
+                          "##material-combo", materialName.c_str()
+                        )) {
+                        for (auto& material : m_resources.materials) {
+                            bool selected = material.getName() == materialName;
+                            if (ImGui::Selectable(
+                                  material.getName().c_str(), selected
+                                )) {
+                                node.material = material;
+                            }
+                            if (selected) ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
 
                     if (sl::ui::button("Add Instance")) node.addInstance();
 
                     auto instances = node.getInstances();
                     for (sl::u64 i = 0; i < instances.size(); ++i) {
-                        auto& instance = instances[i];
-                        sl::ui::treeNode(
-                          fmt::format("Instance_{}", i),
-                          [&]() {
-                              auto position = instance.getPosition();
-                              if (sl::ui::slider(
-                                    "Position", position, { -10.0f, 10.0f, 0.01f }
-                                  )) {
-                                  instance.setPosition(position);
-                              }
-                              auto scale = instance.getScale();
-                              if (sl::ui::slider(
-                                    "Scale", scale, { -5.0f, 5.0f, 0.01f }
-                                  )) {
-                                  instance.setScale(scale);
-                              }
-                          },
-                          ImGuiTreeNodeFlags_DefaultOpen
-                        );
+                        renderInstance(instances[i], i);
                     }
                 },
                 ImGuiTreeNodeFlags_DefaultOpen
@@ -129,6 +155,9 @@ void InspectorView::EntityTab::renderComponent(sl::MeshComposite& component) {
     );
     sl::ui::separator();
 }
+
+InspectorView::ResourceTab::ResourceTab(Resources& resources
+) : m_resources(resources) {}
 
 void InspectorView::ResourceTab::render() {}
 

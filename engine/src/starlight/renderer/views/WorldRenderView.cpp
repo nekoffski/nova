@@ -17,7 +17,6 @@ RenderPass::Properties WorldRenderView::getRenderPassProperties(
         clearFlags |= RenderPass::ClearFlags::color;
 
     props.clearFlags = clearFlags;
-    props.clearColor = Vec4<f32>{ 0.2f, 0.3f, 0.4f, 1.0f };
 
     RenderTarget renderTarget;
     renderTarget.size = props.rect.size;

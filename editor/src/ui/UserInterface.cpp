@@ -39,7 +39,8 @@ UserInterface::UserInterface(
     m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
     m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
-    m_sceneView(scene), m_inspectorView(renderGraph) {
+    m_sceneView(scene), m_inspectorView(m_resources, renderGraph),
+    m_resourcesView(m_resources) {
     initMenu();
     initLeftCombo();
     initBottomCombo();
@@ -64,9 +65,7 @@ void UserInterface::render() {
 
 void UserInterface::initBottomCombo() {
     m_bottomCombo
-      .addPanel(
-        ICON_FA_FOLDER "  Resources", [&]() { sl::ui::text("Hello world!"); }
-      )
+      .addPanel(ICON_FA_FOLDER "  Resources", [&]() { m_resourcesView.render(); })
       .addPanel(ICON_FA_TERMINAL "  Messages", [&]() {
           sl::ui::namedScope("console-content", [&]() {
               sl::ui::text("{}", m_console.getBuffer());

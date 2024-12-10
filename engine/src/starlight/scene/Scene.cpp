@@ -16,7 +16,7 @@ RenderPacket Scene::getRenderPacket() {
           meshComposite.data().traverse([&](MeshComposite::Node& node) {
               for (auto& instance : node.getInstances()) {
                   packet.entities.emplace_back(
-                    instance.getWorld(), node.getMesh(), node.getMaterial()
+                    instance.getWorld(), node.mesh, node.material
                   );
               }
           });
@@ -24,11 +24,11 @@ RenderPacket Scene::getRenderPacket() {
     );
 
     // mock for testing
-    PointLight light;
+    // PointLight light;
 
-    light.position.x = 1.0f;
-    light.color      = Vec4<f32>{ 1.0f, 0.5f, 0.3f, 1.0f };
-    packet.pointLights.push_back(light);
+    // light.position.x = 1.0f;
+    // light.color      = Vec4<f32>{ 1.0f, 0.5f, 0.3f, 1.0f };
+    // packet.pointLights.push_back(light);
 
     // light.position.y = 1.0f;
     // light.position.z = 1.0f;

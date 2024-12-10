@@ -9,10 +9,7 @@ SkyboxRenderView::SkyboxRenderView(Shader* shader) : m_shader(shader) {}
 RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
 ) const {
-    const auto backgroundColor = (1.0f / 255.0f) * Vec4<f32>{ 11, 16, 47, 255 };
-
     auto props       = getDefaultRenderPassProperties();
-    props.clearColor = backgroundColor;
     props.clearFlags = RenderPass::ClearFlags::color;
 
     const auto swapchainImageCount = renderer.getSwapchainImageCount();

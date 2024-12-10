@@ -5,7 +5,9 @@
 
 #include "views/SceneView.hh"
 #include "views/InspectorView.hh"
+#include "views/ResourcesView.hh"
 #include "Console.hh"
+#include "Resources.hh"
 
 namespace sle {
 
@@ -37,6 +39,7 @@ private:
     sl::Vec2<sl::u32> m_viewport;
 
     Console m_console;
+    Resources m_resources;
 
     sl::ui::MainMenuBar m_menu;
     sl::ui::PanelCombo m_leftCombo;
@@ -44,6 +47,7 @@ private:
 
     SceneView m_sceneView;
     InspectorView m_inspectorView;
+    ResourcesView m_resourcesView;
 };
 
 }  // namespace sle
