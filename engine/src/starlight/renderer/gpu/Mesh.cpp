@@ -108,6 +108,12 @@ Mesh::Properties3D::Properties3D(const SphereProperties& props) {
             v.position.y = y;
             v.position.z = z;
 
+            v.normal = math::normalize(v.position);
+
+            v.textureCoordinates.x =
+              std::atan2(v.normal.x, v.normal.z) / (2.0f * pi) + 0.5f;
+            v.textureCoordinates.y = v.normal.y * 0.5f + 0.5f;
+
             vertices.push_back(v);
         }
     }

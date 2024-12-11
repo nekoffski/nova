@@ -25,8 +25,6 @@ void Material::applyUniforms(
   const u64 renderFrameNumber
 ) {
     if (m_renderFrameNumber != renderFrameNumber) {
-        // const auto instanceId =
-        //   m_shaderInstanceMap.getInstanceId(shader, m_textures);
         shader->setInstanceUniforms(
           commandBuffer, m_instance->getId(shader), imageIndex,
           [&](Shader::UniformProxy& proxy) {
