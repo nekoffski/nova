@@ -4,10 +4,13 @@
 
 namespace sl {
 
-Material::Material(const Properties& props) :
-    m_props(props), m_renderFrameNumber(0), m_textures{
-        m_props.diffuseMap.get(), m_props.specularMap.get(), m_props.normalMap.get()
-    } {
+Material::Material(const Properties& props
+) : m_props(props), m_renderFrameNumber(0) {
+    m_instance.emplace(std::vector<Texture*>{
+      m_props.diffuseMap.get(),
+      m_props.specularMap.get(),
+      m_props.normalMap.get(),
+    });
     LOG_TRACE("Creating Material");
 }
 
@@ -18,14 +21,14 @@ bool Material::isTransparent() const {
 }
 
 void Material::applyUniforms(
-  Shader& shader, CommandBuffer& commandBuffer, u32 imageIndex,
+  ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex,
   const u64 renderFrameNumber
 ) {
     if (m_renderFrameNumber != renderFrameNumber) {
-        const auto instanceId =
-          m_shaderInstanceMap.getInstanceId(shader, m_textures);
-        shader.setInstanceUniforms(
-          commandBuffer, instanceId, imageIndex,
+        // const auto instanceId =
+        //   m_shaderInstanceMap.getInstanceId(shader, m_textures);
+        shader->setInstanceUniforms(
+          commandBuffer, m_instance->getId(shader), imageIndex,
           [&](Shader::UniformProxy& proxy) {
               proxy.set("diffuseColor", m_props.diffuseColor);
               proxy.set("diffuseTexture", m_props.diffuseMap);

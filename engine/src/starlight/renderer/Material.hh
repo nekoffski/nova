@@ -7,6 +7,7 @@
 #include "starlight/core/utils/Resource.hh"
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/utils/Id.hh"
+#include "starlight/core/memory/Memory.hh"
 
 #include "fwd.hh"
 #include "gpu/Shader.hh"
@@ -40,7 +41,7 @@ public:
 
     bool isTransparent() const;
     void applyUniforms(
-      Shader& shader, CommandBuffer& commandBuffer, u32 imageIndex,
+      ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex,
       const u64 renderFrameNumber
     );
 
@@ -58,7 +59,7 @@ private:
     u64 m_renderFrameNumber;
 
     std::vector<Texture*> m_textures;
-    ShaderInstanceMap m_shaderInstanceMap;
+    LocalPtr<Shader::Instance> m_instance;
 };
 
 class MaterialManager

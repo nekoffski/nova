@@ -100,8 +100,6 @@ protected:
     }
 
     void release(const std::string& name) {
-        LOG_DEBUG("Releasing resource: {}", name);
-
         if (auto it = m_records.find(name); it != m_records.end()) {
             if (auto& record = it->second; --record.referenceCounter <= 0) {
                 LOG_INFO(
@@ -111,8 +109,6 @@ protected:
                 if constexpr (IsIdentificable<T>)
                     m_recordsById.erase(record.data->getId());
                 m_records.erase(name);
-            } else {
-                LOG_DEBUG("{} references left", record.referenceCounter);
             }
         } else {
             LOG_WARN("Could not find record to release with name: {}", name);

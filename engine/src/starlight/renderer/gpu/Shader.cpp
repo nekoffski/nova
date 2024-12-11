@@ -393,23 +393,24 @@ Shader::UniformProxy::UniformProxy(Shader& shader, CommandBuffer& commandBuffer)
 ShaderManager::ShaderManager(const std::string& path, RendererBackend& renderer) :
     m_shadersPath(path), m_renderer(renderer) {}
 
-ShaderInstanceMap::~ShaderInstanceMap() {
-    for (const auto [instanceId, shader] : m_instanceIds | std::views::values)
+Shader::Instance::Instance(const std::vector<Texture*>& textures
+) : m_textures(textures) {}
+
+Shader::Instance::~Instance() {
+    for (auto& [instanceId, shader] : m_records | std::views::values)
         shader->releaseInstanceResources(instanceId);
 }
 
-u32 ShaderInstanceMap::getInstanceId(
-  Shader& shader, const std::vector<Texture*>& textures
-) {
-    const auto shaderId = shader.getId();
+u32 Shader::Instance::getId(ResourceRef<Shader> shader) {
+    const auto shaderId = shader->getId();
 
-    if (const auto record = m_instanceIds.find(shaderId);
-        record != m_instanceIds.end()) [[likely]] {
+    if (const auto record = m_records.find(shaderId); record != m_records.end())
+      [[likely]] {
         return record->second.instanceId;
     }
 
-    const auto instanceId   = shader.acquireInstanceResources(textures);
-    m_instanceIds[shaderId] = Record{ instanceId, &shader };
+    const auto instanceId = shader->acquireInstanceResources(m_textures);
+    m_records[shaderId]   = Record{ instanceId, shader };
     return instanceId;
 }
 

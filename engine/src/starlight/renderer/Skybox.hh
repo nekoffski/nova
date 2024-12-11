@@ -1,6 +1,7 @@
 #pragma once
 
 #include "starlight/core/utils/Resource.hh"
+#include "starlight/core/memory/Memory.hh"
 
 #include "gpu/Texture.hh"
 #include "gpu/Mesh.hh"
@@ -15,14 +16,16 @@ public:
 
     Texture* getCubeMap();
 
-    void applyUniforms(Shader& shader, CommandBuffer& commandBuffer, u8 imageIndex);
+    void applyUniforms(
+      ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u8 imageIndex
+    );
 
     static ResourceRef<Skybox> load(const std::string& name);
-    static Shader* getDefaultShader();
+    static ResourceRef<Shader> getDefaultShader();
 
 private:
     ResourceRef<Texture> m_cubeMap;
-    ShaderInstanceMap m_shaderInstanceMap;
+    LocalPtr<Shader::Instance> m_instance;
 };
 
 class SkyboxManager
@@ -32,7 +35,7 @@ public:
     explicit SkyboxManager();
 
     ResourceRef<Skybox> load(const std::string& name);
-    Shader* getDefaultShader();
+    ResourceRef<Shader> getDefaultShader();
 
 private:
     ResourceRef<Shader> m_defaultSkyboxShader;

@@ -51,7 +51,7 @@ void Application::startRenderLoop() {
 
     auto renderGraph =
       sl::RenderGraph::Builder{ m_renderer.getRendererBackend(), viewport }
-        .addView<sl::WorldRenderView>(worldShader.get())
+        .addView<sl::WorldRenderView>(worldShader)
         .addView<sl::LightsDebugRenderView>()
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },

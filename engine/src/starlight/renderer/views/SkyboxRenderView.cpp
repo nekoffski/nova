@@ -4,7 +4,7 @@
 
 namespace sl {
 
-SkyboxRenderView::SkyboxRenderView(Shader* shader) : m_shader(shader) {}
+SkyboxRenderView::SkyboxRenderView(ResourceRef<Shader> shader) : m_shader(shader) {}
 
 RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
@@ -65,7 +65,7 @@ void SkyboxRenderView::render(
         proxy.set("view", viewMatrix);
         proxy.set("projection", camera->getProjectionMatrix());
     });
-    skybox->applyUniforms(*m_shader, commandBuffer, imageIndex);
+    skybox->applyUniforms(m_shader, commandBuffer, imageIndex);
 
     renderer.drawMesh(*Mesh::getCube());
 }

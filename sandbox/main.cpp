@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     auto renderGraph =
       sl::RenderGraph::Builder{ rendererBackend, viewportSize }
         .addView<sl::SkyboxRenderView>()
-        .addView<sl::WorldRenderView>(worldShader.get())
+        .addView<sl::WorldRenderView>(worldShader)
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
           []() { sl::ui::text("Hello world!"); }

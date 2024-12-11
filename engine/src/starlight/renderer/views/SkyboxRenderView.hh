@@ -12,7 +12,9 @@ namespace sl {
 
 class SkyboxRenderView : public RenderView {
 public:
-    explicit SkyboxRenderView(Shader* shader = Skybox::getDefaultShader());
+    explicit SkyboxRenderView(
+      ResourceRef<Shader> shader = Skybox::getDefaultShader()
+    );
 
     RenderPass::Properties getRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
@@ -30,7 +32,7 @@ public:
     std::string_view getName() const override;
 
 private:
-    Shader* m_shader;
+    ResourceRef<Shader> m_shader;
 };
 
 }  // namespace sl

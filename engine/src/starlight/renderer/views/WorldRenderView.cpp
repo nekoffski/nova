@@ -4,7 +4,7 @@
 
 namespace sl {
 
-WorldRenderView::WorldRenderView(Shader* shader) : m_shader(shader) {}
+WorldRenderView::WorldRenderView(ResourceRef<Shader> shader) : m_shader(shader) {}
 
 RenderPass::Properties WorldRenderView::getRenderPassProperties(
   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
@@ -118,7 +118,7 @@ void WorldRenderView::render(
         });
 
         material->applyUniforms(
-          *m_shader, commandBuffer, imageIndex, properties.frameNumber
+          m_shader, commandBuffer, imageIndex, properties.frameNumber
         );
         renderer.drawMesh(*mesh);
     }

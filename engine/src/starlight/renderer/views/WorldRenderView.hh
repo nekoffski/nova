@@ -11,7 +11,7 @@ namespace sl {
 
 class WorldRenderView : public RenderView {
 public:
-    explicit WorldRenderView(Shader* shader);
+    explicit WorldRenderView(ResourceRef<Shader> shader);
 
     RenderPass::Properties getRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
@@ -29,7 +29,7 @@ public:
     std::string_view getName() const override;
 
 private:
-    Shader* m_shader;
+    ResourceRef<Shader> m_shader;
 };
 
 }  // namespace sl

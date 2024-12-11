@@ -154,13 +154,30 @@ public:
         CommandBuffer& m_commandBuffer;
     };
 
+    class Instance : NonMovable, NonCopyable {
+        friend class Shader;
+
+        struct Record {
+            u64 instanceId;
+            ResourceRef<Shader> shader;
+        };
+
+    public:
+        explicit Instance(const std::vector<Texture*>& textures);
+        ~Instance();
+
+        u32 getId(ResourceRef<Shader> shader);
+
+    private:
+        std::vector<Texture*> m_textures;
+        std::unordered_map<u64, Record> m_records;
+    };
+
     using UniformCallback = std::function<void(UniformProxy&)>;
 
     virtual ~Shader() = default;
 
-    virtual void use(CommandBuffer&)                                            = 0;
-    virtual u32 acquireInstanceResources(const std::vector<Texture*>& textures) = 0;
-    virtual void releaseInstanceResources(u32 instanceId)                       = 0;
+    virtual void use(CommandBuffer&) = 0;
 
     virtual void createPipeline(RenderPass& renderPass) = 0;
 
@@ -176,14 +193,10 @@ public:
 protected:
     explicit Shader(const Properties& props);
 
-    std::string m_name;
-    bool m_useInstances;
-    bool m_useLocals;
-
-    CullMode m_cullMode;
-    PolygonMode m_polygonMode;
-
 private:
+    virtual u32 acquireInstanceResources(const std::vector<Texture*>& textures) = 0;
+    virtual void releaseInstanceResources(u32 instanceId)                       = 0;
+
     virtual void bindGlobals()                                               = 0;
     virtual void bindInstance(u32 instanceId)                                = 0;
     virtual void applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex)  = 0;
@@ -193,6 +206,14 @@ private:
     virtual void setUniform(
       const std::string& name, const void* value, CommandBuffer& commandBuffer
     ) = 0;
+
+protected:
+    std::string m_name;
+    bool m_useInstances;
+    bool m_useLocals;
+
+    CullMode m_cullMode;
+    PolygonMode m_polygonMode;
 };
 
 class ShaderManager
@@ -208,19 +229,21 @@ private:
     RendererBackend& m_renderer;
 };
 
-class ShaderInstanceMap : public NonMovable, public NonCopyable {
-    struct Record {
-        u32 instanceId;
-        Shader* shader;
-    };
+// class ShaderInstanceMap : public NonMovable, public NonCopyable {
+//     struct Record {
+//         u32 instanceId;
+//         ResourceRef<Shader> shader;
+//     };
 
-public:
-    ~ShaderInstanceMap();
+// public:
+//     // ~ShaderInstanceMap();
 
-    u32 getInstanceId(Shader& shader, const std::vector<Texture*>& textures);
+//     // u32 getInstanceId(
+//     //   ResourceRef<Shader> shader, const std::vector<Texture*>& textures
+//     // );
 
-private:
-    std::unordered_map<u64, Record> m_instanceIds;
-};
+// private:
+//     std::unordered_map<u64, Record> m_instanceIds;
+// };
 
 }  // namespace sl

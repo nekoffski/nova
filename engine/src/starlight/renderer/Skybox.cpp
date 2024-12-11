@@ -4,7 +4,9 @@
 
 namespace sl {
 
-Skybox::Skybox(ResourceRef<Texture> cubeMap) : m_cubeMap(cubeMap) {}
+Skybox::Skybox(ResourceRef<Texture> cubeMap) : m_cubeMap(cubeMap) {
+    m_instance.emplace(std::vector<Texture*>{ m_cubeMap.get() });
+}
 
 ResourceRef<Skybox> Skybox::load(const std::string& name) {
     return SkyboxManager::get().load(name);
@@ -12,17 +14,15 @@ ResourceRef<Skybox> Skybox::load(const std::string& name) {
 
 Skybox::~Skybox() { LOG_TRACE("Destroying Skybox"); }
 
-Shader* Skybox::getDefaultShader() {
+ResourceRef<Shader> Skybox::getDefaultShader() {
     return SkyboxManager::get().getDefaultShader();
 }
 
 void Skybox::applyUniforms(
-  Shader& shader, CommandBuffer& commandBuffer, u8 imageIndex
+  ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u8 imageIndex
 ) {
-    const auto instanceId =
-      m_shaderInstanceMap.getInstanceId(shader, { m_cubeMap.get() });
-    shader.setInstanceUniforms(
-      commandBuffer, instanceId, imageIndex,
+    shader->setInstanceUniforms(
+      commandBuffer, m_instance->getId(shader), imageIndex,
       [&](Shader::UniformProxy& proxy) { proxy.set("cubeTexture", m_cubeMap.get()); }
     );
 }
@@ -37,6 +37,8 @@ ResourceRef<Skybox> SkyboxManager::load(const std::string& name) {
     return store(name, createOwningPtr<Skybox>(cubemap));
 }
 
-Shader* SkyboxManager::getDefaultShader() { return m_defaultSkyboxShader.get(); }
+ResourceRef<Shader> SkyboxManager::getDefaultShader() {
+    return m_defaultSkyboxShader;
+}
 
 }  // namespace sl
