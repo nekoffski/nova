@@ -578,6 +578,9 @@ u32 VKShader::acquireInstanceResources(const std::vector<Texture*>& textures) {
 }
 
 void VKShader::releaseInstanceResources(u32 instanceId) {
+    LOG_TRACE(
+      "Releasing instance ({}) resources for Shader ({}): ", instanceId, getId()
+    );
     const auto logicalDevice = m_device.getHandle();
     vkDeviceWaitIdle(logicalDevice);
 

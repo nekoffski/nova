@@ -83,15 +83,15 @@ void VKUIRenderer::reloadFontTextures() { ImGui_ImplVulkan_CreateFontsTexture();
 VKUIRenderer::~VKUIRenderer() {
     m_device.waitIdle();
 
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     if (m_uiPool) {
         vkDestroyDescriptorPool(
           m_device.getHandle(), m_uiPool, m_context.getAllocator()
         );
     }
-
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 }
 
 void VKUIRenderer::begin([[maybe_unused]] CommandBuffer& commandBuffer) {
