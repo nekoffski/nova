@@ -44,15 +44,19 @@ void Application::startRenderLoop() {
     };
 
     // auto skybox = sl::Skybox::load("skybox2/skybox");
-
     // m_scene.setSkybox(*skybox);
+
+    sl::Vec2<sl::f32> viewportOffset{
+        m_userInterface.getConfig().panelWidthRatio,
+        m_userInterface.getConfig().panelHeightRatio
+    };
 
     auto worldShader = sl::Shader::load("Builtin.Shader.Material");
 
     auto renderGraph =
       sl::RenderGraph::Builder{ m_renderer.getRendererBackend(), viewport }
-        .addView<sl::WorldRenderView>(worldShader)
-        .addView<sl::LightsDebugRenderView>()
+        .addView<sl::WorldRenderView>(viewportOffset, worldShader)
+        .addView<sl::LightsDebugRenderView>(viewportOffset)
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
           [&]() { m_userInterface.render(); }

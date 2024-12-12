@@ -6,8 +6,8 @@ namespace sl {
 
 static const std::string shaderName = "Builtin.Shader.LightsDebug";
 
-LightsDebugRenderView::LightsDebugRenderView() :
-    RenderView("LightsDebugRenderView", { 0.0f, 0.0f }),
+LightsDebugRenderView::LightsDebugRenderView(const Vec2<f32>& viewportOffset) :
+    RenderView("LightsDebugRenderView", viewportOffset),
     m_shader(Shader::load(shaderName)), m_mesh(Mesh::getUnitSphere()) {}
 
 RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(

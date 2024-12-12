@@ -36,7 +36,7 @@ UserInterface::UserInterface(
   const sl::Vec2<sl::u32>& viewport, sl::Scene* scene, sl::RenderGraph* renderGraph,
   const Config& config
 ) :
-    m_viewport(viewport),
+    m_config(config), m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
     m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
     m_sceneView(scene), m_inspectorView(m_resources, renderGraph),
@@ -62,6 +62,8 @@ void UserInterface::render() {
     m_leftCombo.render();
     m_bottomCombo.render();
 }
+
+const UserInterface::Config& UserInterface::getConfig() const { return m_config; }
 
 void UserInterface::initBottomCombo() {
     m_bottomCombo

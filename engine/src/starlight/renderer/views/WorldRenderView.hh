@@ -11,7 +11,9 @@ namespace sl {
 
 class WorldRenderView : public RenderView {
 public:
-    explicit WorldRenderView(ResourceRef<Shader> shader);
+    explicit WorldRenderView(
+      const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
+    );
 
     RenderPass::Properties getRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags

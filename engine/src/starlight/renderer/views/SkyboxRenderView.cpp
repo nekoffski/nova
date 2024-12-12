@@ -4,8 +4,9 @@
 
 namespace sl {
 
-SkyboxRenderView::SkyboxRenderView(ResourceRef<Shader> shader
-) : RenderView("SkyboxRenderView", { 0.0f, 0.0f }), m_shader(shader) {}
+SkyboxRenderView::SkyboxRenderView(
+  const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
+) : RenderView("SkyboxRenderView", viewportOffset), m_shader(shader) {}
 
 RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags

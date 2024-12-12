@@ -4,8 +4,9 @@
 
 namespace sl {
 
-WorldRenderView::WorldRenderView(ResourceRef<Shader> shader
-) : RenderView("WorldRenderView", { 0.25f, 0.25f }), m_shader(shader) {}
+WorldRenderView::WorldRenderView(
+  const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
+) : RenderView("WorldRenderView", viewportOffset), m_shader(shader) {}
 
 RenderPass::Properties WorldRenderView::getRenderPassProperties(
   RendererBackend& renderer, RenderPass::ChainFlags chainFlags

@@ -9,7 +9,7 @@ namespace sl {
 
 class LightsDebugRenderView : public RenderView {
 public:
-    explicit LightsDebugRenderView();
+    explicit LightsDebugRenderView(const Vec2<f32>& viewportOffset);
 
     RenderPass::Properties getRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags

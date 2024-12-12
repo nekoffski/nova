@@ -31,10 +31,14 @@ public:
 
     void render();
 
+    const Config& getConfig() const;
+
 private:
     void initMenu();
     void initLeftCombo();
     void initBottomCombo();
+
+    Config m_config;
 
     sl::Vec2<sl::u32> m_viewport;
 

@@ -61,10 +61,12 @@ int main(int argc, char** argv) {
         .subfonts = { icons }
     };
 
+    const auto viewportOffset = sl::Vec2<sl::f32>{ 0.0f, 0.0f };
+
     auto renderGraph =
       sl::RenderGraph::Builder{ rendererBackend, viewportSize }
-        .addView<sl::SkyboxRenderView>()
-        .addView<sl::WorldRenderView>(worldShader)
+        .addView<sl::SkyboxRenderView>(viewportOffset)
+        .addView<sl::WorldRenderView>(viewportOffset, worldShader)
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
           []() { sl::ui::text("Hello world!"); }

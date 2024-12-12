@@ -13,6 +13,7 @@ namespace sl {
 class SkyboxRenderView : public RenderView {
 public:
     explicit SkyboxRenderView(
+      const Vec2<f32>& viewportOffset,
       ResourceRef<Shader> shader = Skybox::getDefaultShader()
     );
 
