@@ -16,6 +16,7 @@ namespace sle {
 class InspectorView {
     struct Data {
         std::string entityNameBuffer;
+        sl::i32 selectedComponentIndex = 0u;
     };
 
     class EntityTab {
@@ -34,8 +35,6 @@ class InspectorView {
         Resources& m_resources;
         sl::EventHandlerSentinel m_eventSentinel;
         sl::Entity* m_selectedEntity;
-
-        sl::i32 m_selectedComponentIndex;
 
         Data m_data;
     };

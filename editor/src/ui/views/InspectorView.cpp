@@ -32,7 +32,7 @@ std::vector<const char*> componentNames = { "MeshComposite", "PointLight" };
 
 InspectorView::EntityTab::EntityTab(Resources& resources) :
     m_resources(resources), m_eventSentinel(sl::EventProxy::get()),
-    m_selectedEntity(nullptr), m_selectedComponentIndex(0) {
+    m_selectedEntity(nullptr) {
     m_eventSentinel.pushHandler<events::EntitySelected>([&](auto event) {
         m_selectedEntity        = event.entity;
         m_data.entityNameBuffer = m_selectedEntity->name;
@@ -60,7 +60,7 @@ void InspectorView::EntityTab::render() {
         sl::ui::separator();
 
         ImGui::Combo(
-          "##combo2", &m_selectedComponentIndex, componentNames.data(),
+          "##combo2", &m_data.selectedComponentIndex, componentNames.data(),
           componentNames.size()
         );
 
@@ -68,7 +68,7 @@ void InspectorView::EntityTab::render() {
 
         if (sl::ui::button("Add Component", sl::ui::parentWidth)) {
             EDITOR_LOG_DEBUG(
-              "Add component clicked: {}/{}", name, m_selectedComponentIndex
+              "Add component clicked: {}/{}", name, m_data.selectedComponentIndex
             );
             addComponent();
         }
@@ -81,11 +81,11 @@ void InspectorView::EntityTab::render() {
 }
 
 void InspectorView::EntityTab::addComponent() {
-    if (m_selectedComponentIndex == 0) {
+    if (m_data.selectedComponentIndex == 0) {
         ADD_COMPONENT(
           sl::MeshComposite, sl::Mesh::getCube(), sl::Material::getDefault()
         );
-    } else if (m_selectedComponentIndex == 1) {
+    } else if (m_data.selectedComponentIndex == 1) {
     }
 }
 

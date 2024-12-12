@@ -28,10 +28,11 @@ public:
         return m_componentManager.has<T>(getId());
     }
 
-    std::string name;
-
 private:
     ComponentManager& m_componentManager;
+
+public:
+    std::string name;
 };
 
 }  // namespace sl
