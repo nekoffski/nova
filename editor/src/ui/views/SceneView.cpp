@@ -26,7 +26,7 @@ void SceneView::EntitiesTab::render() {
 
     if (sl::ui::button("Add Entity", sl::ui::parentWidth)) {
         auto& entity = m_scene->addEntity();
-        EDITOR_LOG_INFO("New entity added: {}/{}", entity.getId(), entity.getName());
+        EDITOR_LOG_INFO("New entity added: {}/{}", entity.getId(), entity.name);
     }
     sl::ui::separator();
     sl::ui::treeNode(
@@ -42,7 +42,7 @@ void SceneView::EntitiesTab::render() {
               }
 
               sl::ui::treeNode(
-                entity.getName(),
+                entity.name,
                 [&]() {
                     // TODO: display child entitites
                 },
@@ -50,7 +50,7 @@ void SceneView::EntitiesTab::render() {
               );
 
               if (sl::ui::wasItemClicked()) {
-                  EDITOR_LOG_DEBUG("Entity selected: {}", entity.getName());
+                  EDITOR_LOG_DEBUG("Entity selected: {}", entity.name);
                   m_selectedEntity = &entity;
                   eventProxy.emit<events::EntitySelected>(&entity);
               }

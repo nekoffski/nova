@@ -34,10 +34,13 @@ InspectorView::EntityTab::EntityTab(Resources& resources) :
     m_resources(resources), m_eventSentinel(sl::EventProxy::get()),
     m_selectedEntity(nullptr), m_selectedComponentIndex(0) {
     m_eventSentinel.pushHandler<events::EntitySelected>([&](auto event) {
-        m_selectedEntity = event.entity;
+        m_selectedEntity        = event.entity;
+        m_data.entityNameBuffer = m_selectedEntity->name;
         return sl::EventChainBehaviour::propagate;
     });
 }
+
+static std::string buffer;
 
 void InspectorView::EntityTab::render() {
     if (m_selectedEntity == nullptr) {
@@ -45,10 +48,15 @@ void InspectorView::EntityTab::render() {
         return;
     }
 
-    const auto name = m_selectedEntity->getName();
+    auto& name = m_selectedEntity->name;
 
     sl::ui::namedScope(name, [&]() {
-        sl::ui::text(name);
+        if (ImGui::InputText(
+              "##", &m_data.entityNameBuffer, ImGuiInputTextFlags_EnterReturnsTrue
+            )) {
+            EDITOR_LOG_DEBUG("Entity name changed to: {}", m_data.entityNameBuffer);
+            name = m_data.entityNameBuffer;
+        }
         sl::ui::separator();
 
         ImGui::Combo(

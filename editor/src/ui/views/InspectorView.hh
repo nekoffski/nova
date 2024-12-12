@@ -14,6 +14,10 @@
 namespace sle {
 
 class InspectorView {
+    struct Data {
+        std::string entityNameBuffer;
+    };
+
     class EntityTab {
     public:
         explicit EntityTab(Resources& resources);
@@ -32,6 +36,8 @@ class InspectorView {
         sl::Entity* m_selectedEntity;
 
         sl::i32 m_selectedComponentIndex;
+
+        Data m_data;
     };
 
     class ResourceTab {

@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 #include <fmt/core.h>
 
 #include "starlight/renderer/camera/Camera.hh"
