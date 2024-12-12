@@ -40,7 +40,7 @@ public:
     };
 
     struct Properties {
-        Rect2u32 rect;
+        Rect2<u32> rect;
         Vec4<f32> clearColor;
         ClearFlags clearFlags;
         std::vector<RenderTarget> renderTargets;
@@ -64,7 +64,7 @@ public:
     }
 
     void setClearColor(const Vec4<f32>& color);
-    void setRect(const Rect2u32& extent);
+    void setRect(const Rect2<u32>& extent);
     void setRectSize(const Vec2<u32>& size);
 
     const Properties& getProperties() const;

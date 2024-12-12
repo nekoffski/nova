@@ -15,6 +15,4 @@ template <typename T> struct Rect3 {
     Vec3<T> size;
 };
 
-using Rect2u32 = Rect2<u32>;
-
 }  // namespace sl

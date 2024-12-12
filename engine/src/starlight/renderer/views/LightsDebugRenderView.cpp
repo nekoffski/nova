@@ -7,47 +7,21 @@ namespace sl {
 static const std::string shaderName = "Builtin.Shader.LightsDebug";
 
 LightsDebugRenderView::LightsDebugRenderView() :
+    RenderView("LightsDebugRenderView", { 0.0f, 0.0f }),
     m_shader(Shader::load(shaderName)), m_mesh(Mesh::getUnitSphere()) {}
 
 RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
 ) const {
-    auto props = getDefaultRenderPassProperties();
-
-    props.clearFlags               = RenderPass::ClearFlags::none;
-    const auto swapchainImageCount = renderer.getSwapchainImageCount();
-    props.renderTargets.reserve(swapchainImageCount);
-
-    RenderTarget renderTarget;
-    renderTarget.size = props.rect.size;
-
-    for (u8 i = 0; i < swapchainImageCount; ++i) {
-        renderTarget.attachments = {
-            renderer.getSwapchainTexture(i), renderer.getDepthTexture()
-        };
-        props.renderTargets.push_back(renderTarget);
-    }
-
-    props.includeDepthAttachment = true;
-    return props;
-}
-
-std::string_view LightsDebugRenderView::getName() const {
-    return "LightsDebugRenderView";
+    return getDefaultRenderPassProperties(
+      renderer, Attachment::swapchainColor | Attachment::depth
+    );
 }
 
 void LightsDebugRenderView::init(
   [[maybe_unused]] RendererBackend&, RenderPass& renderPass
 ) {
     m_shader->createPipeline(renderPass);
-}
-
-void LightsDebugRenderView::preRender(RendererBackend& renderer) {
-    Rect2<u32> viewport{
-        .offset = Vec2<u32>{ 0, 0 },
-        .size   = Window::get().getFramebufferSize(),
-    };
-    renderer.setViewport(viewport);
 }
 
 void LightsDebugRenderView::render(

@@ -7,7 +7,12 @@
 
 namespace sl {
 
-struct RenderView {
+class RenderView {
+public:
+    enum class Attachment : u8 { swapchainColor = 0b01, depth = 0b10 };
+
+    RenderView(const std::string& name, const Vec2<f32>& viewportOffset);
+
     virtual ~RenderView() = default;
 
     virtual RenderPass::Properties getRenderPassProperties(
@@ -18,7 +23,6 @@ struct RenderView {
       [[maybe_unused]] RendererBackend& renderer,
       [[maybe_unused]] RenderPass& renderPass
     ) {}
-    virtual void preRender([[maybe_unused]] RendererBackend& renderer) {}
 
     virtual void render(
       RendererBackend& renderer, const RenderPacket& packet,
@@ -26,9 +30,19 @@ struct RenderView {
       u8 imageIndex
     ) = 0;
 
-    virtual std::string_view getName() const = 0;
+    Rect2<u32> getViewport() const;
 
-    static RenderPass::Properties getDefaultRenderPassProperties();
+    const std::string name;
+
+protected:
+    RenderPass::Properties getDefaultRenderPassProperties(
+      RendererBackend& renderer, Attachment attachments,
+      RenderPass::ClearFlags clearFlags = RenderPass::ClearFlags::none
+    ) const;
+
+    Vec2<f32> m_viewportOffset;
 };
+
+constexpr void enableBitOperations(RenderView::Attachment);
 
 }  // namespace sl

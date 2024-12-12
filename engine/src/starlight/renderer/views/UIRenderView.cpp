@@ -10,31 +10,20 @@ namespace sl {
 
 UIRenderView::UIRenderView(
   const FontsProperties& fontsProperties, UICallback&& callback
-) : m_fontsProperties(fontsProperties), m_uiCallback(callback) {}
+) :
+    RenderView("UIRenderView", { 0.0f, 0.0f }), m_fontsProperties(fontsProperties),
+    m_uiCallback(callback) {}
 
 RenderPass::Properties UIRenderView::getRenderPassProperties(
-  RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
+  RendererBackend& renderer, RenderPass::ChainFlags chainFlags
 ) const {
-    auto props       = getDefaultRenderPassProperties();
-    props.clearColor = Vec4<f32>{ 0.0f };
-    props.clearFlags =
+    const auto clearFlags =
       isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious)
         ? RenderPass::ClearFlags::none
         : RenderPass::ClearFlags::color;
-
-    const auto swapchainImageCount = renderer.getSwapchainImageCount();
-    props.renderTargets.reserve(swapchainImageCount);
-
-    RenderTarget renderTarget;
-    renderTarget.size = props.rect.size;
-
-    for (u8 i = 0; i < swapchainImageCount; ++i) {
-        renderTarget.attachments = { renderer.getSwapchainTexture(i) };
-        props.renderTargets.push_back(renderTarget);
-    }
-
-    props.includeDepthAttachment = false;
-    return props;
+    return getDefaultRenderPassProperties(
+      renderer, Attachment::swapchainColor, clearFlags
+    );
 }
 
 void UIRenderView::init(RendererBackend& renderer, RenderPass& renderPass) {
@@ -56,7 +45,5 @@ void UIRenderView::render(
 ) {
     m_uiRenderer->render(commandBuffer, m_uiCallback);
 }
-
-std::string_view UIRenderView::getName() const { return "UIRenderView"; }
 
 }  // namespace sl

@@ -4,49 +4,25 @@
 
 namespace sl {
 
-WorldRenderView::WorldRenderView(ResourceRef<Shader> shader) : m_shader(shader) {}
+WorldRenderView::WorldRenderView(ResourceRef<Shader> shader
+) : RenderView("WorldRenderView", { 0.25f, 0.25f }), m_shader(shader) {}
 
 RenderPass::Properties WorldRenderView::getRenderPassProperties(
   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
 ) const {
-    auto props = getDefaultRenderPassProperties();
-
     auto clearFlags =
       RenderPass::ClearFlags::depth | RenderPass::ClearFlags::stencil;
     if (not isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious))
         clearFlags |= RenderPass::ClearFlags::color;
-
-    props.clearFlags = clearFlags;
-
-    RenderTarget renderTarget;
-    renderTarget.size = props.rect.size;
-
-    const auto swapchainImageCount = renderer.getSwapchainImageCount();
-    props.renderTargets.reserve(swapchainImageCount);
-
-    for (u8 i = 0; i < swapchainImageCount; ++i) {
-        renderTarget.attachments = {
-            renderer.getSwapchainTexture(i), renderer.getDepthTexture()
-        };
-        props.renderTargets.push_back(renderTarget);
-    }
-
-    props.includeDepthAttachment = true;
-    return props;
+    return getDefaultRenderPassProperties(
+      renderer, Attachment::swapchainColor | Attachment::depth, clearFlags
+    );
 }
 
 void WorldRenderView::init(
   [[maybe_unused]] RendererBackend&, RenderPass& renderPass
 ) {
     m_shader->createPipeline(renderPass);
-}
-
-void WorldRenderView::preRender(RendererBackend& renderer) {
-    Rect2<u32> viewport{
-        .offset = Vec2<u32>{ 0, 0 },
-        .size   = Window::get().getFramebufferSize(),
-    };
-    renderer.setViewport(viewport);
 }
 
 struct MeshRenderData {
@@ -123,7 +99,5 @@ void WorldRenderView::render(
         renderer.drawMesh(*mesh);
     }
 }
-
-std::string_view WorldRenderView::getName() const { return "WorldRenderView"; }
 
 }  // namespace sl

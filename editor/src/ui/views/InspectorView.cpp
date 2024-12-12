@@ -178,7 +178,7 @@ void InspectorView::RendererTab::render() {
 
         m_renderGraph->traverse(
           [&](sl::u32 index, bool active, auto& view, auto& renderPass) {
-              const auto name = std::string{ view.getName() };
+              const auto& name = view.name;
               sl::ui::treeNode(
                 name,
                 [&]() {

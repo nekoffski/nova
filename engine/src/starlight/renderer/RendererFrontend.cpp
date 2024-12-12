@@ -54,10 +54,10 @@ void RendererFrontend::renderFrame(
 
           renderGraph.traverse(
             [&](auto& view, auto& renderPass) {
-                view.preRender(m_backend);
                 renderPass.run(
                   commandBuffer, imageIndex,
                   [&](CommandBuffer& commandBuffer, u8 imageIndex) {
+                      m_backend.setViewport(view.getViewport());
                       view.render(
                         m_backend, packet, renderProperties, deltaTime,
                         commandBuffer, imageIndex
