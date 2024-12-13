@@ -28,7 +28,9 @@ InspectorView::InspectorView(Resources& resources, sl::RenderGraph* renderGraph)
 
 void InspectorView::render() { m_tabMenu.render(); }
 
-std::vector<const char*> componentNames = { "MeshComposite", "PointLight" };
+std::vector<const char*> componentNames = {
+    "MeshComposite", "PointLight", "DirectionalLight"
+};
 
 InspectorView::EntityTab::EntityTab(Resources& resources) :
     m_resources(resources), m_eventSentinel(sl::EventProxy::get()),
@@ -87,24 +89,43 @@ void InspectorView::EntityTab::addComponent() {
         );
     } else if (m_data.selectedComponentIndex == 1) {
         ADD_COMPONENT(sl::PointLight);
+    } else if (m_data.selectedComponentIndex == 2) {
+        ADD_COMPONENT(sl::DirectionalLight);
     }
 }
 
 void InspectorView::EntityTab::renderComponents() {
     RENDER_COMPONENT(sl::MeshComposite);
     RENDER_COMPONENT(sl::PointLight);
+    RENDER_COMPONENT(sl::DirectionalLight);
 }
 
 void InspectorView::EntityTab::renderComponent(sl::PointLight& light) {
-    sl::ui::treeNode(ICON_FA_LIGHTBULB "  PointLight", [&]() {
-        sl::ui::slider("Position", light.data.position, { -10.0f, 10.0f, 0.01f });
-        if (sl::ui::slider(
-              "Attenuation", light.data.attenuationFactors, { -10.0f, 10.0f, 0.01f }
-            )) {
-            light.generateLODs();
-        }
-        ImGui::ColorEdit4("Color", sl::math::value_ptr(light.data.color));
-    });
+    sl::ui::treeNode(
+      ICON_FA_LIGHTBULB "  PointLight",
+      [&]() {
+          sl::ui::slider("Position", light.data.position, { -10.0f, 10.0f, 0.01f });
+          if (sl::ui::slider(
+                "Attenuation", light.data.attenuationFactors,
+                { -10.0f, 10.0f, 0.01f }
+              )) {
+              light.generateLODs();
+          }
+          ImGui::ColorEdit4("Color", sl::math::value_ptr(light.data.color));
+      },
+      ImGuiTreeNodeFlags_DefaultOpen
+    );
+}
+
+void InspectorView::EntityTab::renderComponent(sl::DirectionalLight& light) {
+    sl::ui::treeNode(
+      ICON_FA_SUN "  DirectionalLight",
+      [&]() {
+          sl::ui::slider("Direction", light.direction, { -1.0f, 1.0f, 0.01f });
+          ImGui::ColorEdit4("Color", sl::math::value_ptr(light.color));
+      },
+      ImGuiTreeNodeFlags_DefaultOpen
+    );
 }
 
 void InspectorView::EntityTab::renderComponent(sl::MeshComposite& component) {

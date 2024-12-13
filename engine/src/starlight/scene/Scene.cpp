@@ -5,12 +5,18 @@
 
 namespace sl {
 
+static constexpr u32 maxPointLights       = 5;
+static constexpr u32 maxDirectionalLights = 5;
+
 Scene::Scene(Window& window, Camera* camera) :
     m_window(window), m_camera(camera), m_skybox(nullptr), m_entities(maxEntities) {}
 
 RenderPacket Scene::getRenderPacket() {
     RenderPacket packet{};
     packet.camera = m_camera;
+
+    packet.directionalLights.reserve(maxDirectionalLights);
+    packet.pointLights.reserve(maxPointLights);
 
     m_componentManager.getComponentContainer<MeshComposite>().forEach(
       [&](Component<MeshComposite>& meshComposite) {
@@ -27,6 +33,12 @@ RenderPacket Scene::getRenderPacket() {
     m_componentManager.getComponentContainer<PointLight>().forEach(
       [&](Component<PointLight>& light) {
           packet.pointLights.push_back(light.data());
+      }
+    );
+
+    m_componentManager.getComponentContainer<DirectionalLight>().forEach(
+      [&](Component<DirectionalLight>& light) {
+          packet.directionalLights.push_back(light.data());
       }
     );
 

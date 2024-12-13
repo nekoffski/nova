@@ -28,7 +28,15 @@
       "size": 48,
       "elements": 5
     },
+    {
+      "type": "custom",
+      "scope": "global",
+      "name": "directionalLights",
+      "size": 32,
+      "elements": 5
+    },
     { "type": "i32", "scope": "global", "name": "pointLightCount" },
+    { "type": "i32", "scope": "global", "name": "directionalLightCount" },
     { "type": "vec4", "scope": "instance", "name": "diffuseColor" },
     { "type": "samp", "scope": "instance", "name": "diffuseTexture" },
     { "type": "samp", "scope": "instance", "name": "specularTexture" },

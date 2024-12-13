@@ -63,7 +63,13 @@ void WorldRenderView::render(
               proxy.set("pointLights", shaderBulk.data());
           }
 
+          const auto directionalLightCount = packet.directionalLights.size();
+
+          if (directionalLightCount > 0)
+              proxy.set("directionalLights", packet.directionalLights.data());
+
           proxy.set("pointLightCount", pointLightCount);
+          proxy.set("directionalLightCount", directionalLightCount);
       }
     );
 

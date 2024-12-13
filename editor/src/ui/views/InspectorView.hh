@@ -8,6 +8,7 @@
 
 #include <starlight/renderer/MeshComposite.hh>
 #include <starlight/renderer/light/PointLight.hh>
+#include <starlight/renderer/light/DirectionalLight.hh>
 
 #include "Console.hh"
 #include "Resources.hh"
@@ -32,7 +33,8 @@ class InspectorView {
 
         // components
         void renderComponent(sl::MeshComposite& component);
-        void renderComponent(sl::PointLight& component);
+        void renderComponent(sl::PointLight& light);
+        void renderComponent(sl::DirectionalLight& light);
 
         Resources& m_resources;
         sl::EventHandlerSentinel m_eventSentinel;

@@ -1,5 +1,7 @@
 // clang-format off
 #version 450
+#extension GL_EXT_scalar_block_layout : require
+
 
 layout (location = 0) out vec4 outColor;
 
@@ -9,14 +11,21 @@ struct PointLight {
     vec3 attenuation;
 };
 
-layout (set = 0, binding = 0) uniform GlobalUBO {
+struct DirectionalLight {
+    vec4 color;
+    vec3 direction;
+};
+
+layout (std430, set = 0, binding = 0) uniform GlobalUBO {
     mat4 projection;
     mat4 view;
     vec3 viewPosition;
     int mode;
     vec4 ambientColor;
     PointLight pointLights[5];
+    DirectionalLight directionalLights[5];
     int pointLightCount;
+    int directionalLightCount;
 } globalUBO;
 
 layout (set = 1, binding = 0) uniform LocalUBO {
@@ -46,22 +55,11 @@ layout (location = 1) in struct DTO {
 
 mat3 TBN;
 
-struct DirectionalLight {
-    vec3 direction;
-    vec4 color;
-};
-
-
-DirectionalLight light = {
-    vec3(-0.57735, -0.57735, -0.57735),
-    vec4(0.8, 0.8, 0.8, 1.0)
-};
-
-
 vec4 calculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection) {
-    float diffuseFactor = max(dot(normal, -light.direction), 0.0);
+    vec3 direction = normalize(light.direction);
+    float diffuseFactor = max(dot(normal, -direction), 0.0);
 
-    vec3 halfDirection = normalize(viewDirection - light.direction);
+    vec3 halfDirection = normalize(viewDirection - direction);
     float specularFactor = pow(max(dot(halfDirection, normal), epsilon), localUBO.shininess);
 
     vec4 diffuseTextureSample = texture(textures[diffuseMap], dto.textureCoordinates);
@@ -121,7 +119,11 @@ void main() {
 
     if (renderMode == 0 || renderMode == 1) {
         vec3 viewDirection = normalize(dto.viewPosition - dto.fragmentPosition);
-        outColor = dto.ambient * texture(textures[diffuseMap], dto.textureCoordinates); //calculateDirectionalLight(light, normal, viewDirection);
+        outColor = dto.ambient * texture(textures[diffuseMap], dto.textureCoordinates);
+        
+        for (int i = 0; i < globalUBO.directionalLightCount; ++i)
+            outColor += calculateDirectionalLight(globalUBO.directionalLights[i], normal, viewDirection);
+        
         for (int i = 0; i < globalUBO.pointLightCount; ++i)
             outColor += calculatePointLight(globalUBO.pointLights[i], normal, dto.fragmentPosition, viewDirection);
     } else {

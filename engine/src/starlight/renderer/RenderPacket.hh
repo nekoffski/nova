@@ -4,6 +4,7 @@
 
 #include "gpu/Mesh.hh"
 #include "light/PointLight.hh"
+#include "light/DirectionalLight.hh"
 #include "camera/Camera.hh"
 #include "Material.hh"
 #include "Skybox.hh"
@@ -20,6 +21,7 @@ struct RenderPacket {
     Skybox* skybox;
     Camera* camera;
     std::vector<PointLight> pointLights;
+    std::vector<DirectionalLight> directionalLights;
     std::vector<RenderEntity> entities;
 };
 
