@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RenderView.hh"
-
 #include "starlight/renderer/gpu/RenderPass.hh"
 #include "starlight/renderer/gpu/Shader.hh"
 

@@ -1,6 +1,7 @@
 #include "Scene.hh"
 
 #include "starlight/renderer/MeshComposite.hh"
+#include "starlight/renderer/light/PointLight.hh"
 
 namespace sl {
 
@@ -23,17 +24,23 @@ RenderPacket Scene::getRenderPacket() {
       }
     );
 
+    m_componentManager.getComponentContainer<PointLight>().forEach(
+      [&](Component<PointLight>& light) {
+          packet.pointLights.push_back(light.data());
+      }
+    );
+
     // mock for testing
     // PointLight light;
 
-    // light.position.x = 1.0f;
-    // light.color      = Vec4<f32>{ 1.0f, 0.5f, 0.3f, 1.0f };
+    // light.data.position.x = 1.0f;
+    // light.data.color      = Vec4<f32>{ 1.0f, 0.5f, 0.3f, 1.0f };
     // packet.pointLights.push_back(light);
 
-    // light.position.y = 1.0f;
-    // light.position.z = 1.0f;
-    // light.position.x = 0.0f;
-    // light.color      = Vec4<f32>{ 0.5f, 0.5f, 0.1f, 1.0f };
+    // light.data.position.x = 0.0f;
+    // light.data.position.y = 1.0f;
+    // light.data.position.z = 1.0f;
+    // light.data.color      = Vec4<f32>{ 0.5f, 0.5f, 0.1f, 1.0f };
     // packet.pointLights.push_back(light);
 
     packet.skybox = m_skybox;

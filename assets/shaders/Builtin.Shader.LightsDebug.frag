@@ -10,6 +10,6 @@ layout (push_constant) uniform pushConstants_t {
 } pushConstants;
 
 void main() { 
-    outColor = vec4(pushConstants.color);
+    outColor = pushConstants.color;
 }
    

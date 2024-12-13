@@ -53,9 +53,9 @@ struct PlaneProperties {
     float width;
     float height;
     u32 xSegments;
-    u32 ySegments;
+    u32 zSegments;
     u32 xTile;
-    u32 yTile;
+    u32 zTile;
 };
 
 struct CubeProperties {
@@ -141,6 +141,7 @@ public:
     static ResourceRef<Mesh> find(const std::string& name);
     static ResourceRef<Mesh> getCube();
     static ResourceRef<Mesh> getUnitSphere();
+    static ResourceRef<Mesh> getPlane();
 
     const BufferDescription& getDataDescription() const;
     const Extent3& getExtent() const;
@@ -167,12 +168,14 @@ public:
 
     ResourceRef<Mesh> getCube();
     ResourceRef<Mesh> getUnitSphere();
+    ResourceRef<Mesh> getPlane();
 
 private:
     void createDefaults();
 
     OwningPtr<Mesh> m_cube;
     OwningPtr<Mesh> m_unitSphere;
+    OwningPtr<Mesh> m_plane;
 
     RendererBackend& m_renderer;
 };

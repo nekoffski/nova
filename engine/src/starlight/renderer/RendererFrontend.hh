@@ -47,7 +47,7 @@ private:
     FrameStatistics m_frameStatistics;
     Vec2<u32> m_viewportSize;
 
-    // manager singletons, we want to expicitly specify order of initialization
+    // singletons, we want to expicitly specify order of initialization
     ShaderManager m_shaderManager;
     TextureManager m_textureManager;
     MaterialManager m_materialManager;

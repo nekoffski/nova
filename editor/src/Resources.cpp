@@ -5,6 +5,7 @@ namespace sle {
 Resources::Resources() {
     meshes.push_back(sl::Mesh::getCube());
     meshes.push_back(sl::Mesh::getUnitSphere());
+    meshes.push_back(sl::Mesh::getPlane());
 
     materials.push_back(sl::Material::getDefault());
 

@@ -14,7 +14,7 @@ RenderPass::Properties RenderView::getDefaultRenderPassProperties(
 ) const {
     RenderPass::Properties props;
 
-    props.clearColor = Vec4<f32>{ 1.0f };
+    props.clearColor = Vec4<f32>{ 0.0f };
     props.clearFlags = clearFlags;
     props.rect       = getViewport();
 

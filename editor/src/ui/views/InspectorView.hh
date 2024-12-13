@@ -1,12 +1,13 @@
 #pragma once
 
 #include <starlight/ui/UI.hh>
-#include <starlight/scene/Entity.hh>
+#include <starlight/scene/ecs/Entity.hh>
 #include <starlight/scene/Scene.hh>
 #include <starlight/core/event/EventHandlerSentinel.hh>
 #include <starlight/renderer/RenderGraph.hh>
 
 #include <starlight/renderer/MeshComposite.hh>
+#include <starlight/renderer/light/PointLight.hh>
 
 #include "Console.hh"
 #include "Resources.hh"
@@ -31,6 +32,7 @@ class InspectorView {
 
         // components
         void renderComponent(sl::MeshComposite& component);
+        void renderComponent(sl::PointLight& component);
 
         Resources& m_resources;
         sl::EventHandlerSentinel m_eventSentinel;

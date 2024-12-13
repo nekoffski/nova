@@ -30,6 +30,8 @@ ResourceRef<Mesh> Mesh::getUnitSphere() {
     return MeshManager::get().getUnitSphere();
 }
 
+ResourceRef<Mesh> Mesh::getPlane() { return MeshManager::get().getPlane(); }
+
 const Mesh::BufferDescription& Mesh::getDataDescription() const {
     return m_dataDescription;
 }
@@ -73,6 +75,10 @@ ResourceRef<Mesh> MeshManager::getCube() {
     return ResourceRef{ m_cube.get(), "Cube" };
 }
 
+ResourceRef<Mesh> MeshManager::getPlane() {
+    return ResourceRef{ m_plane.get(), "Plane" };
+}
+
 ResourceRef<Mesh> MeshManager::getUnitSphere() {
     return ResourceRef{ m_unitSphere.get(), "UnitSphere" };
 }
@@ -87,6 +93,11 @@ void MeshManager::createDefaults() {
         SphereProperties{ 16, 16, 1.0f }
     };
     m_unitSphere = createMesh(m_renderer, unitSphereConfig.toMeshData());
+
+    Mesh::Properties3D planeConfig{
+        PlaneProperties{ 5.0f, 5.0f, 2, 2, 2, 2 }
+    };
+    m_plane = createMesh(m_renderer, planeConfig.toMeshData());
 }
 
 Mesh::Properties3D::Properties3D(const SphereProperties& props) {
@@ -132,28 +143,28 @@ Mesh::Properties3D::Properties3D(const SphereProperties& props) {
 }
 
 Mesh::Properties3D::Properties3D(const PlaneProperties& props) {
-    const auto vertexCount = props.xSegments * props.ySegments * 4;
-    const auto indexCount  = props.xSegments * props.ySegments * 6;
+    const auto vertexCount = props.xSegments * props.zSegments * 4;
+    const auto indexCount  = props.xSegments * props.zSegments * 6;
 
     vertices.resize(vertexCount);
     indices.resize(indexCount);
 
     float segWidth   = (float)props.width / props.xSegments;
-    float segHeight  = (float)props.height / props.ySegments;
+    float segHeight  = (float)props.height / props.zSegments;
     float halfWidth  = props.width / 2.0f;
     float halfHeight = props.height / 2.0f;
 
-    for (uint32_t y = 0; y < props.ySegments; ++y) {
+    for (uint32_t y = 0; y < props.zSegments; ++y) {
         for (uint32_t x = 0; x < props.xSegments; ++x) {
-            float minX = (x * segWidth) - halfWidth;
-            float minY = (y * segHeight) - halfHeight;
-            float maxX = minX + segWidth;
-            float maxY = minY + segHeight;
+            float maxX = (x * segWidth) - halfWidth;
+            float minZ = (y * segHeight) - halfHeight;
+            float minX = maxX + segWidth;
+            float maxZ = minZ + segHeight;
 
             float minUVX = (x / (float)props.xSegments) * props.xTile;
-            float minUVY = (y / (float)props.ySegments) * props.yTile;
+            float minUVZ = (y / (float)props.zSegments) * props.zTile;
             float maxUVX = ((x + 1.0f) / (float)props.xSegments) * props.xTile;
-            float maxUVY = ((y + 1.0f) / (float)props.ySegments) * props.yTile;
+            float maxUVZ = ((y + 1.0f) / (float)props.zSegments) * props.zTile;
 
             uint32_t vOffset = ((y * props.xSegments) + x) * 4;
 
@@ -162,17 +173,17 @@ Mesh::Properties3D::Properties3D(const PlaneProperties& props) {
             auto v2 = &vertices[vOffset + 2];
             auto v3 = &vertices[vOffset + 3];
 
-            v0->position           = glm::vec3{ minX, minY, 0.0f };
-            v0->textureCoordinates = glm::vec2{ minUVX, minUVY };
+            v0->position           = glm::vec3{ minX, 0.0f, minZ };
+            v0->textureCoordinates = glm::vec2{ minUVX, minUVZ };
 
-            v1->position           = glm::vec3{ maxX, maxY, 0.0f };
-            v1->textureCoordinates = glm::vec2{ minUVX, maxUVY };
+            v1->position           = glm::vec3{ maxX, 0.0f, maxZ };
+            v1->textureCoordinates = glm::vec2{ minUVX, maxUVZ };
 
-            v2->position           = glm::vec3{ minX, maxY, 0.0f };
-            v2->textureCoordinates = glm::vec2{ minUVX, maxUVY };
+            v2->position           = glm::vec3{ minX, 0.0f, maxZ };
+            v2->textureCoordinates = glm::vec2{ minUVX, maxUVZ };
 
-            v3->position           = glm::vec3{ maxX, minY, 0.0f };
-            v3->textureCoordinates = glm::vec2{ maxUVX, minUVY };
+            v3->position           = glm::vec3{ maxX, 0.0f, minZ };
+            v3->textureCoordinates = glm::vec2{ maxUVX, minUVZ };
 
             uint32_t iOffset = ((y * props.xSegments) + x) * 6;
 

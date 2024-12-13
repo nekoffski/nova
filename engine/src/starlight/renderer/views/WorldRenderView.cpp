@@ -1,6 +1,7 @@
 #include "WorldRenderView.hh"
 
 #include "starlight/core/window/Window.hh"
+#include "starlight/core/Algorithms.hh"
 
 namespace sl {
 
@@ -38,7 +39,7 @@ void WorldRenderView::render(
   const RenderProperties& properties, [[maybe_unused]] float deltaTime,
   CommandBuffer& commandBuffer, u8 imageIndex
 ) {
-    Vec4<f32> ambientColor(0.3f, 0.3f, 0.3f, 1.0f);
+    Vec4<f32> ambientColor(0.05f, 0.05f, 0.05f, 1.0f);
     auto camera               = packet.camera;
     const auto cameraPosition = camera->getPosition();
 
@@ -53,10 +54,16 @@ void WorldRenderView::render(
           proxy.set("renderMode", static_cast<int>(properties.renderMode));
 
           const auto pointLightCount = packet.pointLights.size();
-          proxy.set("pointLightCount", pointLightCount);
 
-          if (pointLightCount > 0)
-              proxy.set("pointLights", packet.pointLights.data());
+          if (pointLightCount > 0) {
+              const auto shaderBulk = transform<PointLight::ShaderData>(
+                packet.pointLights,
+                [](const PointLight& light) { return light.data; }
+              );
+              proxy.set("pointLights", shaderBulk.data());
+          }
+
+          proxy.set("pointLightCount", pointLightCount);
       }
     );
 

@@ -67,6 +67,7 @@ int main(int argc, char** argv) {
       sl::RenderGraph::Builder{ rendererBackend, viewportSize }
         .addView<sl::SkyboxRenderView>(viewportOffset)
         .addView<sl::WorldRenderView>(viewportOffset, worldShader)
+        .addView<sl::LightsDebugRenderView>(viewportOffset)
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
           []() { sl::ui::text("Hello world!"); }

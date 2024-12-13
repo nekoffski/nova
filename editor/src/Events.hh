@@ -1,6 +1,6 @@
 #pragma once
 
-#include <starlight/scene/Entity.hh>
+#include <starlight/scene/ecs/Entity.hh>
 
 namespace sle::events {
 

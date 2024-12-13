@@ -86,11 +86,25 @@ void InspectorView::EntityTab::addComponent() {
           sl::MeshComposite, sl::Mesh::getCube(), sl::Material::getDefault()
         );
     } else if (m_data.selectedComponentIndex == 1) {
+        ADD_COMPONENT(sl::PointLight);
     }
 }
 
 void InspectorView::EntityTab::renderComponents() {
     RENDER_COMPONENT(sl::MeshComposite);
+    RENDER_COMPONENT(sl::PointLight);
+}
+
+void InspectorView::EntityTab::renderComponent(sl::PointLight& light) {
+    sl::ui::treeNode(ICON_FA_LIGHTBULB "  PointLight", [&]() {
+        sl::ui::slider("Position", light.data.position, { -10.0f, 10.0f, 0.01f });
+        if (sl::ui::slider(
+              "Attenuation", light.data.attenuationFactors, { -10.0f, 10.0f, 0.01f }
+            )) {
+            light.generateLODs();
+        }
+        ImGui::ColorEdit4("Color", sl::math::value_ptr(light.data.color));
+    });
 }
 
 void InspectorView::EntityTab::renderComponent(sl::MeshComposite& component) {
