@@ -13,11 +13,12 @@ namespace sle {
 
 Application::Application(const sl::Config& config) :
     m_isRunning(true), m_config(config), m_context(config),
-    m_window(m_context.getWindow()), m_renderer(m_context.getWindow(), config),
-    m_eventSentinel(m_context.getEventProxy()),
-    m_cameras(m_window.getFramebufferSize()),
+    m_eventProxy(m_context.getEventProxy()), m_window(m_context.getWindow()),
+    m_renderer(m_context.getWindow(), m_eventProxy, config),
+    m_eventSentinel(m_eventProxy),
+    m_cameras(m_window.getFramebufferSize(), m_eventProxy),
     m_scene(m_window, m_cameras.getActive()),
-    m_userInterface(m_window.getFramebufferSize(), &m_scene) {}
+    m_userInterface(m_eventProxy, m_window.getFramebufferSize(), &m_scene) {}
 
 int Application::start() {
     init();
@@ -53,8 +54,9 @@ void Application::startRenderLoop() {
 
     auto worldShader = sl::Shader::load("Builtin.Shader.Material");
 
+    auto& backend = m_renderer.getRendererBackend();
     auto renderGraph =
-      sl::RenderGraph::Builder{ m_renderer.getRendererBackend(), viewport }
+      sl::RenderGraph::Builder{ backend, m_eventProxy, viewport }
         .addView<sl::WorldRenderView>(viewportOffset, worldShader)
         .addView<sl::LightsDebugRenderView>(viewportOffset)
         .addView<sl::UIRenderView>(
@@ -77,27 +79,18 @@ void Application::startRenderLoop() {
 
 void Application::exit() { m_isRunning.store(false); }
 
-void Application::onViewportResize(const sl::Vec2<sl::u32>& viewport) {
-    m_renderer.onViewportResize(viewport);
-    m_userInterface.onViewportReisze(viewport);
-}
-
 void Application::initEvents() {
     m_eventSentinel
-      .pushHandler<sl::QuitEvent>([&](const auto& event) {
+      .add<sl::QuitEvent>([&](const auto& event) {
           LOG_INFO("Received quit request: '{}'", event.reason);
           exit();
           return sl::EventChainBehaviour::stop;
       })
-      .pushHandler<sl::KeyEvent>([&](const auto& event) {
+      .add<sl::KeyEvent>([&](const auto& event) {
           if (event.key == SL_KEY_ESCAPE && event.action == sl::KeyAction::press) {
               LOG_INFO("Key ESC pressed, quitting");
               exit();
           }
-          return sl::EventChainBehaviour::propagate;
-      })
-      .pushHandler<sl::WindowResized>([&](const auto& event) {
-          onViewportResize(event.size);
           return sl::EventChainBehaviour::propagate;
       });
 }

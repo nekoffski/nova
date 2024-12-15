@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "starlight/core/memory/Memory.hh"
+#include "starlight/core/event/EventProxy.hh"
 #include "starlight/core/math/Core.hh"
 #include "gpu/RendererBackend.hh"
 #include "views/RenderView.hh"
@@ -24,7 +25,10 @@ public:
 
     class Builder {
     public:
-        explicit Builder(RendererBackend& renderer, const Vec2<u32>& viewportSize);
+        explicit Builder(
+          RendererBackend& renderer, EventProxy& eventProxy,
+          const Vec2<u32>& viewportSize
+        );
 
         OwningPtr<RenderGraph> build() &&;
 
@@ -36,9 +40,12 @@ public:
 
     private:
         RendererBackend& m_renderer;
+        EventProxy& m_eventProxy;
         const Vec2<u32>& m_viewportSize;
         std::vector<OwningPtr<RenderView>> m_renderViews;
     };
+
+    explicit RenderGraph(EventProxy& eventProxy);
 
     template <typename C>
     requires Callable<C, void, sl::u32, bool, RenderView&, RenderPass&>
@@ -57,13 +64,15 @@ public:
         }
     }
 
-    void onViewportResize(const Vec2<u32>& viewport);
-
     void enableView(sl::u32 index);
     void disableView(sl::u32 index);
     void toggleView(sl::u32 index);
 
 private:
+    void onViewportResize(const Vec2<u32>& viewport);
+
+    EventHandlerSentinel m_eventSentinel;
+
     std::vector<Node>& getNodes();
     std::vector<Node> m_nodes;
 };

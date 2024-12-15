@@ -132,12 +132,12 @@ TEST_F(
     {
         EventHandlerSentinel sentinel{ proxy };
 
-        sentinel.pushHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
+        sentinel.add<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
             called = true;
             return EventChainBehaviour::propagate;
         });
 
-        sentinel.pushHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
+        sentinel.add<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
             called2 = true;
             return EventChainBehaviour::propagate;
         });

@@ -1,10 +1,12 @@
 #include "RenderGraph.hh"
 
+#include "starlight/core/event/WindowResized.hh"
+
 namespace sl {
 
 RenderGraph::Builder::Builder(
-  RendererBackend& renderer, const Vec2<u32>& viewportSize
-) : m_renderer(renderer), m_viewportSize(viewportSize) {}
+  RendererBackend& renderer, EventProxy& eventProxy, const Vec2<u32>& viewportSize
+) : m_renderer(renderer), m_eventProxy(eventProxy), m_viewportSize(viewportSize) {}
 
 namespace {
 
@@ -20,7 +22,7 @@ RenderPass::ChainFlags getChainFlags(u32 index, u32 count) {
 }  // namespace
 
 OwningPtr<RenderGraph> RenderGraph::Builder::build() && {
-    auto renderGraph = createOwningPtr<RenderGraph>();
+    auto renderGraph = createOwningPtr<RenderGraph>(m_eventProxy);
     auto& nodes      = renderGraph->getNodes();
 
     const auto viewCount = m_renderViews.size();
@@ -39,6 +41,13 @@ OwningPtr<RenderGraph> RenderGraph::Builder::build() && {
     }
 
     return renderGraph;
+}
+
+RenderGraph::RenderGraph(EventProxy& eventProxy) : m_eventSentinel(eventProxy) {
+    m_eventSentinel.add<WindowResized>([&](const auto& event) {
+        onViewportResize(event.size);
+        return sl::EventChainBehaviour::propagate;
+    });
 }
 
 void RenderGraph::onViewportResize(const Vec2<u32>& viewport) {

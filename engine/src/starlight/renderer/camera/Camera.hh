@@ -2,6 +2,7 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/math/Core.hh"
+#include "starlight/core/event/EventProxy.hh"
 #include "starlight/core/event/EventHandlerSentinel.hh"
 
 namespace sl {
@@ -9,17 +10,19 @@ namespace sl {
 class Camera {
 public:
     struct ProjectionProperties {
-        static ProjectionProperties createDefault();
+        f32 fov   = 45.0f;
+        f32 nearZ = 0.1f;
+        f32 farZ  = 1000.0f;
 
-        f32 fov;
-        f32 nearZ;
-        f32 farZ;
+        inline static ProjectionProperties getDefault() {
+            return ProjectionProperties{};
+        }
     };
 
     explicit Camera(
-      const Vec2<u32>& viewport,
+      const Vec2<u32>& viewport, sl::EventProxy& eventProxy,
       const ProjectionProperties& projectionProperties =
-        ProjectionProperties::createDefault()
+        ProjectionProperties::getDefault()
     );
 
     virtual Mat4<f32> getViewMatrix() const = 0;
@@ -28,14 +31,13 @@ public:
 
     const Mat4<f32>& getProjectionMatrix() const;
 
-    void onViewportResize(const Vec2<u32>& viewport);
-
 protected:
     void calculateProjectionMatrix();
 
     Vec2<u32> m_viewportSize;
     Mat4<f32> m_projectionMatrix;
     ProjectionProperties m_projectionProperties;
+    EventHandlerSentinel m_eventSentinel;
 };
 
 }  // namespace sl

@@ -21,9 +21,9 @@ public:
     };
 
     explicit UserInterface(
-      const sl::Vec2<sl::u32>& viewport, sl::Scene* scene,
-      sl::RenderGraph* renderGraph = nullptr,
-      const Config& config         = Config::createDefault()
+      sl::EventProxy& eventProxy, const sl::Vec2<sl::u32>& viewport,
+      sl::Scene* scene, sl::RenderGraph* renderGraph = nullptr,
+      const Config& config = Config::createDefault()
     );
 
     void onViewportReisze(const sl::Vec2<sl::u32>& viewport);
@@ -37,6 +37,8 @@ private:
     void initMenu();
     void initLeftCombo();
     void initBottomCombo();
+
+    sl::EventHandlerSentinel m_eventSentinel;
 
     Config m_config;
 

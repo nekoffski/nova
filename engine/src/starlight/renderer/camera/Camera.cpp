@@ -1,23 +1,24 @@
 #include "Camera.hh"
 
+#include "starlight/core/event/WindowResized.hh"
+
 namespace sl {
 
-Camera::ProjectionProperties Camera::ProjectionProperties::createDefault() {
-    return ProjectionProperties{ .fov = 45.0f, .nearZ = 0.1f, .farZ = 1000.0f };
-}
-
 Camera::Camera(
-  const Vec2<u32>& viewport, const ProjectionProperties& projectionProperties
-) : m_viewportSize(viewport), m_projectionProperties(projectionProperties) {
+  const Vec2<u32>& viewport, sl::EventProxy& eventProxy,
+  const ProjectionProperties& projectionProperties
+) :
+    m_viewportSize(viewport), m_projectionProperties(projectionProperties),
+    m_eventSentinel(eventProxy) {
+    m_eventSentinel.add<WindowResized>([&](auto& event) {
+        m_viewportSize = event.size;
+        calculateProjectionMatrix();
+        return EventChainBehaviour::propagate;
+    });
     calculateProjectionMatrix();
 }
 
 const Mat4<f32>& Camera::getProjectionMatrix() const { return m_projectionMatrix; }
-
-void Camera::onViewportResize(const Vec2<u32>& viewport) {
-    m_viewportSize = viewport;
-    calculateProjectionMatrix();
-}
 
 void Camera::calculateProjectionMatrix() {
     m_projectionMatrix = math::perspective(

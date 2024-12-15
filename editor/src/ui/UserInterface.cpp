@@ -1,6 +1,7 @@
 #include "UserInterface.hh"
 
 #include <starlight/ui/fonts/FontAwesome.hh>
+#include <starlight/core/event/WindowResized.hh>
 
 namespace sle {
 
@@ -33,14 +34,19 @@ UserInterface::Config UserInterface::Config::createDefault() {
 }
 
 UserInterface::UserInterface(
-  const sl::Vec2<sl::u32>& viewport, sl::Scene* scene, sl::RenderGraph* renderGraph,
-  const Config& config
+  sl::EventProxy& eventProxy, const sl::Vec2<sl::u32>& viewport, sl::Scene* scene,
+  sl::RenderGraph* renderGraph, const Config& config
 ) :
-    m_config(config), m_viewport(viewport),
+    m_eventSentinel(eventProxy), m_config(config), m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
     m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
     m_sceneView(scene), m_inspectorView(m_resources, renderGraph),
     m_resourcesView(m_resources) {
+    m_eventSentinel.add<sl::WindowResized>([&](auto& event) {
+        onViewportReisze(event.size);
+        return sl::EventChainBehaviour::propagate;
+    });
+
     initMenu();
     initLeftCombo();
     initBottomCombo();
@@ -51,6 +57,7 @@ UserInterface::UserInterface(
 
 void UserInterface::onViewportReisze(const sl::Vec2<sl::u32>& viewport) {
     m_viewport = viewport;
+    // todo: resize everything
 }
 
 void UserInterface::setRenderGraph(sl::RenderGraph& renderGraph) {

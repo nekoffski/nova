@@ -13,7 +13,7 @@ public:
         Vec2<u32> viewportSize;
     };
 
-    explicit FirstPersonCamera(const Properties& props);
+    explicit FirstPersonCamera(const Properties& props, sl::EventProxy& eventProxy);
 
     Mat4<f32> getViewMatrix() const override;
     Vec3<f32> getPosition() const override;

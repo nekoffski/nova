@@ -33,17 +33,21 @@ int main(int argc, char** argv) {
     std::signal(SIGINT, []([[maybe_unused]] int) { isRunning = false; });
 
     sl::Context context{ *config };
-    auto& window = context.getWindow();
+    auto& window     = context.getWindow();
+    auto& eventProxy = sl::EventProxy::get();
 
-    sl::RendererFrontend renderer{ window, *config };
+    sl::RendererFrontend renderer{ window, eventProxy, *config };
 
     const auto viewportSize = window.getFramebufferSize();
 
-    sl::EulerCamera camera(sl::EulerCamera::Properties{
-      .target       = sl::Vec3<sl::f32>{ 0.0f },
-      .radius       = 5.0f,
-      .viewportSize = viewportSize,
-    });
+    sl::EulerCamera camera(
+      sl::EulerCamera::Properties{
+        .target       = sl::Vec3<sl::f32>{ 0.0f },
+        .radius       = 5.0f,
+        .viewportSize = viewportSize,
+      },
+      eventProxy
+    );
 
     auto& rendererBackend = renderer.getRendererBackend();
     auto skybox           = sl::Skybox::load("skybox2/skybox");
@@ -64,7 +68,7 @@ int main(int argc, char** argv) {
     const auto viewportOffset = sl::Vec2<sl::f32>{ 0.0f, 0.0f };
 
     auto renderGraph =
-      sl::RenderGraph::Builder{ rendererBackend, viewportSize }
+      sl::RenderGraph::Builder{ rendererBackend, eventProxy, viewportSize }
         .addView<sl::SkyboxRenderView>(viewportOffset)
         .addView<sl::WorldRenderView>(viewportOffset, worldShader)
         .addView<sl::LightsDebugRenderView>(viewportOffset)
@@ -74,15 +78,14 @@ int main(int argc, char** argv) {
         )
         .build();
 
-    auto& eventProxy = sl::EventProxy::get();
     sl::EventHandlerSentinel sentinel{ eventProxy };
 
     sentinel
-      .pushHandler<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) {
+      .add<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) {
           isRunning = false;
           return sl::EventChainBehaviour::propagate;
       })
-      .pushHandler<sl::KeyEvent>([&](const auto& ev) {
+      .add<sl::KeyEvent>([&](const auto& ev) {
           if (ev.key == SL_KEY_ESCAPE)
               isRunning = false;
           else if (ev.key == SL_KEY_Z)
@@ -91,12 +94,6 @@ int main(int argc, char** argv) {
               renderer.setRenderMode(sl::RenderMode::normals);
           else if (ev.key == SL_KEY_C)
               renderer.setRenderMode(sl::RenderMode::standard);
-          return sl::EventChainBehaviour::propagate;
-      })
-      .pushHandler<sl::WindowResized>([&](const auto& event) {
-          renderer.onViewportResize(event.size);
-          renderGraph->onViewportResize(event.size);
-          camera.onViewportResize(event.size);
           return sl::EventChainBehaviour::propagate;
       });
 

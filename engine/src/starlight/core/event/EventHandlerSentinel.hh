@@ -14,8 +14,7 @@ public:
     ~EventHandlerSentinel();
 
     template <typename T>
-    EventHandlerSentinel& pushHandler(
-      std::function<EventChainBehaviour(const T&)>&& handler
+    EventHandlerSentinel& add(std::function<EventChainBehaviour(const T&)>&& handler
     ) {
         const auto id = m_eventProxy.pushEventHandler<T>(std::move(handler));
         m_handlerIds.push_back(id);

@@ -27,12 +27,11 @@ private:
     void startRenderLoop();
     void exit();
 
-    void onViewportResize(const sl::Vec2<sl::u32>& viewport);
-
     std::atomic_bool m_isRunning;
 
     sl::Config m_config;
     sl::Context m_context;
+    sl::EventProxy& m_eventProxy;
     sl::Window& m_window;
     sl::RendererFrontend m_renderer;
     sl::EventHandlerSentinel m_eventSentinel;

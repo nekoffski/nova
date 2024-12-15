@@ -35,7 +35,7 @@ std::vector<const char*> componentNames = {
 InspectorView::EntityTab::EntityTab(Resources& resources) :
     m_resources(resources), m_eventSentinel(sl::EventProxy::get()),
     m_selectedEntity(nullptr) {
-    m_eventSentinel.pushHandler<events::EntitySelected>([&](auto event) {
+    m_eventSentinel.add<events::EntitySelected>([&](auto event) {
         m_selectedEntity        = event.entity;
         m_data.entityNameBuffer = m_selectedEntity->name;
         return sl::EventChainBehaviour::propagate;

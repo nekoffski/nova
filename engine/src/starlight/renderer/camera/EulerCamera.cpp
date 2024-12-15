@@ -5,10 +5,15 @@
 
 namespace sl {
 
-EulerCamera::EulerCamera(const Properties& props) :
-    Camera(props.viewportSize), m_target(props.target), m_radius(props.radius),
-    m_yaw(90.0f), m_pitch(90.0f) {
+EulerCamera::EulerCamera(const Properties& props, sl::EventProxy& eventProxy) :
+    Camera(props.viewportSize, eventProxy), m_target(props.target),
+    m_radius(props.radius), m_yaw(90.0f), m_pitch(90.0f) {
     recalculateVectors();
+
+    m_eventSentinel.add<sl::ScrollEvent>([&](auto& event) {
+        onScroll(event.offset);
+        return EventChainBehaviour::propagate;
+    });
 }
 
 Mat4<f32> EulerCamera::getViewMatrix() const { return m_viewMatrix; }
@@ -24,7 +29,10 @@ void EulerCamera::update(float deltaTime) {
     updateViewMatrix();
 }
 
-void EulerCamera::onScroll(float offset) { m_radius -= 2.5f * offset; }
+void EulerCamera::onScroll(float offset) {
+    static constexpr f32 scrollSpeed = 0.25f;
+    m_radius -= scrollSpeed * offset;
+}
 
 void EulerCamera::processInput(const float speed) {
     auto& input = Input::get();

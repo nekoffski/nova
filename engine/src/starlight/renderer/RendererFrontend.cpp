@@ -10,13 +10,20 @@
 
 namespace sl {
 
-RendererFrontend::RendererFrontend(Window& window, const Config& config) :
-    m_window(window), m_backend(m_window, config),
+RendererFrontend::RendererFrontend(
+  Window& window, EventProxy& eventProxy, const Config& config
+) :
+    m_window(window), m_eventSentinel(eventProxy), m_backend(m_window, config),
     m_renderMode(RenderMode::standard), m_framesSinceResize(0u), m_resizing(false),
     m_viewportSize(m_window.getFramebufferSize()),
     m_shaderManager(config.paths.shaders, m_backend),
     m_textureManager(config.paths.textures, m_backend),
-    m_materialManager(config.paths.materials), m_meshManager(m_backend) {}
+    m_materialManager(config.paths.materials), m_meshManager(m_backend) {
+    m_eventSentinel.add<WindowResized>([&](const auto& event) {
+        onViewportResize(event.size);
+        return sl::EventChainBehaviour::propagate;
+    });
+}
 
 FrameStatistics RendererFrontend::getFrameStatistics() { return m_frameStatistics; }
 

@@ -93,6 +93,7 @@ void GLFWWindow::onScrollCallback(OnScrollCallback callback) {
 
     static auto onScrollCallback =
       [](GLFWwindow* window, [[maybe_unused]] double xOffset, double yOffset) {
+          LOG_TRACE("Scroll: {}/{}", xOffset, yOffset);
           GET_WINDOW_DATA(window)->onScroll(static_cast<float>(yOffset));
       };
 

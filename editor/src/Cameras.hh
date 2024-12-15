@@ -7,11 +7,10 @@ namespace sle {
 
 class Cameras {
 public:
-    explicit Cameras(const sl::Vec2<sl::u32>& viewport);
+    explicit Cameras(const sl::Vec2<sl::u32>& viewport, sl::EventProxy& eventProxy);
 
     sl::Camera* getActive();
 
-    void onViewportResize(const sl::Vec2<sl::u32>& viewport);
     void update(float deltaTime);
 
 private:
