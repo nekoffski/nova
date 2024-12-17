@@ -9,11 +9,11 @@ static constexpr u32 maxPointLights       = 5;
 static constexpr u32 maxDirectionalLights = 5;
 
 Scene::Scene(Window& window, Camera* camera) :
-    m_window(window), m_camera(camera), m_skybox(nullptr), m_entities(maxEntities) {}
+    m_window(window), camera(camera), skybox(nullptr), m_entities(maxEntities) {}
 
 RenderPacket Scene::getRenderPacket() {
     RenderPacket packet{};
-    packet.camera = m_camera;
+    packet.camera = camera;
 
     packet.directionalLights.reserve(maxDirectionalLights);
     packet.pointLights.reserve(maxPointLights);
@@ -55,13 +55,15 @@ RenderPacket Scene::getRenderPacket() {
     // light.data.color      = Vec4<f32>{ 0.5f, 0.5f, 0.1f, 1.0f };
     // packet.pointLights.push_back(light);
 
-    packet.skybox = m_skybox;
+    packet.skybox = skybox;
 
     return packet;
 }
 
-void Scene::setCamera(Camera& camera) { m_camera = &camera; }
-void Scene::setSkybox(Skybox& skybox) { m_skybox = &skybox; }
+void Scene::clear() {
+    skybox = nullptr;
+    m_entities.clear();
+}
 
 Entity& Scene::addEntity(std::optional<std::string> name) {
     auto record = m_entities.emplace(m_componentManager, name);

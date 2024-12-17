@@ -28,6 +28,14 @@ public:
         return getComponentContainer<T>().get(entityId);
     }
 
+    void* getComponent(std::type_index type, u64 entityId) {
+        ASSERT(
+          m_componentContainers.contains(type),
+          "Could not find container for type: {}", type.name()
+        );
+        return m_componentContainers.at(type)->getRaw(entityId);
+    }
+
     template <typename T> ComponentContainer<T>& getComponentContainer() {
         auto& type = typeid(T);
         // we could calculate hash once but iterator version is very long and hard to
@@ -39,6 +47,8 @@ public:
         }
         return static_cast<ComponentContainer<T>&>(*m_componentContainers[type]);
     }
+
+    void clear();
 
 private:
     ComponentContainers m_componentContainers;

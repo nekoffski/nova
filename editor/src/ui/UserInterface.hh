@@ -38,6 +38,7 @@ private:
     void initLeftCombo();
     void initBottomCombo();
 
+    sl::EventProxy& m_eventProxy;
     sl::EventHandlerSentinel m_eventSentinel;
 
     Config m_config;

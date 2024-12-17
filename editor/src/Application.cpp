@@ -9,6 +9,8 @@
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/Scene.hh>
 
+#include "Events.hh"
+
 namespace sle {
 
 Application::Application(const sl::Config& config) :
@@ -44,9 +46,6 @@ void Application::startRenderLoop() {
         .subfonts = { icons }
     };
 
-    // auto skybox = sl::Skybox::load("skybox2/skybox");
-    // m_scene.setSkybox(*skybox);
-
     sl::Vec2<sl::f32> viewportOffset{
         m_userInterface.getConfig().panelWidthRatio,
         m_userInterface.getConfig().panelHeightRatio
@@ -57,6 +56,7 @@ void Application::startRenderLoop() {
     auto& backend = m_renderer.getRendererBackend();
     auto renderGraph =
       sl::RenderGraph::Builder{ backend, m_eventProxy, viewport }
+        .addView<sl::SkyboxRenderView>(viewportOffset)
         .addView<sl::WorldRenderView>(viewportOffset, worldShader)
         .addView<sl::LightsDebugRenderView>(viewportOffset)
         .addView<sl::UIRenderView>(
@@ -92,6 +92,17 @@ void Application::initEvents() {
               exit();
           }
           return sl::EventChainBehaviour::propagate;
+      })
+      .add<events::SceneSerialization>([&](const auto& event) {
+          if (event.action == events::SceneSerialization::Action::serialize) {
+              EDITOR_LOG_DEBUG("Serializing scene: {}", event.path);
+              m_sceneParser.serialize(m_scene, event.path);
+          } else {
+              EDITOR_LOG_DEBUG("Deserializing scene: {}", event.path);
+              m_scene.clear();
+              m_sceneParser.deserialize(m_scene, event.path);
+          }
+          return sl::EventChainBehaviour::stop;
       });
 }
 

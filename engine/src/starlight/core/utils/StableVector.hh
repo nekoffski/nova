@@ -18,6 +18,10 @@ public:
         for (u64 i = 0; i < capacity; ++i) m_freeSlots.push(i);
     }
 
+    void clear() {
+        for (auto& slot : m_buffer) slot.clear();
+    }
+
     template <typename C>
     requires Callable<C, void, T&>
     void forEach(C&& callback) {

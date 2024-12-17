@@ -2,6 +2,9 @@
 
 #include <starlight/ui/fonts/FontAwesome.hh>
 #include <starlight/core/event/WindowResized.hh>
+#include <starlight/core/event/Quit.hh>
+
+#include "Events.hh"
 
 namespace sle {
 
@@ -37,7 +40,8 @@ UserInterface::UserInterface(
   sl::EventProxy& eventProxy, const sl::Vec2<sl::u32>& viewport, sl::Scene* scene,
   sl::RenderGraph* renderGraph, const Config& config
 ) :
-    m_eventSentinel(eventProxy), m_config(config), m_viewport(viewport),
+    m_eventProxy(eventProxy), m_eventSentinel(eventProxy), m_config(config),
+    m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
     m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
     m_sceneView(scene), m_inspectorView(m_resources, renderGraph),
@@ -88,7 +92,30 @@ void UserInterface::initLeftCombo() {
 }
 
 void UserInterface::initMenu() {
-    m_menu.addMenu("File").addItem("Exit", []() {});
+    m_menu.addMenu("File").addItem("Exit", [&]() {
+        EDITOR_LOG_INFO("File.Exit presesed, emitting quit event");
+        m_eventProxy.emit<sl::QuitEvent>("UI.File.Exit pressed");
+    });
+
+    static std::string scenePath = "./test.starscene.json";
+
+    m_menu.addMenu("Scene")
+      .addItem(
+        "Load",
+        [&]() {
+            EDITOR_LOG_DEBUG("Requesting scene load: {}", scenePath);
+            m_eventProxy.emit<events::SceneSerialization>(
+              events::SceneSerialization::Action::deserialize, scenePath
+            );
+        }
+      )
+      .addItem("Save", [&]() {
+          EDITOR_LOG_DEBUG("Requesting scene save: {}", scenePath);
+          m_eventProxy.emit<events::SceneSerialization>(
+            events::SceneSerialization::Action::serialize, scenePath
+          );
+      });
+
     m_menu.addMenu("Help").addItem("Show help", []() {});
 }
 }  // namespace sle

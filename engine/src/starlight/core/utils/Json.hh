@@ -30,9 +30,11 @@ void addJsonField(
 
     if constexpr (requires { math::value_ptr(value); }) {
         const auto iterator = math::value_ptr(value);
-        for (int i = 0; i < getLength(value); ++i) element[i] = iterator[i];
+        for (int i = 0; i < static_cast<int>(getLength(value)); ++i)
+            element[i] = iterator[i];
     } else {
-        for (int i = 0; i < getLength(value); ++i) element[i] = value[i];
+        for (int i = 0; i < static_cast<int>(getLength(value)); ++i)
+            element[i] = value[i];
     }
 
     node[name] = element;

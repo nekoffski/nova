@@ -33,6 +33,9 @@ SkyboxManager::SkyboxManager() :
     m_defaultSkyboxShader(Shader::load("Builtin.Shader.Skybox")) {}
 
 ResourceRef<Skybox> SkyboxManager::load(const std::string& name) {
+    if (auto resource = find(name); resource) [[unlikely]]
+        return resource;
+
     auto cubemap = Texture::load(name, Texture::Type::cubemap);
     return store(name, createOwningPtr<Skybox>(cubemap));
 }

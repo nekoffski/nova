@@ -8,4 +8,11 @@ struct EntitySelected {
     sl::Entity* entity;
 };
 
+struct SceneSerialization {
+    enum class Action { serialize, deserialize };
+
+    Action action;
+    std::string path;
+};
+
 }  // namespace sle::events

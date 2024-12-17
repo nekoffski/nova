@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
       });
 
     sl::Scene scene{ window, &camera };
-    scene.setSkybox(*skybox);
+    scene.skybox = skybox;
 
     auto& entity = scene.addEntity();
 

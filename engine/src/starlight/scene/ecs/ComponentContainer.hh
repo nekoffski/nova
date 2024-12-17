@@ -10,7 +10,8 @@
 namespace sl {
 
 struct ComponentContainerBase {
-    virtual ~ComponentContainerBase() = default;
+    virtual ~ComponentContainerBase()  = default;
+    virtual void* getRaw(u64 entityId) = 0;
 };
 
 template <typename T> class ComponentContainer : public ComponentContainerBase {
@@ -38,6 +39,10 @@ public:
         m_components.forEach([&]([[maybe_unused]] const auto& k, auto& v) {
             callback(v);
         });
+    }
+
+    void* getRaw(u64 entityId) override {
+        return static_cast<void*>(&m_components.get(entityId)->data());
     }
 
     template <typename C>

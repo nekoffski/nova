@@ -22,8 +22,7 @@ public:
 
     RenderPacket getRenderPacket();
 
-    void setCamera(Camera& camera);
-    void setSkybox(Skybox& skybox);
+    void clear();
 
     template <typename C>
     requires Callable<C, void, Entity&>
@@ -35,9 +34,12 @@ public:
 
 private:
     Window& m_window;
-    Camera* m_camera;
-    Skybox* m_skybox;
 
+public:
+    Camera* camera;
+    ResourceRef<Skybox> skybox;
+
+private:
     ComponentManager m_componentManager;
     StableVector<Entity> m_entities;
 };

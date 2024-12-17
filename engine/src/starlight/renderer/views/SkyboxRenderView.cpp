@@ -30,7 +30,6 @@ void SkyboxRenderView::render(
     auto skybox = packet.skybox;
 
     if (not skybox) {
-        LOG_WARN("Skybox == null, skipping SkyboxRenderView");
         return;
     }
 
