@@ -7,6 +7,7 @@
 #include <starlight/scene/Scene.hh>
 
 #include "Console.hh"
+#include "Resources.hh"
 #include "components/ComponentUI.hh"
 
 namespace sle {
@@ -25,17 +26,17 @@ class SceneView {
           std::unordered_map<std::type_index, sl::OwningPtr<ComponentUIBase>>;
 
     public:
-        explicit EntitiesTab(sl::Scene* scene);
+        explicit EntitiesTab(sl::Scene* scene, Resources& resources);
         void render();
 
     private:
         void selectEntity(sl::Entity& entity, bool clearComponentCallback);
 
-        template <typename T>
-        requires std::is_base_of_v<ComponentUIBase, T>
-        void addComponentUI() {
-            auto ui               = sl::createOwningPtr<T>();
-            const auto index      = ui->getTypeIndex();
+        template <typename T, typename... Args>
+        requires(std::is_base_of_v<ComponentUIBase, T> && std::is_constructible_v<T, Args...>)
+        void addComponentUI(Args&&... args) {
+            auto ui          = sl::createOwningPtr<T>(std::forward<Args>(args)...);
+            const auto index = ui->getTypeIndex();
             m_componentUIs[index] = std::move(ui);
         }
 
@@ -56,7 +57,7 @@ class SceneView {
     };
 
 public:
-    explicit SceneView(sl::Scene* scene);
+    explicit SceneView(sl::Scene* scene, Resources& resources);
 
     void render();
 

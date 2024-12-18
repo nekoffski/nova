@@ -95,7 +95,7 @@ void MeshManager::createDefaults() {
     m_unitSphere = createMesh(m_renderer, unitSphereConfig.toMeshData());
 
     Mesh::Properties3D planeConfig{
-        PlaneProperties{ 5.0f, 5.0f, 2, 2, 2, 2 }
+        PlaneProperties{ 5.0f, 5.0f, 2, 2 }
     };
     m_plane = createMesh(m_renderer, planeConfig.toMeshData());
 }
@@ -161,10 +161,10 @@ Mesh::Properties3D::Properties3D(const PlaneProperties& props) {
             float minX = maxX + segWidth;
             float maxZ = minZ + segHeight;
 
-            float minUVX = (x / (float)props.xSegments) * props.xTile;
-            float minUVZ = (y / (float)props.zSegments) * props.zTile;
-            float maxUVX = ((x + 1.0f) / (float)props.xSegments) * props.xTile;
-            float maxUVZ = ((y + 1.0f) / (float)props.zSegments) * props.zTile;
+            float minUVX = (x / (float)props.xSegments);
+            float minUVZ = (y / (float)props.zSegments);
+            float maxUVX = ((x + 1.0f) / (float)props.xSegments);
+            float maxUVZ = ((y + 1.0f) / (float)props.zSegments);
 
             uint32_t vOffset = ((y * props.xSegments) + x) * 4;
 
@@ -177,13 +177,19 @@ Mesh::Properties3D::Properties3D(const PlaneProperties& props) {
             v0->textureCoordinates = glm::vec2{ minUVX, minUVZ };
 
             v1->position           = glm::vec3{ maxX, 0.0f, maxZ };
-            v1->textureCoordinates = glm::vec2{ minUVX, maxUVZ };
+            v1->textureCoordinates = glm::vec2{ maxUVX, maxUVZ };
 
             v2->position           = glm::vec3{ minX, 0.0f, maxZ };
             v2->textureCoordinates = glm::vec2{ minUVX, maxUVZ };
 
             v3->position           = glm::vec3{ maxX, 0.0f, minZ };
             v3->textureCoordinates = glm::vec2{ maxUVX, minUVZ };
+
+            LOG_DEBUG("Plane y={}/x={} segment", y, x);
+            LOG_DEBUG("v0={}", *v0);
+            LOG_DEBUG("v1={}", *v1);
+            LOG_DEBUG("v2={}", *v2);
+            LOG_DEBUG("v3={}", *v3);
 
             uint32_t iOffset = ((y * props.xSegments) + x) * 6;
 

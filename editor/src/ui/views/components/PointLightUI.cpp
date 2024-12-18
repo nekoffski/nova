@@ -14,7 +14,6 @@ bool PointLightUI::renderSceneNode(sl::PointLight& component) {
             renderInspector(component);
         });
     }
-
     return false;
 }
 

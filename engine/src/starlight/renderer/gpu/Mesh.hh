@@ -54,8 +54,6 @@ struct PlaneProperties {
     float height;
     u32 xSegments;
     u32 zSegments;
-    u32 xTile;
-    u32 zTile;
 };
 
 struct CubeProperties {

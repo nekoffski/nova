@@ -9,8 +9,8 @@
 
 namespace sle {
 
-SceneView::SceneView(sl::Scene* scene) :
-    m_tabMenu("Scene"), m_entitiesTab(scene), m_skyboxTab(scene),
+SceneView::SceneView(sl::Scene* scene, Resources& resources) :
+    m_tabMenu("Scene"), m_entitiesTab(scene, resources), m_skyboxTab(scene),
     m_cameraTab(scene) {
     m_tabMenu
       .addTab(
@@ -22,11 +22,11 @@ SceneView::SceneView(sl::Scene* scene) :
 
 void SceneView::render() { m_tabMenu.render(); }
 
-SceneView::EntitiesTab::EntitiesTab(sl::Scene* scene
-) : SceneTab(scene), m_selectedEntity(nullptr) {
+SceneView::EntitiesTab::EntitiesTab(sl::Scene* scene, Resources& resources) :
+    SceneTab(scene), m_selectedEntity(nullptr) {
     addComponentUI<PointLightUI>();
     addComponentUI<DirectionalLightUI>();
-    addComponentUI<MeshCompositeUI>();
+    addComponentUI<MeshCompositeUI>(resources);
 }
 
 void SceneView::EntitiesTab::render() {

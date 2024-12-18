@@ -33,7 +33,7 @@ static sl::ui::PanelCombo::Properties createBottomComboProperties(
 }
 
 UserInterface::Config UserInterface::Config::createDefault() {
-    return Config{ .panelWidthRatio = 0.25f, .panelHeightRatio = 0.25f };
+    return Config{ .panelWidthRatio = 0.20f, .panelHeightRatio = 0.25f };
 }
 
 UserInterface::UserInterface(
@@ -44,7 +44,7 @@ UserInterface::UserInterface(
     m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
     m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
-    m_sceneView(scene), m_inspectorView(m_resources, renderGraph),
+    m_sceneView(scene, m_resources), m_inspectorView(m_resources, renderGraph),
     m_resourcesView(m_resources) {
     m_eventSentinel.add<sl::WindowResized>([&](auto& event) {
         onViewportReisze(event.size);
