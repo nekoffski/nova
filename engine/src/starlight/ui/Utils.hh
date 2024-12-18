@@ -20,6 +20,12 @@ using Callback = std::function<void()>;  // TODO: measure if it causes bottlenec
 
 bool checkbox(const std::string& label, bool& value);
 
+template <typename Callback> void indent(Callback&& callback) {
+    ImGui::Indent();
+    callback();
+    ImGui::Unindent();
+}
+
 void pushFont(Font*);
 void popFont();
 

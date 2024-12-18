@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/ecs/Entity.hh>
 #include <starlight/scene/Scene.hh>
@@ -11,35 +13,29 @@
 #include <starlight/renderer/light/DirectionalLight.hh>
 
 #include "Console.hh"
+#include "Events.hh"
 #include "Resources.hh"
 
 namespace sle {
 
 class InspectorView {
-    struct Data {
-        std::string entityNameBuffer;
-        sl::i32 selectedComponentIndex = 0u;
-    };
-
     class EntityTab {
+        struct Data {
+            sl::Entity* selectedEntity = nullptr;
+            std::string nameBuffer;
+            int selectedComponentIndex = 0;
+        };
+
     public:
-        explicit EntityTab(Resources& resources);
+        explicit EntityTab();
 
         void render();
 
     private:
-        void addComponent();
-        void renderComponents();
+        void renderEntityUI();
 
-        // components
-        void renderComponent(sl::MeshComposite& component);
-        void renderComponent(sl::PointLight& light);
-        void renderComponent(sl::DirectionalLight& light);
-
-        Resources& m_resources;
         sl::EventHandlerSentinel m_eventSentinel;
-        sl::Entity* m_selectedEntity;
-
+        std::optional<events::SetComponentCallback::Callback> m_componentCallback;
         Data m_data;
     };
 

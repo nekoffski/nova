@@ -1,6 +1,10 @@
 #include "SceneView.hh"
 
 #include <starlight/core/event/EventProxy.hh>
+
+#include "components/PointLightUI.hh"
+#include "components/DirectionalLightUI.hh"
+#include "components/MeshCompositeUI.hh"
 #include "Events.hh"
 
 namespace sle {
@@ -19,15 +23,18 @@ SceneView::SceneView(sl::Scene* scene) :
 void SceneView::render() { m_tabMenu.render(); }
 
 SceneView::EntitiesTab::EntitiesTab(sl::Scene* scene
-) : SceneTab(scene), m_selectedEntity(nullptr) {}
+) : SceneTab(scene), m_selectedEntity(nullptr) {
+    addComponentUI<PointLightUI>();
+    addComponentUI<DirectionalLightUI>();
+    addComponentUI<MeshCompositeUI>();
+}
 
 void SceneView::EntitiesTab::render() {
-    auto& eventProxy = sl::EventProxy::get();
-
     if (sl::ui::button("Add Entity", sl::ui::parentWidth)) {
         auto& entity = m_scene->addEntity();
         EDITOR_LOG_INFO("New entity added: {}/{}", entity.getId(), entity.name);
     }
+
     sl::ui::separator();
     sl::ui::treeNode(
       "Root",
@@ -37,26 +44,45 @@ void SceneView::EntitiesTab::render() {
                 ImGuiTreeNodeFlags_OpenOnDoubleClick
                 | ImGuiTreeNodeFlags_DefaultOpen;
 
-              if (m_selectedEntity && m_selectedEntity->getId() == entity.getId()) {
+              if (m_selectedEntity && m_selectedEntity->getId() == entity.getId())
                   flags |= ImGuiTreeNodeFlags_Selected;
-              }
 
               sl::ui::treeNode(
                 entity.name,
                 [&]() {
+                    if (sl::ui::wasItemClicked()) {
+                        const auto clearComponentCallback =
+                          not m_selectedEntity
+                          || m_selectedEntity->getId() != entity.getId();
+                        selectEntity(entity, clearComponentCallback);
+                    }
+
+                    for (const auto& componentIndex : entity.getComponentTypes()) {
+                        if (m_componentUIs.contains(componentIndex)) {
+                            bool entityClicked =
+                              m_componentUIs[componentIndex]->renderSceneNode(
+                                entity.getComponent(componentIndex)
+                              );
+                            if (entityClicked) selectEntity(entity, false);
+                        }
+                    }
                     // TODO: display child entitites
                 },
                 flags
               );
-
-              if (sl::ui::wasItemClicked()) {
-                  EDITOR_LOG_DEBUG("Entity selected: {}", entity.name);
-                  m_selectedEntity = &entity;
-                  eventProxy.emit<events::EntitySelected>(&entity);
-              }
           });
       },
       ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen
+    );
+}
+
+void SceneView::EntitiesTab::selectEntity(
+  sl::Entity& entity, bool clearComponentCallback
+) {
+    EDITOR_LOG_DEBUG("Entity selected: {}", entity.name);
+    m_selectedEntity = &entity;
+    sl::EventProxy::get().emit<events::EntitySelected>(
+      m_selectedEntity, clearComponentCallback
     );
 }
 

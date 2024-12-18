@@ -1,9 +1,13 @@
 #pragma once
 
+#include <unordered_map>
+#include <typeindex>
+
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/Scene.hh>
 
 #include "Console.hh"
+#include "components/ComponentUI.hh"
 
 namespace sle {
 
@@ -17,11 +21,25 @@ class SceneView {
     };
 
     class EntitiesTab : public SceneTab {
+        using ComponentUIs =
+          std::unordered_map<std::type_index, sl::OwningPtr<ComponentUIBase>>;
+
     public:
         explicit EntitiesTab(sl::Scene* scene);
         void render();
 
     private:
+        void selectEntity(sl::Entity& entity, bool clearComponentCallback);
+
+        template <typename T>
+        requires std::is_base_of_v<ComponentUIBase, T>
+        void addComponentUI() {
+            auto ui               = sl::createOwningPtr<T>();
+            const auto index      = ui->getTypeIndex();
+            m_componentUIs[index] = std::move(ui);
+        }
+
+        ComponentUIs m_componentUIs;
         sl::Entity* m_selectedEntity;
     };
 

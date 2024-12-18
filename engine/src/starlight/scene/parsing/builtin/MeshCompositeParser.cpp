@@ -30,15 +30,12 @@ void MeshCompositeDeserializer::deserialize(
 // TODO: store default materials/meshes/shaders/textures in some lookup table
 ResourceRef<Mesh> MeshCompositeDeserializer::getMesh(const std::string& name) const {
     if (name == "Cube") return Mesh::getCube();
-
-    // FIXME ASAP
     return Mesh::find(name);
 }
 
 ResourceRef<Material> MeshCompositeDeserializer::getMaterial(const std::string& name
 ) const {
     if (name == Material::getDefault().getName()) return Material::getDefault();
-    // FIXME ASAP
     return Material::find(name);
 }
 
