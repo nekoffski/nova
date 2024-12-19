@@ -58,7 +58,7 @@ void WorldRenderView::render(
           if (pointLightCount > 0) {
               const auto shaderBulk = transform<PointLight::ShaderData>(
                 packet.pointLights,
-                [](const PointLight& light) { return light.data; }
+                [](const PointLight& light) { return light.getShaderData(); }
               );
               proxy.set("pointLights", shaderBulk.data());
           }

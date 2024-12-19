@@ -11,6 +11,12 @@ bool checkbox(const std::string& label, bool& value) {
     return ImGui::Checkbox(label.c_str(), &value);
 }
 
+void indent(Callback&& callback) {
+    ImGui::Indent();
+    callback();
+    ImGui::Unindent();
+}
+
 void pushFont(Font* font) { ImGui::PushFont(font->handle); }
 void popFont() { ImGui::PopFont(); }
 
@@ -26,8 +32,13 @@ void namedScope(const std::string& name, Callback&& callback) {
     ImGui::PopID();
 }
 
+void group(Callback&& callback) {
+    ImGui::BeginGroup();
+    callback();
+    ImGui::EndGroup();
+}
+
 void treeNode(const std::string& name, std::function<void()>&& callback, i32 flags) {
-    // ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNodeEx(name.c_str(), flags)) {
         callback();
         ImGui::TreePop();

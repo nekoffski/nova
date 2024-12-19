@@ -10,7 +10,9 @@ Resources::Resources() {
     materials.push_back(sl::Material::getDefault());
 
     // load some default stuff
-    materials.push_back(sl::Material::load("Builtin.Material.Test"));
+    auto mat = sl::Material::load("Builtin.Material.Test");
+    materials.push_back(mat);
+    // textures.push_back(mat->)
 }
 
 }  // namespace sle

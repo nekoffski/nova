@@ -4,7 +4,7 @@
 #include <starlight/scene/Scene.hh>
 
 #include "views/SceneView.hh"
-#include "views/InspectorView.hh"
+#include "views/PropertiesView.hh"
 #include "views/ResourcesView.hh"
 #include "Console.hh"
 #include "Resources.hh"
@@ -53,7 +53,7 @@ private:
     sl::ui::PanelCombo m_bottomCombo;
 
     SceneView m_sceneView;
-    InspectorView m_inspectorView;
+    PropertiesView m_propertiesView;
     ResourcesView m_resourcesView;
 };
 

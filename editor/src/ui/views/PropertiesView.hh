@@ -18,7 +18,7 @@
 
 namespace sle {
 
-class InspectorView {
+class PropertiesView {
     class EntityTab {
         struct Data {
             sl::Entity* selectedEntity = nullptr;
@@ -60,7 +60,7 @@ class InspectorView {
     };
 
 public:
-    explicit InspectorView(Resources& resources, sl::RenderGraph* renderGraph);
+    explicit PropertiesView(Resources& resources, sl::RenderGraph* renderGraph);
 
     void render();
     void setRenderGraph(sl::RenderGraph& renderGraph);

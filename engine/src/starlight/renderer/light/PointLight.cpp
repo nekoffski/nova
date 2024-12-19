@@ -7,9 +7,17 @@
 namespace sl {
 
 PointLight::PointLight(
-  const Vec4<f32>& color, const Vec3<f32>& position,
-  const Vec3<f32>& attenuationFactors
-) : data{ color, position, attenuationFactors } {
+  const Vec4<f32>& color, const Vec3<f32>& position, const Vec3<f32>& attenuation
+) :
+    m_data{ color, position, attenuation }, color(m_data.color),
+    position(m_data.position) {
+    generateLODs();
+}
+
+const Vec3<f32>& PointLight::getAttenuation() const { return m_data.attenuation; }
+
+void PointLight::setAttenuation(const Vec3<f32>& attenuation) {
+    m_data.attenuation = attenuation;
     generateLODs();
 }
 
@@ -27,14 +35,14 @@ void PointLight::generateLODs() {
 
     for (const auto& [attenuation, opacity] : targetAttenuations) {
         const auto roots = kc::math::solveQuadraticEquation(
-          data.attenuationFactors.x, data.attenuationFactors.y,
-          data.attenuationFactors.z - attenuation
+          m_data.attenuation.x, m_data.attenuation.y,
+          m_data.attenuation.z - attenuation
         );
 
         if (not roots) {
             LOG_ERROR(
               "Could not solve attenuation equation for light: {}",
-              data.attenuationFactors
+              m_data.attenuation
             );
             continue;
         }
@@ -47,9 +55,11 @@ void PointLight::generateLODs() {
 std::string PointLight::toString() const {
     return fmt::format(
       "PointLight[{}b]: color={}, position={}, attenuation={}",
-      sizeof(PointLight::ShaderData), data.color, data.position,
-      data.attenuationFactors
+      sizeof(PointLight::ShaderData), m_data.color, m_data.position,
+      m_data.attenuation
     );
 }
+
+const PointLight::ShaderData& PointLight::getShaderData() const { return m_data; }
 
 }  // namespace sl

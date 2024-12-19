@@ -7,11 +7,11 @@ std::string PointLightSerializer::getName() const { return "PointLight"; }
 kc::json::Node PointLightSerializer::serialize(PointLight& component) const {
     kc::json::Node json;
 
-    const auto& pointLightData = component.data;
+    const auto& pointLightData = component.getShaderData();
 
     addJsonField(json, "color", pointLightData.color);
     addJsonField(json, "position", pointLightData.position);
-    addJsonField(json, "attenuation", pointLightData.attenuationFactors);
+    addJsonField(json, "attenuation", pointLightData.attenuation);
 
     return json;
 }

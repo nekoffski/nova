@@ -20,11 +20,7 @@ using Callback = std::function<void()>;  // TODO: measure if it causes bottlenec
 
 bool checkbox(const std::string& label, bool& value);
 
-template <typename Callback> void indent(Callback&& callback) {
-    ImGui::Indent();
-    callback();
-    ImGui::Unindent();
-}
+void indent(Callback&& callback);
 
 void pushFont(Font*);
 void popFont();
@@ -34,6 +30,8 @@ void popTextColor(int count = 1);
 void withColor(const Vec3<f32>& color, Callback&& callback);
 
 void namedScope(const std::string& name, Callback&& callback);
+
+void group(Callback&& callback);
 
 void treeNode(
   const std::string& name, std::function<void()>&& callback,

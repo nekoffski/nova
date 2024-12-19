@@ -1,4 +1,4 @@
-#include "InspectorView.hh"
+#include "PropertiesView.hh"
 
 #include <starlight/core/event/EventProxy.hh>
 
@@ -13,16 +13,16 @@ namespace sle {
         m_data.selectedEntity->addComponent<Component>(__VA_ARGS__); \
     }
 
-InspectorView::InspectorView(Resources& resources, sl::RenderGraph* renderGraph) :
-    m_tabMenu("Inspector"), m_resourceTab(resources), m_rendererTab(renderGraph) {
+PropertiesView::PropertiesView(Resources& resources, sl::RenderGraph* renderGraph) :
+    m_tabMenu("Properties"), m_resourceTab(resources), m_rendererTab(renderGraph) {
     m_tabMenu.addTab(ICON_FA_CUBES "  Entity", [&]() { m_entityTab.render(); })
       .addTab(ICON_FA_IMAGE "  Resource", [&]() { m_resourceTab.render(); })
       .addTab(ICON_FA_EYE "  Renderer", [&]() { m_rendererTab.render(); });
 }
 
-void InspectorView::render() { m_tabMenu.render(); }
+void PropertiesView::render() { m_tabMenu.render(); }
 
-InspectorView::EntityTab::EntityTab() : m_eventSentinel(sl::EventProxy::get()) {
+PropertiesView::EntityTab::EntityTab() : m_eventSentinel(sl::EventProxy::get()) {
     m_eventSentinel
       .add<events::SetComponentCallback>([&](auto& event) {
           m_componentCallback = event.callback;
@@ -40,7 +40,7 @@ InspectorView::EntityTab::EntityTab() : m_eventSentinel(sl::EventProxy::get()) {
 
 static std::string buffer;
 
-void InspectorView::EntityTab::render() {
+void PropertiesView::EntityTab::render() {
     if (not m_data.selectedEntity) {
         sl::ui::text("No entity selected");
         return;
@@ -56,7 +56,7 @@ void InspectorView::EntityTab::render() {
     std::invoke(m_componentCallback.value());
 }
 
-void InspectorView::EntityTab::renderEntityUI() {
+void PropertiesView::EntityTab::renderEntityUI() {
     static std::vector<const char*> componentNames = {
         "MeshComposite", "PointLight", "DirectionalLight"
     };
@@ -96,23 +96,23 @@ void InspectorView::EntityTab::renderEntityUI() {
     });
 }
 
-InspectorView::ResourceTab::ResourceTab(Resources& resources
+PropertiesView::ResourceTab::ResourceTab(Resources& resources
 ) : m_resources(resources) {}
 
-void InspectorView::ResourceTab::render() {}
+void PropertiesView::ResourceTab::render() {}
 
-InspectorView::RendererTab::RendererTab(sl::RenderGraph* renderGraph
+PropertiesView::RendererTab::RendererTab(sl::RenderGraph* renderGraph
 ) : m_renderGraph(renderGraph) {}
 
-void InspectorView::RendererTab::setRenderGraph(sl::RenderGraph& renderGraph) {
+void PropertiesView::RendererTab::setRenderGraph(sl::RenderGraph& renderGraph) {
     m_renderGraph = &renderGraph;
 }
 
-void InspectorView::setRenderGraph(sl::RenderGraph& renderGraph) {
+void PropertiesView::setRenderGraph(sl::RenderGraph& renderGraph) {
     m_rendererTab.setRenderGraph(renderGraph);
 }
 
-void InspectorView::RendererTab::render() {
+void PropertiesView::RendererTab::render() {
     sl::ui::namedScope("inspector-view-renderer-tab", [&]() {
         sl::ui::text("Render graph");
 

@@ -37,8 +37,8 @@ void LightsDebugRenderView::render(
 
     for (auto& light : packet.pointLights) {
         const auto model =
-          math::translate(identityMatrix, Vec3<f32>{ light.data.position });
-        auto color = light.data.color;
+          math::translate(identityMatrix, Vec3<f32>{ light.position });
+        auto color = light.color;
 
         for (const auto& [distance, opacity] : light.getLODs()) {
             color.a = opacity;

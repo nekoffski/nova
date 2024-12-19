@@ -44,7 +44,7 @@ UserInterface::UserInterface(
     m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
     m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
-    m_sceneView(scene, m_resources), m_inspectorView(m_resources, renderGraph),
+    m_sceneView(scene, m_resources), m_propertiesView(m_resources, renderGraph),
     m_resourcesView(m_resources) {
     m_eventSentinel.add<sl::WindowResized>([&](auto& event) {
         onViewportReisze(event.size);
@@ -65,7 +65,7 @@ void UserInterface::onViewportReisze(const sl::Vec2<sl::u32>& viewport) {
 }
 
 void UserInterface::setRenderGraph(sl::RenderGraph& renderGraph) {
-    m_inspectorView.setRenderGraph(renderGraph);
+    m_propertiesView.setRenderGraph(renderGraph);
 }
 
 void UserInterface::render() {
@@ -88,7 +88,7 @@ void UserInterface::initBottomCombo() {
 
 void UserInterface::initLeftCombo() {
     m_leftCombo.addPanel(ICON_FA_CITY "  Scene", [&]() { m_sceneView.render(); })
-      .addPanel(ICON_FA_WRENCH "  Inspector", [&]() { m_inspectorView.render(); });
+      .addPanel(ICON_FA_WRENCH "  Properties", [&]() { m_propertiesView.render(); });
 }
 
 void UserInterface::initMenu() {

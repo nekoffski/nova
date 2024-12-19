@@ -47,7 +47,8 @@ void MeshCompositeUI::renderNodeUI(sl::MeshComposite::Node& node) {
     if (sl::ui::button("Add Instance")) node.addInstance();
 }
 
-void MeshCompositeUI::renderMeshCompositeUI(sl::MeshComposite& mesh) {}
+void MeshCompositeUI::renderMeshCompositeUI([[maybe_unused]] sl::MeshComposite& mesh
+) {}
 
 bool MeshCompositeUI::renderSceneNode(sl::MeshComposite& component) {
     const auto treeFlags =
