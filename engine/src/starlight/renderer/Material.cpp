@@ -41,6 +41,10 @@ void Material::applyUniforms(
 
 const Material::Properties& Material::getProperties() const { return m_props; }
 
+ResourceRef<Material> Material::create(const Properties& properties) {
+    return MaterialManager::get().create(properties);
+}
+
 ResourceRef<Material> Material::load(const std::string& name, const FileSystem& fs) {
     return MaterialManager::get().load(name, fs);
 }
@@ -54,12 +58,17 @@ ResourceRef<Material> Material::getDefault() {
 }
 
 MaterialManager::MaterialManager(const std::string& path) :
-    m_materialsPath(path),
+    ResourceManager("Material"), m_materialsPath(path),
     m_defaultMaterial(createOwningPtr<Material>(Material::Properties::createDefault()
     )) {}
 
 ResourceRef<Material> MaterialManager::getDefault() {
     return ResourceRef{ m_defaultMaterial.get(), "DefaultMaterial" };
+}
+
+ResourceRef<Material> MaterialManager::create(const Material::Properties& properties
+) {
+    return store(createOwningPtr<Material>(properties));
 }
 
 ResourceRef<Material> MaterialManager::load(

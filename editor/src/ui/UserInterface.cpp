@@ -44,7 +44,7 @@ UserInterface::UserInterface(
     m_viewport(viewport),
     m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
     m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
-    m_sceneView(scene, m_resources), m_propertiesView(m_resources, renderGraph),
+    m_sceneView(scene, m_resources), m_propertiesView(renderGraph),
     m_resourcesView(m_resources) {
     m_eventSentinel.add<sl::WindowResized>([&](auto& event) {
         onViewportReisze(event.size);

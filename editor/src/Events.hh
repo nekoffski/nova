@@ -11,7 +11,12 @@ struct EntitySelected {
     bool clearComponentCallback = false;
 };
 
-struct SetComponentCallback {
+struct SetComponentUICallback {
+    using Callback = std::function<void()>;
+    Callback callback;
+};
+
+struct SetResourceUICallback {
     using Callback = std::function<void()>;
     Callback callback;
 };

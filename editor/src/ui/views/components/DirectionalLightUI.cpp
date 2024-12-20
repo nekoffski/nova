@@ -11,7 +11,7 @@ bool DirectionalLightUI::renderSceneNode(sl::DirectionalLight& component) {
     ImGui::BulletText(ICON_FA_SUN "  DirectionalLight");
 
     if (sl::ui::wasItemClicked()) {
-        sl::EventProxy::get().emit<events::SetComponentCallback>([&]() {
+        sl::EventProxy::get().emit<events::SetComponentUICallback>([&]() {
             renderInspector(component);
         });
         return true;

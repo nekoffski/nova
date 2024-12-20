@@ -391,7 +391,7 @@ Shader::UniformProxy::UniformProxy(Shader& shader, CommandBuffer& commandBuffer)
     m_shader(shader), m_commandBuffer(commandBuffer) {}
 
 ShaderManager::ShaderManager(const std::string& path, RendererBackend& renderer) :
-    m_shadersPath(path), m_renderer(renderer) {}
+    ResourceManager("Shader"), m_shadersPath(path), m_renderer(renderer) {}
 
 Shader::Instance::Instance(const std::vector<Texture*>& textures
 ) : m_textures(textures) {}

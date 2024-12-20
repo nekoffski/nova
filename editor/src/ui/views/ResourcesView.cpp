@@ -1,9 +1,57 @@
 #include "ResourcesView.hh"
 
+#include <starlight/core/event/EventProxy.hh>
+#include <starlight/renderer/Material.hh>
+
+#include "Console.hh"
+#include "Events.hh"
+
 namespace sle {
 
-ResourcesView::ResourcesView(Resources& resources
-) : m_resources(resources), m_tabMenu("resource-view-tab-menu") {
+static constexpr sl::u32 rowSize = 5;
+
+static sl::f32 getThumbnailWidth() {
+    return ImGui::GetWindowWidth() / static_cast<sl::f32>(rowSize + 1);
+}
+
+// TODO: add concepts
+static void renderResourceTab(
+  const std::string& name, auto& container, auto&& createNew, auto&& render,
+  auto&& renderThumbnail
+) {
+    if (sl::ui::button(fmt::format("Create new {}", name))) {
+        auto resource = createNew();
+        container.push_back(resource);
+        sl::EventProxy::get().emit<events::SetResourceUICallback>(
+          [&, render, resource = resource]() { render(resource); }
+        );
+    }
+
+    sl::ui::separator();
+    const auto width = getThumbnailWidth();
+
+    for (sl::u64 i = 0; i < container.size(); ++i) {
+        if (i % rowSize != 0) sl::ui::sameLine();
+
+        auto& resource = container[i];
+
+        sl::ui::group([&]() {
+            renderThumbnail(resource, width);
+            sl::ui::text("{}", resource.getName());
+        });
+
+        if (sl::ui::wasItemClicked()) {
+            EDITOR_LOG_DEBUG("{} selected: {}", name, resource.getName());
+            sl::EventProxy::get().emit<events::SetResourceUICallback>([&, render]() {
+                render(resource);
+            });
+        }
+    }
+}
+
+ResourcesView::ResourcesView(Resources& resources) :
+    m_resources(resources), m_tabMenu("resource-view-tab-menu"),
+    m_materialUI(resources) {
     m_tabMenu.addTab("Materials", [&]() { renderMaterialsTab(); })
       .addTab("Textures", [&]() { renderTexturesTab(); })
       .addTab("Meshes", [&]() { renderMeshesTab(); });
@@ -18,32 +66,26 @@ void ResourcesView::renderMeshesTab() {
 }
 
 void ResourcesView::renderMaterialsTab() {
-    if (sl::ui::button("Create new material")) {
-    }
-
-    sl::ui::separator();
-
-    for (auto& material : m_resources.materials) {
-        const auto x = ImGui::GetWindowWidth() / 6.0f;
-        sl::ui::group([&]() {
-            getImageHandle(material->getProperties().diffuseMap)
-              ->show({ x, x }, { 0, 0 }, { 1.0f, 1.0f });
-            sl::ui::text("{}", material.getName());
-        });
-        sl::ui::sameLine();
-    }
+    renderResourceTab(
+      "Material", m_resources.materials, []() { return sl::Material::create(); },
+      [&](auto& material) { m_materialUI.render(material); },
+      [&](auto& material, const auto width) {
+          m_resources.getImageHandle(material->getProperties().diffuseMap)
+            .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
+      }
+    );
 }
 
-sl::ui::ImageHandle* ResourcesView::getImageHandle(sl::Texture* texture) {
-    auto id     = texture->getId();
-    auto record = m_data.textures.find(id);
-
-    if (record != m_data.textures.end()) return record->second.get();
-
-    m_data.textures[id] = sl::ui::ImageHandle::createHandle(texture);
-    return m_data.textures.at(id).get();
+void ResourcesView::renderTexturesTab() {
+    renderResourceTab(
+      "Texture", m_resources.textures, []() { return sl::Texture::create(); },
+      [&](auto& texture) { m_textureUI.render(texture); },
+      [&](auto& texture, const auto width) {
+          m_resources.getImageHandle(texture).show(
+            { width, width }, { 0, 0 }, { 1.0f, 1.0f }
+          );
+      }
+    );
 }
-
-void ResourcesView::renderTexturesTab() {}
 
 }  // namespace sle

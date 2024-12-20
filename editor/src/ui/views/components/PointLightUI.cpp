@@ -10,7 +10,7 @@ namespace sle {
 bool PointLightUI::renderSceneNode(sl::PointLight& component) {
     ImGui::BulletText(ICON_FA_LIGHTBULB "  PointLight");
     if (sl::ui::wasItemClicked()) {
-        sl::EventProxy::get().emit<events::SetComponentCallback>([&]() {
+        sl::EventProxy::get().emit<events::SetComponentUICallback>([&]() {
             renderInspector(component);
         });
     }

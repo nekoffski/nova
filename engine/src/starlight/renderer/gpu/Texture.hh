@@ -57,15 +57,19 @@ public:
         Repeat wRepeat;
     };
 
-    static ResourceRef<Texture> load(const std::string& name, Type textureType);
-    static ResourceRef<Texture> find(const std::string& name);
-
     virtual ~Texture() = default;
 
     virtual void resize(u32 width, u32 height)           = 0;
     virtual void write(u32 offset, std::span<u8> pixels) = 0;
 
     const Properties& getProperties() const;
+
+    static ResourceRef<Texture> create(
+      const Properties& props = Properties::createDefault(),
+      const Pixels& pixels    = Pixels{}
+    );
+    static ResourceRef<Texture> load(const std::string& name, Type textureType);
+    static ResourceRef<Texture> find(const std::string& name);
 
     static ResourceRef<Texture> getDefaultDiffuseMap();
     static ResourceRef<Texture> getDefaultNormalMap();
@@ -89,6 +93,14 @@ public:
     ResourceRef<Texture> getDefaultNormalMap();
     ResourceRef<Texture> getDefaultSpecularMap();
 
+    ResourceRef<Texture> create(
+      const std::string& name, const Texture::Properties& props,
+      const Texture::Pixels& pixels
+    );
+    ResourceRef<Texture> create(
+      const Texture::Properties& props, const Texture::Pixels& pixels
+    );
+
 private:
     OwningPtr<Texture> createTexture(
       const Texture::Properties& props, const Texture::Pixels& pixels
@@ -96,9 +108,9 @@ private:
 
     void createDefaults();
 
-    OwningPtr<Texture> m_defaultDiffuseMap;
-    OwningPtr<Texture> m_defaultNormalMap;
-    OwningPtr<Texture> m_defaultSpecularMap;
+    ResourceRef<Texture> m_defaultDiffuseMap;
+    ResourceRef<Texture> m_defaultNormalMap;
+    ResourceRef<Texture> m_defaultSpecularMap;
 
     const std::string m_texturesPath;
     RendererBackend& m_renderer;

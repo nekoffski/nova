@@ -13,8 +13,8 @@ namespace sle {
         m_data.selectedEntity->addComponent<Component>(__VA_ARGS__); \
     }
 
-PropertiesView::PropertiesView(Resources& resources, sl::RenderGraph* renderGraph) :
-    m_tabMenu("Properties"), m_resourceTab(resources), m_rendererTab(renderGraph) {
+PropertiesView::PropertiesView(sl::RenderGraph* renderGraph
+) : m_tabMenu("Properties"), m_resourceTab(), m_rendererTab(renderGraph) {
     m_tabMenu.addTab(ICON_FA_CUBES "  Entity", [&]() { m_entityTab.render(); })
       .addTab(ICON_FA_IMAGE "  Resource", [&]() { m_resourceTab.render(); })
       .addTab(ICON_FA_EYE "  Renderer", [&]() { m_rendererTab.render(); });
@@ -24,7 +24,7 @@ void PropertiesView::render() { m_tabMenu.render(); }
 
 PropertiesView::EntityTab::EntityTab() : m_eventSentinel(sl::EventProxy::get()) {
     m_eventSentinel
-      .add<events::SetComponentCallback>([&](auto& event) {
+      .add<events::SetComponentUICallback>([&](auto& event) {
           m_componentCallback = event.callback;
           return sl::EventChainBehaviour::stop;
       })
@@ -37,8 +37,6 @@ PropertiesView::EntityTab::EntityTab() : m_eventSentinel(sl::EventProxy::get()) 
           return sl::EventChainBehaviour::propagate;
       });
 }
-
-static std::string buffer;
 
 void PropertiesView::EntityTab::render() {
     if (not m_data.selectedEntity) {
@@ -96,10 +94,20 @@ void PropertiesView::EntityTab::renderEntityUI() {
     });
 }
 
-PropertiesView::ResourceTab::ResourceTab(Resources& resources
-) : m_resources(resources) {}
+PropertiesView::ResourceTab::ResourceTab() : m_eventSentinel(sl::EventProxy::get()) {
+    m_eventSentinel.add<events::SetResourceUICallback>([&](auto& event) {
+        m_resourceCallback = event.callback;
+        return sl::EventChainBehaviour::stop;
+    });
+}
 
-void PropertiesView::ResourceTab::render() {}
+void PropertiesView::ResourceTab::render() {
+    if (not m_resourceCallback) {
+        sl::ui::text("No resource selected");
+        return;
+    }
+    std::invoke(m_resourceCallback.value());
+}
 
 PropertiesView::RendererTab::RendererTab(sl::RenderGraph* renderGraph
 ) : m_renderGraph(renderGraph) {}

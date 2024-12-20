@@ -35,17 +35,18 @@ class PropertiesView {
         void renderEntityUI();
 
         sl::EventHandlerSentinel m_eventSentinel;
-        std::optional<events::SetComponentCallback::Callback> m_componentCallback;
+        std::optional<events::SetComponentUICallback::Callback> m_componentCallback;
         Data m_data;
     };
 
     class ResourceTab {
     public:
-        explicit ResourceTab(Resources& resources);
+        explicit ResourceTab();
         void render();
 
     private:
-        Resources& m_resources;
+        sl::EventHandlerSentinel m_eventSentinel;
+        std::optional<events::SetResourceUICallback::Callback> m_resourceCallback;
     };
 
     class RendererTab {
@@ -60,7 +61,7 @@ class PropertiesView {
     };
 
 public:
-    explicit PropertiesView(Resources& resources, sl::RenderGraph* renderGraph);
+    explicit PropertiesView(sl::RenderGraph* renderGraph);
 
     void render();
     void setRenderGraph(sl::RenderGraph& renderGraph);

@@ -62,6 +62,9 @@ template <typename T> class ResourceManager {
     };
 
 public:
+    explicit ResourceManager(const std::string& resourceName
+    ) : m_resourceName(resourceName) {}
+
     ResourceRef<T> find(const std::string& name) {
         if (auto record = m_records.find(name); record != m_records.end())
             return ResourceRef<T>(record->second.data.get(), this, name);
@@ -78,7 +81,28 @@ public:
         return nullptr;
     }
 
+    template <typename Callback, typename Condition>
+    requires Callable<Callback, void, const std::string&, T&>
+             && Callable<Condition, bool, T&>
+    void forEach(Callback&& callback, Condition&& condition) {
+        for (auto& [name, record] : m_records)
+            if (condition(*record.data)) callback(name, *record.data);
+    }
+
+    template <typename Callback>
+    requires Callable<Callback, void, const std::string&, T&>
+    void forEach(Callback&& callback) {
+        for (auto& [name, record] : m_records) callback(name, *record.data);
+    }
+
 protected:
+    template <typename V>
+    requires std::is_same_v<V, T> && IsIdentificable<V>
+    ResourceRef<V> store(OwningPtr<V> resource) {
+        const auto name = fmt::format("{}_{}", m_resourceName, resource->getId());
+        return store(name, std::move(resource));
+    }
+
     ResourceRef<T> store(const std::string& name, OwningPtr<T> resource) {
         const auto [it, inserted] =
           m_records.emplace(name, ResourceRecord{ std::move(resource), name, 0u });
@@ -124,6 +148,8 @@ protected:
     }
 
 private:
+    std::string m_resourceName;
+
     std::unordered_map<std::string, ResourceRecord> m_records;
     std::unordered_map<u64, ResourceRecord*> m_recordsById;
 };

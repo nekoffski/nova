@@ -122,6 +122,12 @@ Texture::Properties Texture::Properties::createDefault(
     };
 }
 
+ResourceRef<Texture> Texture::create(
+  const Properties& props, const Texture::Pixels& pixels
+) {
+    return TextureManager::get().create(props, pixels);
+}
+
 ResourceRef<Texture> Texture::load(const std::string& name, Type textureType) {
     return TextureManager::get().load(name, textureType);
 }
@@ -225,19 +231,45 @@ ResourceRef<Texture> TextureManager::load(
 }
 
 ResourceRef<Texture> TextureManager::getDefaultDiffuseMap() {
-    return ResourceRef{ m_defaultDiffuseMap.get(), "Default.DiffuseMap" };
+    return m_defaultDiffuseMap;
 }
 
 ResourceRef<Texture> TextureManager::getDefaultNormalMap() {
-    return ResourceRef{ m_defaultNormalMap.get(), "Default.NormalMap" };
+    return m_defaultNormalMap;
 }
 
 ResourceRef<Texture> TextureManager::getDefaultSpecularMap() {
-    return ResourceRef{ m_defaultSpecularMap.get(), "Default.SpecularMap" };
+    return m_defaultSpecularMap;
+}
+
+ResourceRef<Texture> TextureManager::create(
+  const std::string& name, const Texture::Properties& props,
+  const Texture::Pixels& pixels
+) {
+    return store(
+      name,
+      createTexture(
+        props,
+        pixels.size() != 0
+          ? pixels
+          : Texture::Pixels(props.width * props.height * props.channels, 255)
+      )
+    );
+}
+
+ResourceRef<Texture> TextureManager::create(
+  const Texture::Properties& props, const Texture::Pixels& pixels
+) {
+    return store(createTexture(
+      props,
+      pixels.size() != 0
+        ? pixels
+        : Texture::Pixels(props.width * props.height * props.channels, 255)
+    ));
 }
 
 TextureManager::TextureManager(const std::string& path, RendererBackend& renderer) :
-    m_texturesPath(path), m_renderer(renderer) {
+    ResourceManager("Texture"), m_texturesPath(path), m_renderer(renderer) {
     createDefaults();
 }
 
@@ -247,14 +279,14 @@ void TextureManager::createDefaults() {
       properties.width * properties.height * properties.channels;
     Texture::Pixels buffer(bufferSize, 255);
 
-    m_defaultSpecularMap = createTexture(properties, buffer);
+    m_defaultSpecularMap = create("DefaultSpecularMap", properties, buffer);
 
     for (auto index = 0u; index < bufferSize; index += properties.channels) {
         buffer[index]     = 0;
         buffer[index + 1] = 255;
         buffer[index + 2] = 0;
     }
-    m_defaultNormalMap = createTexture(properties, buffer);
+    m_defaultNormalMap = create("DefaultNormalMap", properties, buffer);
 
     static constexpr u8 white    = 255u;
     static constexpr u8 black    = 0u;
@@ -277,7 +309,7 @@ void TextureManager::createDefaults() {
             buffer[index + 2] = color;
         }
     }
-    m_defaultDiffuseMap = createTexture(properties, buffer);
+    m_defaultDiffuseMap = create("DefaultDiffuseMap", properties, buffer);
 }
 
 OwningPtr<Texture> TextureManager::createTexture(

@@ -53,7 +53,8 @@ static OwningPtr<Mesh> createMesh(
 #endif
 }
 
-MeshManager::MeshManager(RendererBackend& renderer) : m_renderer(renderer) {
+MeshManager::MeshManager(RendererBackend& renderer
+) : ResourceManager("Mesh"), m_renderer(renderer) {
     createDefaults();
 }
 

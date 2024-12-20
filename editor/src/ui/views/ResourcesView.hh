@@ -6,14 +6,12 @@
 #include <starlight/ui/widgets/Image.hh>
 
 #include "Resources.hh"
+#include "resources/MaterialUI.hh"
+#include "resources/TextureUI.hh"
 
 namespace sle {
 
 class ResourcesView {
-    struct Data {
-        std::unordered_map<sl::u64, std::unique_ptr<sl::ui::ImageHandle>> textures;
-    };
-
 public:
     explicit ResourcesView(Resources& resources);
 
@@ -24,11 +22,11 @@ private:
     void renderMeshesTab();
     void renderMaterialsTab();
 
-    sl::ui::ImageHandle* getImageHandle(sl::Texture* texture);
-
     Resources& m_resources;
     sl::ui::TabMenu m_tabMenu;
-    Data m_data;
+
+    MaterialUI m_materialUI;
+    TextureUI m_textureUI;
 };
 
 }  // namespace sle

@@ -58,7 +58,7 @@ bool MeshCompositeUI::renderSceneNode(sl::MeshComposite& component) {
     auto uiOnClick = [&](auto&& callback) {
         if (sl::ui::wasItemClicked()) {
             clicked = true;
-            sl::EventProxy::get().emit<events::SetComponentCallback>(
+            sl::EventProxy::get().emit<events::SetComponentUICallback>(
               std::move(callback)
             );
         }

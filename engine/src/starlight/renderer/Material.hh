@@ -47,6 +47,9 @@ public:
 
     const Properties& getProperties() const;
 
+    static ResourceRef<Material> create(
+      const Properties& properties = Properties::createDefault()
+    );
     static ResourceRef<Material> load(
       const std::string& name, const FileSystem& fs = fileSystem
     );
@@ -68,6 +71,7 @@ class MaterialManager
 public:
     explicit MaterialManager(const std::string& path);
 
+    ResourceRef<Material> create(const Material::Properties& properties);
     ResourceRef<Material> load(const std::string& name, const FileSystem& fs);
     ResourceRef<Material> getDefault();
 

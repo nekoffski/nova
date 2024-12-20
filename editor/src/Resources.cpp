@@ -15,4 +15,14 @@ Resources::Resources() {
     // textures.push_back(mat->)
 }
 
+sl::ui::ImageHandle& Resources::getImageHandle(sl::Texture* texture) {
+    auto id     = texture->getId();
+    auto record = m_imageHandles.find(id);
+
+    if (record != m_imageHandles.end()) return *(record->second);
+
+    m_imageHandles[id] = sl::ui::ImageHandle::createHandle(texture);
+    return *m_imageHandles.at(id);
+}
+
 }  // namespace sle

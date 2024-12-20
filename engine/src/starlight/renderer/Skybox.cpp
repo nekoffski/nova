@@ -30,6 +30,7 @@ void Skybox::applyUniforms(
 Texture* Skybox::getCubeMap() { return m_cubeMap.get(); }
 
 SkyboxManager::SkyboxManager() :
+    ResourceManager("Skybox"),
     m_defaultSkyboxShader(Shader::load("Builtin.Shader.Skybox")) {}
 
 ResourceRef<Skybox> SkyboxManager::load(const std::string& name) {
