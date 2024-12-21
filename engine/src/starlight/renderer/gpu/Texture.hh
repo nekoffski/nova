@@ -64,17 +64,6 @@ public:
 
     const Properties& getProperties() const;
 
-    static ResourceRef<Texture> create(
-      const Properties& props = Properties::createDefault(),
-      const Pixels& pixels    = Pixels{}
-    );
-    static ResourceRef<Texture> load(const std::string& name, Type textureType);
-    static ResourceRef<Texture> find(const std::string& name);
-
-    static ResourceRef<Texture> getDefaultDiffuseMap();
-    static ResourceRef<Texture> getDefaultNormalMap();
-    static ResourceRef<Texture> getDefaultSpecularMap();
-
 protected:
     explicit Texture(const Properties& props);
 
@@ -94,11 +83,13 @@ public:
     ResourceRef<Texture> getDefaultSpecularMap();
 
     ResourceRef<Texture> create(
-      const std::string& name, const Texture::Properties& props,
-      const Texture::Pixels& pixels
+      const std::string& name,
+      const Texture::Properties& props = Texture::Properties::createDefault(),
+      const Texture::Pixels& pixels    = Texture::Pixels{}
     );
     ResourceRef<Texture> create(
-      const Texture::Properties& props, const Texture::Pixels& pixels
+      const Texture::Properties& props = Texture::Properties::createDefault(),
+      const Texture::Pixels& pixels    = Texture::Pixels{}
     );
 
 private:

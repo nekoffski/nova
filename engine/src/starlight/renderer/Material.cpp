@@ -41,29 +41,16 @@ void Material::applyUniforms(
 
 const Material::Properties& Material::getProperties() const { return m_props; }
 
-ResourceRef<Material> Material::create(const Properties& properties) {
-    return MaterialManager::get().create(properties);
-}
-
-ResourceRef<Material> Material::load(const std::string& name, const FileSystem& fs) {
-    return MaterialManager::get().load(name, fs);
-}
-
-ResourceRef<Material> Material::find(const std::string& name) {
-    return MaterialManager::get().find(name);
-}
-
-ResourceRef<Material> Material::getDefault() {
-    return MaterialManager::get().getDefault();
-}
-
 MaterialManager::MaterialManager(const std::string& path) :
     ResourceManager("Material"), m_materialsPath(path),
-    m_defaultMaterial(createOwningPtr<Material>(Material::Properties::createDefault()
-    )) {}
+    m_defaultMaterial(create("DefaultMaterial")) {}
 
-ResourceRef<Material> MaterialManager::getDefault() {
-    return ResourceRef{ m_defaultMaterial.get(), "DefaultMaterial" };
+ResourceRef<Material> MaterialManager::getDefault() { return m_defaultMaterial; }
+
+ResourceRef<Material> MaterialManager::create(
+  const std::string& name, const Material::Properties& properties
+) {
+    return store(name, createOwningPtr<Material>(properties));
 }
 
 ResourceRef<Material> MaterialManager::create(const Material::Properties& properties
@@ -84,12 +71,14 @@ ResourceRef<Material> MaterialManager::load(
 }
 
 Material::Properties Material::Properties::createDefault() {
+    auto& textureManager = TextureManager::get();
+
     return Properties{
-        .diffuseColor = Material::defaultDiffuseColor,
-        .diffuseMap   = Texture::getDefaultDiffuseMap(),
-        .specularMap  = Texture::getDefaultSpecularMap(),
-        .normalMap    = Texture::getDefaultNormalMap(),
-        .shininess    = Material::defaultShininess
+        .diffuseColor = defaultDiffuseColor,
+        .diffuseMap   = textureManager.getDefaultDiffuseMap(),
+        .specularMap  = textureManager.getDefaultSpecularMap(),
+        .normalMap    = textureManager.getDefaultNormalMap(),
+        .shininess    = defaultShininess
     };
 }
 
@@ -108,17 +97,19 @@ std::optional<Material::Properties> Material::Properties::fromFile(
 
         auto props = Properties::createDefault();
 
+        auto& textureManager = TextureManager::get();
+
         getOptField<Vec4<f32>>(root, "diffuse-color", [&](const auto& value) {
             props.diffuseColor = value;
         });
         getOptField<std::string>(root, "diffuse-map", [&](const auto& value) {
-            props.diffuseMap = Texture::load(value, Texture::Type::flat);
+            props.diffuseMap = textureManager.load(value, Texture::Type::flat);
         });
         getOptField<std::string>(root, "specular-map", [&](const auto& value) {
-            props.specularMap = Texture::load(value, Texture::Type::flat);
+            props.specularMap = textureManager.load(value, Texture::Type::flat);
         });
         getOptField<std::string>(root, "normal-map", [&](const auto& value) {
-            props.normalMap = Texture::load(value, Texture::Type::flat);
+            props.normalMap = textureManager.load(value, Texture::Type::flat);
         });
         getOptField<float>(root, "shininess", [&](const auto& value) {
             props.shininess = value;

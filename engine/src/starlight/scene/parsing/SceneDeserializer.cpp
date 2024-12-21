@@ -13,7 +13,7 @@ void SceneDeserializer::deserialize(
     if (root.isMember("skybox")) {
         const auto skybox = root["skybox"].as<std::string>();
         LOG_DEBUG("Found skybox: {}", skybox);
-        scene.skybox = sl::Skybox::load(skybox);
+        scene.skybox = sl::SkyboxManager::get().load(skybox);
     }
 
     LOG_DEBUG("Processing entitites");

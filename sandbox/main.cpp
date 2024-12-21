@@ -50,8 +50,8 @@ int main(int argc, char** argv) {
     );
 
     auto& rendererBackend = renderer.getRendererBackend();
-    auto skybox           = sl::Skybox::load("skybox2/skybox");
-    auto worldShader      = sl::Shader::load("Builtin.Shader.Material");
+    auto skybox           = sl::SkyboxManager::get().load("skybox2/skybox");
+    auto worldShader      = sl::ShaderManager::get().load("Builtin.Shader.Material");
 
     sl::Font::SubfontProperties icons{
         "/home/nek0/kapik/projects/starlight/assets/fonts/fa-solid-900.ttf",
@@ -105,7 +105,8 @@ int main(int argc, char** argv) {
     auto& instance =
       entity
         .addComponent<sl::MeshComposite>(
-          sl::Mesh::getCube(), sl::Material::load("Builtin.Material.Test")
+          sl::MeshManager::get().getCube(),
+          sl::MaterialManager::get().load("Builtin.Material.Test")
         )
         .data()
         .getRoot()

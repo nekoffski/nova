@@ -83,7 +83,8 @@ void PropertiesView::EntityTab::renderEntityUI() {
 
             if (m_data.selectedComponentIndex == 0) {
                 ADD_COMPONENT(
-                  sl::MeshComposite, sl::Mesh::getCube(), sl::Material::getDefault()
+                  sl::MeshComposite, sl::MeshManager::get().getCube(),
+                  sl::MaterialManager::get().getDefault()
                 );
             } else if (m_data.selectedComponentIndex == 1) {
                 ADD_COMPONENT(sl::PointLight);

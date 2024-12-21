@@ -47,16 +47,6 @@ public:
 
     const Properties& getProperties() const;
 
-    static ResourceRef<Material> create(
-      const Properties& properties = Properties::createDefault()
-    );
-    static ResourceRef<Material> load(
-      const std::string& name, const FileSystem& fs = fileSystem
-    );
-    static ResourceRef<Material> find(const std::string& name);
-
-    static ResourceRef<Material> getDefault();
-
 private:
     Properties m_props;
     u64 m_renderFrameNumber;
@@ -71,13 +61,21 @@ class MaterialManager
 public:
     explicit MaterialManager(const std::string& path);
 
-    ResourceRef<Material> create(const Material::Properties& properties);
-    ResourceRef<Material> load(const std::string& name, const FileSystem& fs);
+    ResourceRef<Material> create(
+      const std::string& name,
+      const Material::Properties& properties = Material::Properties::createDefault()
+    );
+    ResourceRef<Material> create(
+      const Material::Properties& properties = Material::Properties::createDefault()
+    );
+    ResourceRef<Material> load(
+      const std::string& name, const FileSystem& fs = fileSystem
+    );
     ResourceRef<Material> getDefault();
 
 private:
     std::string m_materialsPath;
-    OwningPtr<Material> m_defaultMaterial;
+    ResourceRef<Material> m_defaultMaterial;
 };
 
 }  // namespace sl

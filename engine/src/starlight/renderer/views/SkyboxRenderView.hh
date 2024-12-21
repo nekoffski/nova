@@ -14,7 +14,7 @@ class SkyboxRenderView : public RenderView {
 public:
     explicit SkyboxRenderView(
       const Vec2<f32>& viewportOffset,
-      ResourceRef<Shader> shader = Skybox::getDefaultShader()
+      ResourceRef<Shader> shader = SkyboxManager::get().getDefaultShader()
     );
 
     RenderPass::Properties getRenderPassProperties(

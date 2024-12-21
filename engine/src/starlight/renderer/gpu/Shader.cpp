@@ -152,18 +152,6 @@ std::string Shader::scopeToString(Shader::Scope scope) {
     __builtin_unreachable();
 }
 
-ResourceRef<Shader> Shader::load(const std::string& name, const FileSystem& fs) {
-    return sl::ShaderManager::get().load(name, fs);
-}
-
-ResourceRef<Shader> Shader::find(const std::string& name) {
-    return sl::ShaderManager::get().find(name);
-}
-
-ResourceRef<Shader> Shader::find(const u64 id) {
-    return sl::ShaderManager::get().find(id);
-}
-
 ResourceRef<Shader> ShaderManager::load(
   const std::string& name, const FileSystem& fs
 ) {
@@ -173,7 +161,7 @@ ResourceRef<Shader> ShaderManager::load(
     }
 
     const auto properties = loadPropertiesFromFile(
-      name, Texture::getDefaultDiffuseMap(), m_shadersPath, fs
+      name, TextureManager::get().getDefaultDiffuseMap(), m_shadersPath, fs
     );
 
     if (not properties) {

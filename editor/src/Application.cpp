@@ -51,7 +51,7 @@ void Application::startRenderLoop() {
         m_userInterface.getConfig().panelHeightRatio
     };
 
-    auto worldShader = sl::Shader::load("Builtin.Shader.Material");
+    auto worldShader = sl::ShaderManager::get().load("Builtin.Shader.Material");
 
     auto& backend = m_renderer.getRendererBackend();
     auto renderGraph =

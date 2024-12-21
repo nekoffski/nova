@@ -31,6 +31,8 @@ public:
     ResourceRef& operator=(const ResourceRef& oth);
     ResourceRef& operator=(ResourceRef&& oth);
 
+    ResourceRef<T> getWeakRef();
+
     ~ResourceRef();
 
     std::string getName() const;
@@ -81,19 +83,7 @@ public:
         return nullptr;
     }
 
-    template <typename Callback, typename Condition>
-    requires Callable<Callback, void, const std::string&, T&>
-             && Callable<Condition, bool, T&>
-    void forEach(Callback&& callback, Condition&& condition) {
-        for (auto& [name, record] : m_records)
-            if (condition(*record.data)) callback(name, *record.data);
-    }
-
-    template <typename Callback>
-    requires Callable<Callback, void, const std::string&, T&>
-    void forEach(Callback&& callback) {
-        for (auto& [name, record] : m_records) callback(name, *record.data);
-    }
+    std::span<ResourceRef<T>> getAll() { return m_view; }
 
 protected:
     template <typename V>
@@ -120,7 +110,9 @@ protected:
 
             ASSERT(inserted, "Map 'id' -> 'record' desynchronized with main buffer");
         }
-        return ResourceRef<T>(record.data.get(), this, name);
+        ResourceRef<T> ref{ record.data.get(), this, name };
+        m_view.push_back(ref.getWeakRef());
+        return ref;
     }
 
     void release(const std::string& name) {
@@ -152,6 +144,7 @@ private:
 
     std::unordered_map<std::string, ResourceRecord> m_records;
     std::unordered_map<u64, ResourceRecord*> m_recordsById;
+    std::vector<ResourceRef<T>> m_view;
 };
 
 template <typename T>
@@ -225,6 +218,10 @@ template <typename T> T* ResourceRef<T>::operator->() { return m_resource; }
 
 template <typename T> const T* ResourceRef<T>::operator->() const {
     return m_resource;
+}
+
+template <typename T> ResourceRef<T> ResourceRef<T>::getWeakRef() {
+    return ResourceRef<T>{ m_resource, m_name.value_or("") };
 }
 
 template <typename T> T* ResourceRef<T>::get() { return m_resource; }

@@ -12,26 +12,6 @@ namespace sl {
 
 Mesh::Mesh(const Data& data) : m_extent(data.extent) {}
 
-ResourceRef<Mesh> Mesh::load(const Properties2D& config, const std::string& name) {
-    return MeshManager::get().load(config, name);
-}
-
-ResourceRef<Mesh> Mesh::load(const Properties3D& config, const std::string& name) {
-    return MeshManager::get().load(config, name);
-}
-
-ResourceRef<Mesh> Mesh::find(const std::string& name) {
-    return MeshManager::get().find(name);
-}
-
-ResourceRef<Mesh> Mesh::getCube() { return MeshManager::get().getCube(); }
-
-ResourceRef<Mesh> Mesh::getUnitSphere() {
-    return MeshManager::get().getUnitSphere();
-}
-
-ResourceRef<Mesh> Mesh::getPlane() { return MeshManager::get().getPlane(); }
-
 const Mesh::BufferDescription& Mesh::getDataDescription() const {
     return m_dataDescription;
 }
@@ -58,47 +38,41 @@ MeshManager::MeshManager(RendererBackend& renderer
     createDefaults();
 }
 
-ResourceRef<Mesh> MeshManager::load(
-  const Mesh::Properties2D& config, const std::string& name
+ResourceRef<Mesh> MeshManager::create(
+  const std::string& name, const Mesh::Properties2D& config
 ) {
     if (auto resource = find(name); resource) return resource;
     return store(name, createMesh(m_renderer, config.toMeshData()));
 }
 
-ResourceRef<Mesh> MeshManager::load(
-  const Mesh::Properties3D& config, const std::string& name
+ResourceRef<Mesh> MeshManager::create(
+  const std::string& name, const Mesh::Properties3D& config
 ) {
     if (auto resource = find(name); resource) return resource;
     return store(name, createMesh(m_renderer, config.toMeshData()));
 }
 
-ResourceRef<Mesh> MeshManager::getCube() {
-    return ResourceRef{ m_cube.get(), "Cube" };
-}
+ResourceRef<Mesh> MeshManager::getCube() { return m_cube; }
 
-ResourceRef<Mesh> MeshManager::getPlane() {
-    return ResourceRef{ m_plane.get(), "Plane" };
-}
+ResourceRef<Mesh> MeshManager::getPlane() { return m_plane; }
 
-ResourceRef<Mesh> MeshManager::getUnitSphere() {
-    return ResourceRef{ m_unitSphere.get(), "UnitSphere" };
-}
+ResourceRef<Mesh> MeshManager::getUnitSphere() { return m_unitSphere; }
 
 void MeshManager::createDefaults() {
     Mesh::Properties3D cubeConfig{
         CubeProperties{ 1.0f, 1.0f, 1.0f, 1, 1 }
     };
-    m_cube = createMesh(m_renderer, cubeConfig.toMeshData());
+    m_cube = create("Cube", cubeConfig);
 
     Mesh::Properties3D unitSphereConfig{
         SphereProperties{ 16, 16, 1.0f }
     };
-    m_unitSphere = createMesh(m_renderer, unitSphereConfig.toMeshData());
+    m_unitSphere = create("UnitSphere", unitSphereConfig);
 
     Mesh::Properties3D planeConfig{
         PlaneProperties{ 5.0f, 5.0f, 2, 2 }
     };
-    m_plane = createMesh(m_renderer, planeConfig.toMeshData());
+    m_plane = create("Plane", planeConfig);
 }
 
 Mesh::Properties3D::Properties3D(const SphereProperties& props) {

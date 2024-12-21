@@ -122,32 +122,6 @@ Texture::Properties Texture::Properties::createDefault(
     };
 }
 
-ResourceRef<Texture> Texture::create(
-  const Properties& props, const Texture::Pixels& pixels
-) {
-    return TextureManager::get().create(props, pixels);
-}
-
-ResourceRef<Texture> Texture::load(const std::string& name, Type textureType) {
-    return TextureManager::get().load(name, textureType);
-}
-
-ResourceRef<Texture> Texture::find(const std::string& name) {
-    return TextureManager::get().find(name);
-}
-
-ResourceRef<Texture> Texture::getDefaultDiffuseMap() {
-    return TextureManager::get().getDefaultDiffuseMap();
-}
-
-ResourceRef<Texture> Texture::getDefaultNormalMap() {
-    return TextureManager::get().getDefaultNormalMap();
-}
-
-ResourceRef<Texture> Texture::getDefaultSpecularMap() {
-    return TextureManager::get().getDefaultSpecularMap();
-}
-
 const Texture::Properties& Texture::getProperties() const { return m_props; }
 
 Texture::Texture(const Properties& props) : m_props(props) {}

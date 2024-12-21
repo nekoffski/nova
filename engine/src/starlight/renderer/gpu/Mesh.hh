@@ -123,24 +123,6 @@ public:
 
     virtual ~Mesh() = default;
 
-    static ResourceRef<Mesh> load(
-      const Properties2D& config, const std::string& name
-    );
-    static ResourceRef<Mesh> load(
-      const Properties3D& config, const std::string& name
-    );
-
-    template <typename T>
-    requires std::is_constructible_v<Properties3D, const T&>
-    static ResourceRef<Mesh> load(const T& properties, const std::string& name) {
-        return load(Properties3D{ properties }, name);
-    }
-
-    static ResourceRef<Mesh> find(const std::string& name);
-    static ResourceRef<Mesh> getCube();
-    static ResourceRef<Mesh> getUnitSphere();
-    static ResourceRef<Mesh> getPlane();
-
     const BufferDescription& getDataDescription() const;
     const Extent3& getExtent() const;
 
@@ -157,11 +139,17 @@ class MeshManager
 public:
     explicit MeshManager(RendererBackend& renderer);
 
-    ResourceRef<Mesh> load(
-      const Mesh::Properties2D& config, const std::string& name
+    template <typename T>
+    requires std::is_constructible_v<Mesh::Properties3D, const T&>
+    ResourceRef<Mesh> create(const std::string& name, const T& properties) {
+        return create(name, Mesh::Properties3D{ properties });
+    }
+
+    ResourceRef<Mesh> create(
+      const std::string& name, const Mesh::Properties2D& config
     );
-    ResourceRef<Mesh> load(
-      const Mesh::Properties3D& config, const std::string& name
+    ResourceRef<Mesh> create(
+      const std::string& name, const Mesh::Properties3D& config
     );
 
     ResourceRef<Mesh> getCube();
@@ -171,9 +159,9 @@ public:
 private:
     void createDefaults();
 
-    OwningPtr<Mesh> m_cube;
-    OwningPtr<Mesh> m_unitSphere;
-    OwningPtr<Mesh> m_plane;
+    ResourceRef<Mesh> m_cube;
+    ResourceRef<Mesh> m_unitSphere;
+    ResourceRef<Mesh> m_plane;
 
     RendererBackend& m_renderer;
 };

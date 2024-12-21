@@ -296,7 +296,7 @@ void VKShader::addSampler(
           globalTextureCount
         );
         location = globalTextureCount;
-        m_globalTextures.push_back(Texture::getDefaultDiffuseMap());
+        m_globalTextures.push_back(TextureManager::get().getDefaultDiffuseMap());
     } else {
         ASSERT(
           m_instanceTextureCount + 1 <= maxInstanceTextures,
@@ -530,7 +530,7 @@ u32 VKShader::acquireInstanceResources(const std::vector<Texture*>& textures) {
           "Provided texture map range size doesn't match with instance texture count, ignoring and setting all to default map"
         );
         instanceState.instanceTextures.resize(
-          m_instanceTextureCount, Texture::getDefaultDiffuseMap()
+          m_instanceTextureCount, TextureManager::get().getDefaultDiffuseMap()
         );
     } else {
         instanceState.instanceTextures.reserve(m_instanceTextureCount);

@@ -16,11 +16,11 @@ static sl::f32 getThumbnailWidth() {
 
 // TODO: add concepts
 static void renderResourceTab(
-  const std::string& name, auto& container, auto&& createNew, auto&& render,
+  const std::string& name, auto& manager, auto& container, auto&& render,
   auto&& renderThumbnail
 ) {
     if (sl::ui::button(fmt::format("Create new {}", name))) {
-        auto resource = createNew();
+        auto resource = manager.create();
         container.push_back(resource);
         sl::EventProxy::get().emit<events::SetResourceUICallback>(
           [&, render, resource = resource]() { render(resource); }
@@ -30,10 +30,12 @@ static void renderResourceTab(
     sl::ui::separator();
     const auto width = getThumbnailWidth();
 
-    for (sl::u64 i = 0; i < container.size(); ++i) {
+    auto resources = manager.getAll();
+
+    for (sl::u64 i = 0; i < resources.size(); ++i) {
         if (i % rowSize != 0) sl::ui::sameLine();
 
-        auto& resource = container[i];
+        auto& resource = resources[i];
 
         sl::ui::group([&]() {
             renderThumbnail(resource, width);
@@ -67,7 +69,7 @@ void ResourcesView::renderMeshesTab() {
 
 void ResourcesView::renderMaterialsTab() {
     renderResourceTab(
-      "Material", m_resources.materials, []() { return sl::Material::create(); },
+      "Material", sl::MaterialManager::get(), m_resources.materials,
       [&](auto& material) { m_materialUI.render(material); },
       [&](auto& material, const auto width) {
           m_resources.getImageHandle(material->getProperties().diffuseMap)
@@ -78,7 +80,7 @@ void ResourcesView::renderMaterialsTab() {
 
 void ResourcesView::renderTexturesTab() {
     renderResourceTab(
-      "Texture", m_resources.textures, []() { return sl::Texture::create(); },
+      "Texture", sl::TextureManager::get(), m_resources.textures,
       [&](auto& texture) { m_textureUI.render(texture); },
       [&](auto& texture, const auto width) {
           m_resources.getImageHandle(texture).show(

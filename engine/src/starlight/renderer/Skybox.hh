@@ -20,9 +20,6 @@ public:
       ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u8 imageIndex
     );
 
-    static ResourceRef<Skybox> load(const std::string& name);
-    static ResourceRef<Shader> getDefaultShader();
-
 private:
     ResourceRef<Texture> m_cubeMap;
     LocalPtr<Shader::Instance> m_instance;

@@ -42,13 +42,6 @@ public:
     static Scope scopeFromString(const std::string& name);
     static std::string scopeToString(Scope scope);
 
-    static ResourceRef<Shader> load(
-      const std::string& name, const FileSystem& fs = fileSystem
-    );
-
-    static ResourceRef<Shader> find(const std::string& name);
-    static ResourceRef<Shader> find(const u64 id);
-
     struct Attribute {
         enum class Type : u8 {
             float32,
@@ -222,7 +215,9 @@ class ShaderManager
 public:
     explicit ShaderManager(const std::string& path, RendererBackend& renderer);
 
-    ResourceRef<Shader> load(const std::string& name, const FileSystem& fs);
+    ResourceRef<Shader> load(
+      const std::string& name, const FileSystem& fs = fileSystem
+    );
 
 private:
     const std::string m_shadersPath;

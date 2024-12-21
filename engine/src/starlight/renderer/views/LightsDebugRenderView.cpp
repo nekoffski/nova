@@ -8,7 +8,8 @@ static const std::string shaderName = "Builtin.Shader.LightsDebug";
 
 LightsDebugRenderView::LightsDebugRenderView(const Vec2<f32>& viewportOffset) :
     RenderView("LightsDebugRenderView", viewportOffset),
-    m_shader(Shader::load(shaderName)), m_mesh(Mesh::getUnitSphere()) {}
+    m_shader(ShaderManager::get().load(shaderName)),
+    m_mesh(MeshManager::get().getUnitSphere()) {}
 
 RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
