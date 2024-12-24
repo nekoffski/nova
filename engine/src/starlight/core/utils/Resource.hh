@@ -121,15 +121,16 @@ protected:
             ASSERT(inserted, "Map 'id' -> 'record' desynchronized with main buffer");
         }
         ResourceRef<T> ref{ record.data.get(), this, name };
-        m_view.push_back(ref.getWeakRef());
+        m_view.push_back(ref);
         return ref;
     }
 
     void release(const std::string& name) {
         if (auto it = m_records.find(name); it != m_records.end()) {
             if (auto& record = it->second; --record.referenceCounter <= 0) {
+                // 1 instance for view vector
                 LOG_INFO(
-                  "Reference counter of Resource {} less or equals 0, destroying",
+                  "Reference counter of Resource {} less or equals 1, destroying",
                   name
                 );
                 std::erase_if(m_view, [&](auto& resource) -> bool {
