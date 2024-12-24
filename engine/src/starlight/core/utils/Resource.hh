@@ -14,6 +14,12 @@ template <typename T> class ResourceManager;
 
 template <typename T> class ResourceRef {
 public:
+    struct Hash {
+        size_t operator()(const ResourceRef<T>& ref) const {
+            return std::hash<const T*>()(ref.get());
+        }
+    };
+
     explicit ResourceRef(
       T* resource, ResourceManager<T>* manager, const std::string& name
     );
@@ -24,12 +30,16 @@ public:
     ResourceRef(const ResourceRef& oth);
     ResourceRef(ResourceRef&& oth);
 
-    // for compatibility with interface, lifetime managed by caller not by reference
-    // counter
+    // for compatibility with interface, lifetime managed by caller not by
+    // reference counter
     ResourceRef(T* resource, const std::string& name);
 
     ResourceRef& operator=(const ResourceRef& oth);
     ResourceRef& operator=(ResourceRef&& oth);
+
+    bool operator==(const ResourceRef& oth) const {
+        return m_resource == oth.m_resource;
+    }
 
     ResourceRef<T> getWeakRef();
 
@@ -83,7 +93,7 @@ public:
         return nullptr;
     }
 
-    std::span<ResourceRef<T>> getAll() { return m_view; }
+    const std::vector<ResourceRef<T>>& getAll() { return m_view; }
 
 protected:
     template <typename V>
@@ -122,6 +132,9 @@ protected:
                   "Reference counter of Resource {} less or equals 0, destroying",
                   name
                 );
+                std::erase_if(m_view, [&](auto& resource) -> bool {
+                    return resource.get() == record.data.get();
+                });
                 if constexpr (IsIdentificable<T>)
                     m_recordsById.erase(record.data->getId());
                 m_records.erase(name);

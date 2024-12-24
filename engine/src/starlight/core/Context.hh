@@ -11,6 +11,7 @@
 #include "Clock.hh"
 #include "Config.hh"
 #include "Core.hh"
+#include "TaskQueue.hh"
 
 namespace sl {
 
@@ -39,6 +40,7 @@ private:
     Window m_window;
     Input m_input;
     Clock m_clock;
+    TaskQueue m_taskQueue;
 };
 
 }  // namespace sl

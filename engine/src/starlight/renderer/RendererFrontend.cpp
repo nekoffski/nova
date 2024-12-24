@@ -4,6 +4,7 @@
 #include "starlight/core/event/WindowResized.hh"
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/core/event/EventProxy.hh"
+#include "starlight/core/TaskQueue.hh"
 
 #include "RenderPacket.hh"
 #include "camera/EulerCamera.hh"
@@ -32,6 +33,7 @@ RendererBackend& RendererFrontend::getRendererBackend() { return m_backend; }
 void RendererFrontend::renderFrame(
   float deltaTime, const RenderPacket& packet, RenderGraph& renderGraph
 ) {
+    sl::TaskQueue::get().dispatchQueue(sl::TaskQueue::Type::preFrameRender);
     m_frameStatistics.frameNumber++;
     m_frameStatistics.deltaTime = deltaTime;
 
@@ -76,6 +78,7 @@ void RendererFrontend::renderFrame(
           );
       }
     );
+    sl::TaskQueue::get().dispatchQueue(sl::TaskQueue::Type::postFrameRender);
 }
 
 void RendererFrontend::setRenderMode(RenderMode mode) {

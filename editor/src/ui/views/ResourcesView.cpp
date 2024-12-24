@@ -16,14 +16,12 @@ static sl::f32 getThumbnailWidth() {
 
 // TODO: add concepts
 static void renderResourceTab(
-  const std::string& name, auto& manager, auto& container, auto&& render,
+  const std::string& name, auto& manager, auto&& create, auto&& render,
   auto&& renderThumbnail
 ) {
     if (sl::ui::button(fmt::format("Create new {}", name))) {
-        auto resource = manager.create();
-        container.push_back(resource);
         sl::EventProxy::get().emit<events::SetResourceUICallback>(
-          [&, render, resource = resource]() { render(resource); }
+          [&, render, resource = create()]() { render(resource); }
         );
     }
 
@@ -35,18 +33,18 @@ static void renderResourceTab(
     for (sl::u64 i = 0; i < resources.size(); ++i) {
         if (i % rowSize != 0) sl::ui::sameLine();
 
-        auto& resource = resources[i];
-
-        sl::ui::group([&]() {
+        sl::ui::group([&, resource = resources[i]]() {
             renderThumbnail(resource, width);
             sl::ui::text("{}", resource.getName());
         });
 
         if (sl::ui::wasItemClicked()) {
-            EDITOR_LOG_DEBUG("{} selected: {}", name, resource.getName());
-            sl::EventProxy::get().emit<events::SetResourceUICallback>([&, render]() {
-                render(resource);
-            });
+            EDITOR_LOG_DEBUG("{} selected: {}", name, resources[i].getName());
+            sl::EventProxy::get().emit<events::SetResourceUICallback>(
+              [render = std::move(render), resource = resources[i]]() {
+                  render(resource);
+              }
+            );
         }
     }
 }
@@ -62,17 +60,18 @@ ResourcesView::ResourcesView(Resources& resources) :
 void ResourcesView::render() { m_tabMenu.render(); }
 
 void ResourcesView::renderMeshesTab() {
-    for (auto& mesh : m_resources.meshes) {
+    for (auto& mesh : sl::MeshManager::get().getAll()) {
         sl::ui::text("{}", mesh.getName());
     }
 }
 
 void ResourcesView::renderMaterialsTab() {
     renderResourceTab(
-      "Material", sl::MaterialManager::get(), m_resources.materials,
+      "Material", sl::MaterialManager::get(),
+      [&]() { return m_resources.addMaterial(); },
       [&](auto& material) { m_materialUI.render(material); },
       [&](auto& material, const auto width) {
-          m_resources.getImageHandle(material->getProperties().diffuseMap)
+          m_resources.getImageHandle(material->getTextures().diffuseMap)
             .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
       }
     );
@@ -80,7 +79,8 @@ void ResourcesView::renderMaterialsTab() {
 
 void ResourcesView::renderTexturesTab() {
     renderResourceTab(
-      "Texture", sl::TextureManager::get(), m_resources.textures,
+      "Texture", sl::TextureManager::get(),
+      [&]() { return m_resources.addTexture(); },
       [&](auto& texture) { m_textureUI.render(texture); },
       [&](auto& texture, const auto width) {
           m_resources.getImageHandle(texture).show(

@@ -60,4 +60,23 @@ void separator();
 
 float getFrameHeight();
 
+// TODO: add concepts
+void combo(
+  const std::string& name, const std::string& preview, auto& container,
+  auto&& onSelect
+) {
+    sl::ui::text("{}: ", name);
+    if (ImGui::BeginCombo(
+          fmt::format("##{}-combo", name).c_str(), preview.c_str()
+        )) {
+        for (auto& option : container) {
+            bool selected = option.getName() == preview;
+            if (ImGui::Selectable(option.getName().c_str(), selected))
+                onSelect(option);
+            if (selected) ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+}
+
 }  // namespace sl::ui

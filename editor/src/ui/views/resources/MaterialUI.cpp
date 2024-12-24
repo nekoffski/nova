@@ -1,6 +1,7 @@
 #include "MaterialUI.hh"
 
 #include <starlight/ui/UI.hh>
+#include <starlight/core/TaskQueue.hh>
 
 namespace sle {
 
@@ -10,20 +11,51 @@ void MaterialUI::render(sl::ResourceRef<sl::Material> material) {
     sl::ui::text(ICON_FA_PRESCRIPTION_BOTTLE "  Material - {}", material.getName());
     sl::ui::separator();
 
-    auto props       = material->getProperties();
-    const auto width = ImGui::GetWindowWidth() / 1.5f;
+    auto materialTextures = material->getTextures();
+    const auto width      = ImGui::GetWindowWidth() / 1.5f;
 
-    sl::ui::text("Diffuse map:");
-    m_resources.getImageHandle(props.diffuseMap)
+    auto textures = sl::TextureManager::get().getAll();
+
+    bool textureChanged = false;
+
+    sl::ui::combo(
+      "Diffuse map", materialTextures.diffuseMap.getName(), textures,
+      [&](auto& texture) {
+          materialTextures.diffuseMap = texture;
+          textureChanged              = true;
+      }
+    );
+    m_resources.getImageHandle(materialTextures.diffuseMap)
       .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
 
-    sl::ui::text("Specular map:");
-    m_resources.getImageHandle(props.specularMap)
+    sl::ui::combo(
+      "Specular map", materialTextures.specularMap.getName(), textures,
+      [&](auto& texture) {
+          materialTextures.specularMap = texture;
+          textureChanged               = true;
+      }
+    );
+    m_resources.getImageHandle(materialTextures.specularMap)
       .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
 
-    sl::ui::text("Normal map:");
-    m_resources.getImageHandle(props.normalMap)
+    sl::ui::combo(
+      "Normal map", materialTextures.normalMap.getName(), textures,
+      [&](auto& texture) {
+          materialTextures.normalMap = texture;
+          textureChanged             = true;
+      }
+    );
+    m_resources.getImageHandle(materialTextures.normalMap)
       .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
+
+    if (textureChanged) {
+        sl::TaskQueue::get().push(
+          sl::TaskQueue::Type::postFrameRender,
+          [materialTextures, material]() mutable {
+              material->setTextures(materialTextures);
+          }
+        );
+    }
 }
 
 }  // namespace sle

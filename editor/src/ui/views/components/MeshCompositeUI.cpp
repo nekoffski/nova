@@ -21,29 +21,14 @@ void MeshCompositeUI::renderInstanceUI(sl::Transform& instance) {
 }
 
 void MeshCompositeUI::renderNodeUI(sl::MeshComposite::Node& node) {
-    auto meshName = node.mesh.getName();
-    sl::ui::text("Mesh: ");
-    if (ImGui::BeginCombo("##mesh-combo", meshName.c_str())) {
-        for (auto& mesh : m_resources.meshes) {
-            bool selected = mesh.getName() == meshName;
-            if (ImGui::Selectable(mesh.getName().c_str(), selected))
-                node.mesh = mesh;
-            if (selected) ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
-    auto materialName = node.material.getName();
-    sl::ui::text("Material: ");
-    if (ImGui::BeginCombo("##material-combo", materialName.c_str())) {
-        for (auto& material : m_resources.materials) {
-            bool selected = material.getName() == materialName;
-            if (ImGui::Selectable(material.getName().c_str(), selected)) {
-                node.material = material;
-            }
-            if (selected) ImGui::SetItemDefaultFocus();
-        }
-        ImGui::EndCombo();
-    }
+    sl::ui::combo(
+      "Mesh", node.mesh.getName(), sl::MeshManager::get().getAll(),
+      [&](auto& mesh) { node.mesh = mesh; }
+    );
+    sl::ui::combo(
+      "Material", node.material.getName(), sl::MaterialManager::get().getAll(),
+      [&](auto& material) { node.material = material; }
+    );
     if (sl::ui::button("Add Instance")) node.addInstance();
 }
 

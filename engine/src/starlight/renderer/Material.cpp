@@ -4,20 +4,18 @@
 
 namespace sl {
 
-Material::Material(const Properties& props
-) : m_props(props), m_renderFrameNumber(0) {
-    m_instance.emplace(std::vector<Texture*>{
-      m_props.diffuseMap.get(),
-      m_props.specularMap.get(),
-      m_props.normalMap.get(),
-    });
+Material::Material(const Properties& props) :
+    shininess(props.shininess), diffuseColor(props.diffuseColor),
+    m_renderFrameNumber(0),
+    m_textures{ props.diffuseMap, props.specularMap, props.normalMap } {
+    m_instance.emplace(m_textures.asArray());
     LOG_TRACE("Creating Material");
 }
 
 Material::~Material() { LOG_TRACE("Destroying Material"); }
 
 bool Material::isTransparent() const {
-    return m_props.diffuseMap->getProperties().isTransparent;
+    return m_textures.diffuseMap->getProperties().isTransparent;
 }
 
 void Material::applyUniforms(
@@ -28,18 +26,24 @@ void Material::applyUniforms(
         shader->setInstanceUniforms(
           commandBuffer, m_instance->getId(shader), imageIndex,
           [&](Shader::UniformProxy& proxy) {
-              proxy.set("diffuseColor", m_props.diffuseColor);
-              proxy.set("diffuseTexture", m_props.diffuseMap);
-              proxy.set("specularTexture", m_props.specularMap);
-              proxy.set("normalTexture", m_props.normalMap);
-              proxy.set("shininess", m_props.shininess);
+              proxy.set("diffuseColor", diffuseColor);
+              proxy.set("diffuseTexture", m_textures.diffuseMap);
+              proxy.set("specularTexture", m_textures.specularMap);
+              proxy.set("normalTexture", m_textures.normalMap);
+              proxy.set("shininess", shininess);
           }
         );
         m_renderFrameNumber = renderFrameNumber;
     }
 }
 
-const Material::Properties& Material::getProperties() const { return m_props; }
+const Material::Textures& Material::getTextures() const { return m_textures; }
+
+void Material::setTextures(const Material::Textures& textures) {
+    m_textures = textures;
+    m_instance.clear();
+    m_instance.emplace(m_textures.asArray());
+}
 
 MaterialManager::MaterialManager(const std::string& path) :
     ResourceManager("Material"), m_materialsPath(path),
@@ -120,6 +124,12 @@ std::optional<Material::Properties> Material::Properties::fromFile(
         LOG_ERROR("Could not parse material '{}' file: {}", path, e.asString());
     }
     return {};
+}
+
+std::vector<Texture*> Material::Textures::asArray() {
+    return std::vector<Texture*>{
+        diffuseMap.get(), specularMap.get(), normalMap.get()
+    };
 }
 
 }  // namespace sl

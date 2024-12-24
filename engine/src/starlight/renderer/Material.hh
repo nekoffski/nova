@@ -36,6 +36,14 @@ public:
         float shininess;
     };
 
+    struct Textures {
+        ResourceRef<Texture> diffuseMap;
+        ResourceRef<Texture> specularMap;
+        ResourceRef<Texture> normalMap;
+
+        std::vector<Texture*> asArray();
+    };
+
     explicit Material(const Properties& props);
     ~Material();
 
@@ -45,13 +53,16 @@ public:
       const u64 renderFrameNumber
     );
 
-    const Properties& getProperties() const;
+    const Textures& getTextures() const;
+    void setTextures(const Textures& textures);
+
+    float shininess;
+    Vec4<f32> diffuseColor;
 
 private:
-    Properties m_props;
     u64 m_renderFrameNumber;
 
-    std::vector<Texture*> m_textures;
+    Textures m_textures;
     LocalPtr<Shader::Instance> m_instance;
 };
 
