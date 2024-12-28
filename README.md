@@ -32,4 +32,4 @@ Another game engine with vulkan renderer (the goal is to support multiple APIs).
 
 ## Acknowledgements
 
-To my gf for not being mad that I spend so much time talking about that
+To my gf for not being mad that I spend so much time talking about that.
