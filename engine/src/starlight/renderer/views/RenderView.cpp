@@ -8,10 +8,10 @@ namespace sl {
 RenderView::RenderView(const std::string& name, const Vec2<f32>& viewportOffset) :
     name(name), m_viewportOffset(viewportOffset) {}
 
-RenderPass::Properties RenderView::getDefaultRenderPassProperties(
+RenderPass::Properties RenderView::generateDefaultRenderPassProperties(
   RendererBackend& renderer, Attachment attachments,
   RenderPass::ClearFlags clearFlags
-) const {
+) {
     RenderPass::Properties props;
 
     props.clearColor = Vec4<f32>{ 0.0f };
@@ -24,14 +24,16 @@ RenderPass::Properties RenderView::getDefaultRenderPassProperties(
     RenderTarget renderTarget;
     renderTarget.size = Window::get().getFramebufferSize();
 
-    props.includeDepthAttachment = isFlagEnabled(attachments, Attachment::depth);
-
     for (u8 i = 0; i < swapchainImageCount; ++i) {
-        renderTarget.attachments.clear();
+        renderTarget.depthAttachment = nullptr;
+        renderTarget.colorAttachment = nullptr;
+
         if (isFlagEnabled(attachments, Attachment::swapchainColor))
-            renderTarget.attachments.push_back(renderer.getSwapchainTexture(i));
-        if (props.includeDepthAttachment)
-            renderTarget.attachments.push_back(renderer.getDepthTexture());
+            renderTarget.colorAttachment = renderer.getSwapchainTexture(i);
+
+        if (isFlagEnabled(attachments, Attachment::depth))
+            renderTarget.depthAttachment = renderer.getDepthTexture();
+
         props.renderTargets.push_back(renderTarget);
     }
 

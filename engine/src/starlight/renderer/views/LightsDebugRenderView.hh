@@ -10,16 +10,15 @@ class LightsDebugRenderView : public RenderView {
 public:
     explicit LightsDebugRenderView(const Vec2<f32>& viewportOffset);
 
-    RenderPass::Properties getRenderPassProperties(
+    RenderPass::Properties generateRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-    ) const override;
+    ) override;
 
     void init(RendererBackend& renderer, RenderPass& renderPass) override;
 
     void render(
-      RendererBackend& renderer, const RenderPacket& packet,
-      const RenderProperties& props, float deltaTime, CommandBuffer& commandBuffer,
-      u8 imageIndex
+      RendererBackend& renderer, RenderPacket& packet, const RenderProperties& props,
+      float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
     ) override;
 
 private:

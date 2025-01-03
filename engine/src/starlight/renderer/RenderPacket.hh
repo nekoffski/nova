@@ -3,6 +3,7 @@
 #include "starlight/core/math/Core.hh"
 
 #include "gpu/Mesh.hh"
+#include "gpu/Texture.hh"
 #include "light/PointLight.hh"
 #include "light/DirectionalLight.hh"
 #include "camera/Camera.hh"
@@ -23,6 +24,7 @@ struct RenderPacket {
     std::vector<PointLight> pointLights;
     std::vector<DirectionalLight> directionalLights;
     std::vector<RenderEntity> entities;
+    std::vector<Texture*> shadowMaps;  // TODO: static array instead
 };
 
 }  // namespace sl

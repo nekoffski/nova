@@ -33,8 +33,9 @@ OwningPtr<RenderGraph> RenderGraph::Builder::build() && {
         const auto chainFlags = getChainFlags(i, viewCount);
 
         // TODO: kind of a cyclic dependency, try to decouple
-        const auto props = view->getRenderPassProperties(m_renderer, chainFlags);
-        auto renderPass  = RenderPass::create(m_renderer, props, chainFlags);
+        const auto props =
+          view->generateRenderPassProperties(m_renderer, chainFlags);
+        auto renderPass = RenderPass::create(m_renderer, props, chainFlags);
         view->init(m_renderer, *renderPass);
 
         nodes.emplace_back(i, std::move(view), std::move(renderPass));

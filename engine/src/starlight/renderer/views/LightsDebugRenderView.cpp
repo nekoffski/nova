@@ -11,10 +11,10 @@ LightsDebugRenderView::LightsDebugRenderView(const Vec2<f32>& viewportOffset) :
     m_shader(ShaderManager::get().load(shaderName)),
     m_mesh(MeshManager::get().getUnitSphere()) {}
 
-RenderPass::Properties LightsDebugRenderView::getRenderPassProperties(
+RenderPass::Properties LightsDebugRenderView::generateRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
-) const {
-    return getDefaultRenderPassProperties(
+) {
+    return generateDefaultRenderPassProperties(
       renderer, Attachment::swapchainColor | Attachment::depth
     );
 }
@@ -26,7 +26,7 @@ void LightsDebugRenderView::init(
 }
 
 void LightsDebugRenderView::render(
-  RendererBackend& renderer, const RenderPacket& packet,
+  RendererBackend& renderer, RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& properties,
   [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
 ) {

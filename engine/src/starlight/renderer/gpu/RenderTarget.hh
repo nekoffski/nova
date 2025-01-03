@@ -10,7 +10,8 @@ namespace sl {
 
 struct RenderTarget {
     Vec2<u32> size;
-    std::vector<Texture*> attachments;
+    Texture* colorAttachment = nullptr;
+    Texture* depthAttachment = nullptr;
 };
 
 }  // namespace sl

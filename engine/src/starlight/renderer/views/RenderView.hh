@@ -15,9 +15,9 @@ public:
 
     virtual ~RenderView() = default;
 
-    virtual RenderPass::Properties getRenderPassProperties(
+    virtual RenderPass::Properties generateRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-    ) const = 0;
+    ) = 0;
 
     virtual void init(
       [[maybe_unused]] RendererBackend& renderer,
@@ -25,20 +25,19 @@ public:
     ) {}
 
     virtual void render(
-      RendererBackend& renderer, const RenderPacket& packet,
-      const RenderProperties& props, float deltaTime, CommandBuffer& commandBuffer,
-      u8 imageIndex
+      RendererBackend& renderer, RenderPacket& packet, const RenderProperties& props,
+      float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
     ) = 0;
 
-    Rect2<u32> getViewport() const;
+    virtual Rect2<u32> getViewport() const;
 
     const std::string name;
 
 protected:
-    RenderPass::Properties getDefaultRenderPassProperties(
+    RenderPass::Properties generateDefaultRenderPassProperties(
       RendererBackend& renderer, Attachment attachments,
       RenderPass::ClearFlags clearFlags = RenderPass::ClearFlags::none
-    ) const;
+    );
 
     Vec2<f32> m_viewportOffset;
 };

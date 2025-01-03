@@ -5,6 +5,7 @@
 #include <starlight/renderer/views/WorldRenderView.hh>
 #include <starlight/renderer/views/SkyboxRenderView.hh>
 #include <starlight/renderer/views/LightsDebugRenderView.hh>
+#include <starlight/renderer/views/ShadowMapsRenderView.hh>
 #include <starlight/ui/fonts/FontAwesome.hh>
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/Scene.hh>
@@ -57,6 +58,7 @@ void Application::startRenderLoop() {
     auto renderGraph =
       sl::RenderGraph::Builder{ backend, m_eventProxy, viewport }
         .addView<sl::SkyboxRenderView>(viewportOffset)
+        // .addView<sl::ShadowMapsRenderView>(viewportOffset)
         .addView<sl::WorldRenderView>(viewportOffset, worldShader)
         .addView<sl::LightsDebugRenderView>(viewportOffset)
         .addView<sl::UIRenderView>(
@@ -68,10 +70,9 @@ void Application::startRenderLoop() {
     m_userInterface.setRenderGraph(*renderGraph);
 
     while (m_isRunning) {
+        auto renderPacket = m_scene.getRenderPacket();
         m_context.beginFrame([&](float deltaTime) {
-            m_renderer.renderFrame(
-              deltaTime, m_scene.getRenderPacket(), *renderGraph
-            );
+            m_renderer.renderFrame(deltaTime, renderPacket, *renderGraph);
             m_cameras.update(deltaTime);
         });
     }

@@ -62,6 +62,12 @@ public:
     virtual void resize(u32 width, u32 height)           = 0;
     virtual void write(u32 offset, std::span<u8> pixels) = 0;
 
+    static OwningPtr<Texture> create(
+      RendererBackend& renderer,
+      const Texture::Properties& props = Texture::Properties::createDefault(),
+      const Texture::Pixels& pixels    = Texture::Pixels{}
+    );
+
     const Properties& getProperties() const;
 
 protected:
@@ -93,10 +99,6 @@ public:
     );
 
 private:
-    OwningPtr<Texture> createTexture(
-      const Texture::Properties& props, const Texture::Pixels& pixels
-    );
-
     void createDefaults();
 
     ResourceRef<Texture> m_defaultDiffuseMap;

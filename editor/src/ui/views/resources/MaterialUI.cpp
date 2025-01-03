@@ -18,6 +18,13 @@ void MaterialUI::render(sl::ResourceRef<sl::Material> material) {
 
     bool textureChanged = false;
 
+    sl::ui::text("Diffuse color:");
+    ImGui::ColorEdit4(
+      "##diffuse-color", sl::math::value_ptr(material->diffuseColor)
+    );
+    sl::ui::text("Shininess:");
+    ImGui::SliderFloat("##shininess", &material->shininess, 0.0f, 64.0f);
+
     sl::ui::combo(
       "Diffuse map", materialTextures.diffuseMap.getName(), textures,
       [&](auto& texture) {

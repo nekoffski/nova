@@ -31,7 +31,7 @@ FrameStatistics RendererFrontend::getFrameStatistics() { return m_frameStatistic
 RendererBackend& RendererFrontend::getRendererBackend() { return m_backend; }
 
 void RendererFrontend::renderFrame(
-  float deltaTime, const RenderPacket& packet, RenderGraph& renderGraph
+  float deltaTime, RenderPacket& packet, RenderGraph& renderGraph
 ) {
     sl::TaskQueue::get().dispatchQueue(sl::TaskQueue::Type::preFrameRender);
     m_frameStatistics.frameNumber++;

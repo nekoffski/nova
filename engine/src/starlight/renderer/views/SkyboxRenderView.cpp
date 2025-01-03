@@ -8,10 +8,10 @@ SkyboxRenderView::SkyboxRenderView(
   const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
 ) : RenderView("SkyboxRenderView", viewportOffset), m_shader(shader) {}
 
-RenderPass::Properties SkyboxRenderView::getRenderPassProperties(
+RenderPass::Properties SkyboxRenderView::generateRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
-) const {
-    return getDefaultRenderPassProperties(
+) {
+    return generateDefaultRenderPassProperties(
       renderer, Attachment::swapchainColor, RenderPass::ClearFlags::color
     );
 }
@@ -23,7 +23,7 @@ void SkyboxRenderView::init(
 }
 
 void SkyboxRenderView::render(
-  RendererBackend& renderer, const RenderPacket& packet,
+  RendererBackend& renderer, RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& properties,
   [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
 ) {

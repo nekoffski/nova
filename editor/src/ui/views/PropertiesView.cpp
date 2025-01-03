@@ -146,9 +146,6 @@ void PropertiesView::RendererTab::render() {
                     sl::ui::text(
                       "Render targets: {}", properties.renderTargets.size()
                     );
-                    sl::ui::text(
-                      "Depth included: {}", properties.includeDepthAttachment
-                    );
 
                     auto colorPtr = sl::math::value_ptr(properties.clearColor);
                     if (ImGui::ColorEdit4("Clear Color", colorPtr))
