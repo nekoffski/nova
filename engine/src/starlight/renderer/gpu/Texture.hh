@@ -18,7 +18,6 @@ public:
 
     using PixelWidth = u8;
     using Pixels     = std::vector<PixelWidth>;
-    using PixelsView = std::span<PixelWidth>;
 
     struct ImageData {
         enum class Orientation { vertical, horizontal };
@@ -35,8 +34,8 @@ public:
     };
 
     enum class Type : u8 { flat, cubemap };
-    enum class Filter { nearest, linear };
-    enum class Repeat { repeat, mirroredRepeat, clampToEdge, clampToBorder };
+    enum class Filter : u8 { nearest, linear };
+    enum class Repeat : u8 { repeat, mirroredRepeat, clampToEdge, clampToBorder };
 
     struct Properties {
         static Properties createDefault(
