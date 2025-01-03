@@ -161,10 +161,6 @@ void VKRenderPass::generateRenderTargets() {
     LOG_TRACE("Generating render targets for render pass");
     for (const auto& renderTarget : renderTargets) {
         std::vector<VkImageView> attachmentViews;
-        const auto attachmentsSize =
-          static_cast<u8>(renderTarget.colorAttachment != nullptr)
-          + static_cast<u8>(renderTarget.depthAttachment != nullptr);
-        attachmentViews.reserve(attachmentsSize);
 
         if (renderTarget.colorAttachment != nullptr)
             addAttachment(attachmentViews, renderTarget.colorAttachment);
@@ -174,7 +170,7 @@ void VKRenderPass::generateRenderTargets() {
 
         LOG_TRACE(
           "Creating framebuffer for render target, attachment count: {}",
-          attachmentsSize
+          attachmentViews.size()
         );
         m_framebuffers.push_back(createOwningPtr<VKFramebuffer>(
           m_context, m_device, m_handle, renderTarget.size.x, renderTarget.size.y,
@@ -187,6 +183,7 @@ VKRenderPassCreateInfo::VKRenderPassCreateInfo(
   VkFormat depthFormat, VkSurfaceFormatKHR surfaceFormat,
   VKRenderPass::Properties props, RenderPass::ChainFlags chainFlags
 ) {
+    m_attachmentDescriptions.reserve(2);
     bool hasColorAttachment = false;
     bool hasDepthAttachment = false;
 
@@ -195,11 +192,9 @@ VKRenderPassCreateInfo::VKRenderPassCreateInfo(
         if (target.depthAttachment != nullptr) hasDepthAttachment = true;
     }
 
-    u8 attachmentIndex = 0;
-
     if (hasColorAttachment) {
         createColorAttachment(surfaceFormat, props, chainFlags);
-        m_colorAttachmentReference.attachment = attachmentIndex++;
+        m_colorAttachmentReference.attachment = m_attachmentDescriptions.size() - 1;
         m_colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         m_subpass.colorAttachmentCount    = 1;
         m_subpass.pColorAttachments       = &m_colorAttachmentReference;
@@ -209,9 +204,11 @@ VKRenderPassCreateInfo::VKRenderPassCreateInfo(
 
     if (hasDepthAttachment) {
         createDepthAttachment(depthFormat, props);
-        m_depthAttachmentReference.attachment = attachmentIndex++;
+        m_depthAttachmentReference.attachment = m_attachmentDescriptions.size() - 1;
         m_depthAttachmentReference.layout     = VK_IMAGE_LAYOUT_GENERAL;
         m_subpass.pDepthStencilAttachment     = &m_depthAttachmentReference;
+    } else {
+        m_subpass.pDepthStencilAttachment = nullptr;
     }
 
     createSubpass();
@@ -268,8 +265,6 @@ void VKRenderPassCreateInfo::createDepthAttachment(
 
 void VKRenderPassCreateInfo::createSubpass() {
     m_subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    m_subpass.pDepthStencilAttachment = nullptr;
-
     m_subpass.inputAttachmentCount    = 0;
     m_subpass.pInputAttachments       = 0;
     m_subpass.pResolveAttachments     = 0;
