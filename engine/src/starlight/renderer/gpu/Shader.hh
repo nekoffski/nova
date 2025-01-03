@@ -133,6 +133,11 @@ public:
             m_shader.setUniform(uniform, glm::value_ptr(value), m_commandBuffer);
         }
 
+        template <typename T>
+        void set(const std::string& uniform, const std::vector<T>& array) {
+            m_shader.setUniform(uniform, array.data(), m_commandBuffer);
+        }
+
         template <typename T> void set(const std::string& uniform, const T* value) {
             m_shader.setUniform(uniform, value, m_commandBuffer);
         }

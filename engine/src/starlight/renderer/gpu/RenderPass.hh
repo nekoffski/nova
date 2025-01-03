@@ -21,7 +21,7 @@ public:
         none    = 0x0,
         color   = 0x1,
         depth   = 0x2,
-        stencil = 0xc4
+        stencil = 0x4
     };
 
     enum class ChainFlags : unsigned char {
@@ -44,7 +44,6 @@ public:
         Vec4<f32> clearColor;
         ClearFlags clearFlags;
         std::vector<RenderTarget> renderTargets;
-        bool includeDepthAttachment;
     };
 
     static OwningPtr<RenderPass> create(

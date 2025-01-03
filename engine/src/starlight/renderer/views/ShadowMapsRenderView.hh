@@ -9,11 +9,9 @@
 
 namespace sl {
 
-class WorldRenderView : public RenderView {
+class ShadowMapsRenderView : public RenderView {
 public:
-    explicit WorldRenderView(
-      const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
-    );
+    explicit ShadowMapsRenderView(const Vec2<f32>& viewportOffset);
 
     RenderPass::Properties generateRenderPassProperties(
       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
@@ -26,8 +24,11 @@ public:
       float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
     ) override;
 
+    Rect2<u32> getViewport() const override;
+
 private:
     ResourceRef<Shader> m_shader;
+    std::vector<OwningPtr<Texture>> m_shadowMaps;
 };
 
 }  // namespace sl

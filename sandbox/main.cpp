@@ -114,8 +114,9 @@ int main(int argc, char** argv) {
         .front();
 
     while (isRunning) {
+        auto renderPacket = scene.getRenderPacket();
         context.beginFrame([&](float deltaTime) {
-            renderer.renderFrame(deltaTime, scene.getRenderPacket(), *renderGraph);
+            renderer.renderFrame(deltaTime, renderPacket, *renderGraph);
             camera.update(deltaTime);
 
             instance.rotate(

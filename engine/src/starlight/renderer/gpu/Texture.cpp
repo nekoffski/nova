@@ -198,7 +198,7 @@ ResourceRef<Texture> TextureManager::load(
     const auto fullPath = fmt::format("{}/{}", m_texturesPath, name);
 
     if (auto data = TextureData::fromFile(fullPath, textureType); data)
-        return store(name, createTexture(data->props, data->buffer));
+        return store(name, Texture::create(m_renderer, data->props, data->buffer));
 
     LOG_WARN("Could not process texture: {}", fullPath);
     return nullptr;
@@ -220,26 +220,13 @@ ResourceRef<Texture> TextureManager::create(
   const std::string& name, const Texture::Properties& props,
   const Texture::Pixels& pixels
 ) {
-    return store(
-      name,
-      createTexture(
-        props,
-        pixels.size() != 0
-          ? pixels
-          : Texture::Pixels(props.width * props.height * props.channels, 255)
-      )
-    );
+    return store(name, Texture::create(m_renderer, props, pixels));
 }
 
 ResourceRef<Texture> TextureManager::create(
   const Texture::Properties& props, const Texture::Pixels& pixels
 ) {
-    return store(createTexture(
-      props,
-      pixels.size() != 0
-        ? pixels
-        : Texture::Pixels(props.width * props.height * props.channels, 255)
-    ));
+    return store(Texture::create(m_renderer, props, pixels));
 }
 
 TextureManager::TextureManager(const std::string& path, RendererBackend& renderer) :
@@ -286,14 +273,18 @@ void TextureManager::createDefaults() {
     m_defaultDiffuseMap = create("DefaultDiffuseMap", properties, buffer);
 }
 
-OwningPtr<Texture> TextureManager::createTexture(
-  const Texture::Properties& props, const Texture::Pixels& pixels
+OwningPtr<Texture> Texture::create(
+  RendererBackend& renderer, const Texture::Properties& props,
+  const Texture::Pixels& pixels
 ) {
 #ifdef SL_USE_VK
-    auto& vkRenderer = static_cast<vk::VKRendererBackend&>(m_renderer);
+    auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
 
     return createOwningPtr<vk::VKTexture>(
-      vkRenderer.getContext(), vkRenderer.getLogicalDevice(), props, pixels
+      vkRenderer.getContext(), vkRenderer.getLogicalDevice(), props,
+      pixels.size() != 0
+        ? pixels
+        : Texture::Pixels(props.width * props.height * props.channels, 0)
     );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");

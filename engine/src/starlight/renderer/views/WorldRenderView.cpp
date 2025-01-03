@@ -9,14 +9,14 @@ WorldRenderView::WorldRenderView(
   const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
 ) : RenderView("WorldRenderView", viewportOffset), m_shader(shader) {}
 
-RenderPass::Properties WorldRenderView::getRenderPassProperties(
+RenderPass::Properties WorldRenderView::generateRenderPassProperties(
   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-) const {
+) {
     auto clearFlags =
       RenderPass::ClearFlags::depth | RenderPass::ClearFlags::stencil;
     if (not isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious))
         clearFlags |= RenderPass::ClearFlags::color;
-    return getDefaultRenderPassProperties(
+    return generateDefaultRenderPassProperties(
       renderer, Attachment::swapchainColor | Attachment::depth, clearFlags
     );
 }
@@ -35,7 +35,7 @@ struct MeshRenderData {
 };
 
 void WorldRenderView::render(
-  RendererBackend& renderer, const RenderPacket& packet,
+  RendererBackend& renderer, RenderPacket& packet,
   const RenderProperties& properties, [[maybe_unused]] float deltaTime,
   CommandBuffer& commandBuffer, u8 imageIndex
 ) {
@@ -58,15 +58,15 @@ void WorldRenderView::render(
           if (pointLightCount > 0) {
               const auto shaderBulk = transform<PointLight::ShaderData>(
                 packet.pointLights,
-                [](const PointLight& light) { return light.getShaderData(); }
+                [](const auto& light) { return light.getShaderData(); }
               );
-              proxy.set("pointLights", shaderBulk.data());
+              proxy.set("pointLights", shaderBulk);
           }
 
           const auto directionalLightCount = packet.directionalLights.size();
 
           if (directionalLightCount > 0)
-              proxy.set("directionalLights", packet.directionalLights.data());
+              proxy.set("directionalLights", packet.directionalLights);
 
           proxy.set("pointLightCount", pointLightCount);
           proxy.set("directionalLightCount", directionalLightCount);

@@ -31,7 +31,7 @@ public:
     RendererBackend& getRendererBackend();
 
     void renderFrame(
-      float deltaTime, const RenderPacket& packet, RenderGraph& renderGraph
+      float deltaTime, RenderPacket& packet, RenderGraph& renderGraph
     );
 
     void setRenderMode(RenderMode mode);

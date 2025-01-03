@@ -14,14 +14,14 @@ UIRenderView::UIRenderView(
     RenderView("UIRenderView", { 0.0f, 0.0f }), m_fontsProperties(fontsProperties),
     m_uiCallback(callback) {}
 
-RenderPass::Properties UIRenderView::getRenderPassProperties(
+RenderPass::Properties UIRenderView::generateRenderPassProperties(
   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-) const {
+) {
     const auto clearFlags =
       isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious)
         ? RenderPass::ClearFlags::none
         : RenderPass::ClearFlags::color;
-    return getDefaultRenderPassProperties(
+    return generateDefaultRenderPassProperties(
       renderer, Attachment::swapchainColor, clearFlags
     );
 }
@@ -38,8 +38,7 @@ void UIRenderView::init(RendererBackend& renderer, RenderPass& renderPass) {
 }
 
 void UIRenderView::render(
-  [[maybe_unused]] RendererBackend& renderer,
-  [[maybe_unused]] const RenderPacket& packet,
+  [[maybe_unused]] RendererBackend& renderer, [[maybe_unused]] RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& props, [[maybe_unused]] float deltaTime,
   CommandBuffer& commandBuffer, [[maybe_unused]] u8 imageIndex
 ) {
