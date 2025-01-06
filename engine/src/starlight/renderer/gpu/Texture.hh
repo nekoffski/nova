@@ -7,6 +7,7 @@
 #include "starlight/core/memory/Memory.hh"
 
 #include "starlight/renderer/gpu/RendererBackend.hh"
+#include "starlight/renderer/Core.hh"
 
 namespace sl {
 
@@ -19,36 +20,51 @@ public:
     using PixelWidth = u8;
     using Pixels     = std::vector<PixelWidth>;
 
-    struct ImageData {
-        enum class Orientation { vertical, horizontal };
-
-        static std::optional<ImageData> loadFromFile(
-          std::string_view path, Orientation orientation = Orientation::vertical
-        );
-
-        Pixels pixels;
-        u32 width;
-        u32 height;
-        u8 channels;
-        bool isTransparent;
-    };
-
     enum class Type : u8 { flat, cubemap };
     enum class Filter : u8 { nearest, linear };
     enum class Repeat : u8 { repeat, mirroredRepeat, clampToEdge, clampToBorder };
+    enum class Orientation : u8 { vertical, horizontal };
+    enum class Flags : u8 { none = 0x0, writable = 0x1, transparent = 0x2 };
+    enum class Tiling : u8 { optimal = 0x0, linear = 0x1 };
+    enum class Usage : u32 {
+        transferSrc            = 0x00000001,
+        transferDest           = 0x00000002,
+        sampled                = 0x00000004,
+        storage                = 0x00000008,
+        colorAttachment        = 0x00000010,
+        depthStencilAttachment = 0x00000020,
+        transientAttachment    = 0x00000040,
+        inputAttachment        = 0x00000080,
+    };
+    enum class Aspect : u32 {
+        none     = 0x0,
+        color    = 0x00000001,
+        depth    = 0x00000002,
+        stencil  = 0x00000004,
+        metadata = 0x00000008,
+    };
 
-    struct Properties {
-        static Properties createDefault(
-          u32 width = defaultWidth, u32 height = defaultHeight,
-          u32 channels = defaultChannels
+    struct ImageData {
+        static ImageData createDefault();
+        static std::optional<ImageData> load(
+          std::string_view path, Texture::Type textureType
         );
 
         u32 width;
         u32 height;
-        u32 channels;
-        bool isTransparent;
-        bool isWritable;
+        u8 channels;
+        Flags flags;
         Type type;
+        Format format;
+        Tiling tiling;
+        Usage usage;
+        Aspect aspect;
+        Pixels pixels;
+    };
+
+    struct SamplerProperties {
+        static SamplerProperties createDefault();
+
         Filter minifyFilter;
         Filter magnifyFilter;
         Repeat uRepeat;
@@ -62,17 +78,20 @@ public:
     virtual void write(u32 offset, std::span<u8> pixels) = 0;
 
     static OwningPtr<Texture> create(
-      RendererBackend& renderer,
-      const Texture::Properties& props = Texture::Properties::createDefault(),
-      const Texture::Pixels& pixels    = Texture::Pixels{}
+      RendererBackend& renderer, const ImageData& image = ImageData::createDefault(),
+      const SamplerProperties& sampler = SamplerProperties::createDefault()
     );
 
-    const Properties& getProperties() const;
+    const SamplerProperties& getSamplerProperties() const;
+    const ImageData& getImageData() const;
 
 protected:
-    explicit Texture(const Properties& props);
+    explicit Texture(
+      const ImageData& imageData, const SamplerProperties& samplerProperties
+    );
 
-    Properties m_props;
+    ImageData m_imageData;
+    SamplerProperties m_samplerProperties;
 };
 
 class TextureManager
@@ -81,7 +100,11 @@ class TextureManager
 public:
     explicit TextureManager(const std::string& path, RendererBackend& renderer);
 
-    ResourceRef<Texture> load(const std::string& name, Texture::Type textureType);
+    ResourceRef<Texture> load(
+      const std::string& name, Texture::Type textureType,
+      const Texture::SamplerProperties& sampler =
+        Texture::SamplerProperties::createDefault()
+    );
 
     ResourceRef<Texture> getDefaultDiffuseMap();
     ResourceRef<Texture> getDefaultNormalMap();
@@ -89,12 +112,14 @@ public:
 
     ResourceRef<Texture> create(
       const std::string& name,
-      const Texture::Properties& props = Texture::Properties::createDefault(),
-      const Texture::Pixels& pixels    = Texture::Pixels{}
+      const Texture::ImageData& image = Texture::ImageData::createDefault(),
+      const Texture::SamplerProperties& sampler =
+        Texture::SamplerProperties::createDefault()
     );
     ResourceRef<Texture> create(
-      const Texture::Properties& props = Texture::Properties::createDefault(),
-      const Texture::Pixels& pixels    = Texture::Pixels{}
+      const Texture::ImageData& image = Texture::ImageData::createDefault(),
+      const Texture::SamplerProperties& sampler =
+        Texture::SamplerProperties::createDefault()
     );
 
 private:
@@ -107,5 +132,10 @@ private:
     const std::string m_texturesPath;
     RendererBackend& m_renderer;
 };
+
+constexpr void enableBitOperations(Texture::Flags);
+constexpr void enableBitOperations(Texture::Aspect);
+constexpr void enableBitOperations(Texture::Usage);
+constexpr void enableBitOperations(Texture::Tiling);
 
 }  // namespace sl

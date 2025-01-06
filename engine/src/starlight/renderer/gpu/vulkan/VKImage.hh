@@ -6,6 +6,8 @@
 #include "Vulkan.hh"
 #include "fwd.hh"
 
+#include "starlight/renderer/gpu/Texture.hh"
+
 #include "VKPhysicalDevice.hh"
 #include "VKContext.hh"
 #include "VKBuffer.hh"
@@ -15,12 +17,7 @@ namespace sl::vk {
 
 class VKImage {
 public:
-    enum class Type : u8 { flat, cubemap };
-
     struct Properties {
-        Type type;
-        u32 width;
-        u32 height;
         VkFormat format;
         VkImageTiling tiling;
         VkImageUsageFlags usage;
@@ -31,23 +28,18 @@ public:
     };
 
     explicit VKImage(
-      VKContext& context, VKLogicalDevice&, const Properties& properties
+      VKContext& context, VKLogicalDevice&, const Texture::ImageData& imageData
     );
+
     explicit VKImage(
-      VKContext& context, VKLogicalDevice&, const Properties& properties,
-      std::span<const u8> pixels
-    );
-    explicit VKImage(
-      VKContext& context, VKLogicalDevice&, const Properties& properties,
+      VKContext& context, VKLogicalDevice&, const Texture::ImageData& imageData,
       VkImage handle
     );
 
     ~VKImage();
 
-    void recreate(const Properties& properties, VkImage handle);
-    void recreate(const Properties& properties);
-
-    const Properties& getProperties() const;
+    void recreate(const Texture::ImageData& imageData, VkImage handle);
+    void recreate(const Texture::ImageData& imageData);
 
     VKImage(const VKImage& oth)            = delete;
     VKImage& operator=(const VKImage& oth) = delete;
@@ -75,9 +67,7 @@ private:
 
     VKContext& m_context;
     VKLogicalDevice& m_device;
-
-    Properties m_props;
-
+    Texture::ImageData m_imageData;
     VkImage m_handle;
     VkDeviceMemory m_memory;
     VkImageView m_view;

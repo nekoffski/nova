@@ -1,6 +1,7 @@
 #include "Material.hh"
 
 #include "starlight/core/utils/Json.hh"
+#include "starlight/core/utils/Enum.hh"
 
 namespace sl {
 
@@ -15,7 +16,9 @@ Material::Material(const Properties& props) :
 Material::~Material() { LOG_TRACE("Destroying Material"); }
 
 bool Material::isTransparent() const {
-    return m_textures.diffuseMap->getProperties().isTransparent;
+    return isFlagEnabled(
+      m_textures.diffuseMap->getImageData().flags, Texture::Flags::transparent
+    );
 }
 
 void Material::applyUniforms(

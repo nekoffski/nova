@@ -58,7 +58,7 @@ void Application::startRenderLoop() {
     auto renderGraph =
       sl::RenderGraph::Builder{ backend, m_eventProxy, viewport }
         .addView<sl::SkyboxRenderView>(viewportOffset)
-        .addView<sl::ShadowMapsRenderView>(viewportOffset)
+        // .addView<sl::ShadowMapsRenderView>(viewportOffset)
         .addView<sl::WorldRenderView>(viewportOffset, worldShader)
         .addView<sl::LightsDebugRenderView>(viewportOffset)
         .addView<sl::UIRenderView>(
