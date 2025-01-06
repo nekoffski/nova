@@ -12,15 +12,15 @@ ShadowMapsRenderView::ShadowMapsRenderView(const Vec2<f32>& viewportOffset) :
 RenderPass::Properties ShadowMapsRenderView::generateRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
 ) {
-    auto properties       = Texture::Properties::createDefault();
-    properties.width      = 1024;
-    properties.height     = 1024;
-    properties.isWritable = true;
+    auto imageData   = Texture::ImageData::createDefault();
+    imageData.width  = 1024;
+    imageData.height = 1024;
+    imageData.flags  = Texture::Flags::writable;
 
     const auto swapchainImageCount = renderer.getSwapchainImageCount();
 
     for (u32 i = 0; i < swapchainImageCount; ++i)
-        m_shadowMaps.push_back(Texture::create(renderer, properties));
+        m_shadowMaps.push_back(Texture::create(renderer, imageData));
 
     RenderPass::Properties props;
 

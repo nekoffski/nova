@@ -187,28 +187,31 @@ void VKSwapchain::createImages() {
 
     ASSERT(m_imageCount > 0, "swapchainImageCount==0 for vulkan swapchain");
 
-    std::array<VkImage, 16> swapchainImages = { 0 };
+    std::vector<VkImage> swapchainImages(m_imageCount, 0);
 
     VK_ASSERT(vkGetSwapchainImagesKHR(
       logicalDeviceHandle, m_handle, &m_imageCount, swapchainImages.data()
     ));
 
+    auto samplerProperties = Texture::SamplerProperties::createDefault();
+
     if (m_textures.size() != m_imageCount) {
         m_textures.clear();
         m_textures.resize(m_imageCount);
 
-        VKTexture::Properties props{};
-        props.width         = m_swapchainExtent.width;
-        props.height        = m_swapchainExtent.height;
-        props.channels      = 4;
-        props.isTransparent = false;
-        props.isWritable    = true;
+        auto imageData = Texture::ImageData::createDefault();
+
+        imageData.width    = m_swapchainExtent.width;
+        imageData.height   = m_swapchainExtent.height;
+        imageData.channels = 4;
+        imageData.flags    = Texture::Flags::writable;
+        imageData.format   = static_cast<Format>(m_imageFormat.format);
 
         for (u32 i = 0; i < m_imageCount; ++i) {
             auto& swapchainImageHandle = swapchainImages[i];
 
             m_textures[i].emplace(
-              m_context, m_device, props, swapchainImageHandle, m_imageFormat.format
+              m_context, m_device, swapchainImageHandle, imageData, samplerProperties
             );
         }
     } else {
@@ -218,21 +221,15 @@ void VKSwapchain::createImages() {
         }
     }
 
-    // Create depth image and its view.
-    VKImage::Properties imageProperties{
-        VKImage::Type::flat,
-        m_swapchainExtent.width,
-        m_swapchainExtent.height,
-        m_device.getDepthFormat(),
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        true,
-        VK_IMAGE_ASPECT_DEPTH_BIT,
-        m_device.getDepthChannelCount()
-    };
+    auto imageData     = Texture::ImageData::createDefault();
+    imageData.width    = m_swapchainExtent.width;
+    imageData.height   = m_swapchainExtent.height;
+    imageData.usage    = Texture::Usage::depthStencilAttachment;
+    imageData.aspect   = Texture::Aspect::depth;
+    imageData.format   = static_cast<Format>(m_device.getDepthFormat());
+    imageData.channels = m_device.getDepthChannelCount();
 
-    m_depthTexture.emplace(m_context, m_device, imageProperties);
+    m_depthTexture.emplace(m_context, m_device, imageData, samplerProperties);
 }
 
 void VKSwapchain::create() {

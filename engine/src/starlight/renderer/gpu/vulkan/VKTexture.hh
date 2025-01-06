@@ -24,18 +24,14 @@ namespace sl::vk {
 class VKTexture : public Texture {
 public:
     explicit VKTexture(
-      VKContext& context, VKLogicalDevice& device, const Properties& props,
-      std::span<const u8> pixels
+      VKContext& context, VKLogicalDevice& device, const ImageData& imageData,
+      const SamplerProperties& sampler
     );
 
-    // TODO: consider splitting those classes somehow
+    // TODO: consider implementing separated VKSwapchainTexture
     explicit VKTexture(
-      VKContext& context, VKLogicalDevice& device, const Properties& props,
-      VkImage handle, VkFormat format
-    );
-
-    explicit VKTexture(
-      VKContext& context, VKLogicalDevice& device, const VKImage::Properties& props
+      VKContext& context, VKLogicalDevice& device, VkImage handle,
+      const ImageData& imageData, const SamplerProperties& sampler
     );
 
     ~VKTexture() override;
@@ -49,7 +45,7 @@ public:
     void write(u32 offset, std::span<u8> pixels) override;
 
 private:
-    void createSampler(const Texture::Properties& props);
+    void createSampler(const SamplerProperties& props);
 
     VKContext& m_context;
     VKLogicalDevice& m_device;

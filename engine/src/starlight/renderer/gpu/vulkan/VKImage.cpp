@@ -4,29 +4,56 @@
 
 namespace sl::vk {
 
+static VkFormat channelsToFormat(u32 channels) {
+    switch (channels) {
+        case 1:
+            return VK_FORMAT_R8_UNORM;
+        case 2:
+            return VK_FORMAT_R8G8_UNORM;
+        case 3:
+            return VK_FORMAT_R8G8B8_UNORM;
+        case 4:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        default:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+    }
+}
+
+static VkImageTiling toVk(Texture::Tiling tiling) {
+    return static_cast<VkImageTiling>(tiling);
+}
+
+static VkImageAspectFlags toVk(Texture::Aspect aspect) {
+    return static_cast<VkImageAspectFlags>(aspect);
+}
+
+static VkImageUsageFlags toVk(Texture::Usage usage) {
+    return static_cast<VkImageUsageFlags>(usage);
+}
+
+static VkFormat toVk(Format format, u8 channels) {
+    return format != Format::undefined
+             ? static_cast<VkFormat>(format)
+             : channelsToFormat(channels);
+}
+
 VKImage::VKImage(
-  VKContext& context, VKLogicalDevice& device, const VKImage::Properties& properties
+  VKContext& context, VKLogicalDevice& device, const Texture::ImageData& imageData
 ) :
-    m_context(context), m_device(device), m_props(properties),
+    m_context(context), m_device(device), m_imageData(imageData),
     m_handle(VK_NULL_HANDLE), m_memory(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE),
     m_destroyImage(true) {
     create();
+    if (imageData.pixels.size() > 0) write(0, imageData.pixels);
 }
 
 VKImage::VKImage(
-  VKContext& context, VKLogicalDevice& device, const Properties& properties,
-  std::span<const u8> pixels
-) : VKImage(context, device, properties) {
-    write(0, pixels);
-}
-
-VKImage::VKImage(
-  VKContext& context, VKLogicalDevice& device, const Properties& properties,
+  VKContext& context, VKLogicalDevice& device, const Texture::ImageData& imageData,
   VkImage handle
 ) :
-    m_context(context), m_device(device), m_props(properties), m_handle(handle),
+    m_context(context), m_device(device), m_imageData(imageData), m_handle(handle),
     m_memory(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE), m_destroyImage(false) {
-    if (m_props.createView) createView();
+    createView();
 }
 
 void VKImage::destroy() {
@@ -40,29 +67,26 @@ void VKImage::destroy() {
     LOG_TRACE("VKImage destroyed");
 }
 
-const VKImage::Properties& VKImage::getProperties() const { return m_props; }
-
-void VKImage::recreate(const Properties& properties, VkImage handle) {
+void VKImage::recreate(const Texture::ImageData& imageData, VkImage handle) {
     destroy();
 
-    m_props        = properties;
+    m_imageData    = imageData;
     m_destroyImage = false;
     m_handle       = handle;
 
-    if (m_props.createView) createView();
+    createView();
 }
 
-void VKImage::recreate(const Properties& properties) {
+void VKImage::recreate(const Texture::ImageData& imageData) {
     destroy();
-    m_props = properties;
+    m_imageData = imageData;
     create();
 }
 
 void VKImage::create() {
     createImage();
     allocateAndBindMemory();
-
-    if (m_props.createView) createView();
+    createView();
 }
 
 VKImage::~VKImage() { destroy(); }
@@ -92,14 +116,14 @@ void VKImage::write([[maybe_unused]] u32 offset, std::span<const u8> pixels) {
     tempCommandBuffer.createAndBeginSingleUse();
 
     transitionLayout(
-      tempCommandBuffer, m_props.format, VK_IMAGE_LAYOUT_UNDEFINED,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+      tempCommandBuffer, toVk(m_imageData.format, m_imageData.channels),
+      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
     );
 
     copyFromBuffer(stagingBuffer, tempCommandBuffer);
     transitionLayout(
-      tempCommandBuffer, m_props.format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+      tempCommandBuffer, toVk(m_imageData.format, m_imageData.channels),
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
     );
 
     tempCommandBuffer.endSingleUse(graphicsQueue);
@@ -116,13 +140,16 @@ void VKImage::copyFromBuffer(VKBuffer& buffer, VKCommandBuffer& commandBuffer) {
     region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     region.imageSubresource.mipLevel       = 0;
     region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount     = m_props.type == Type::cubemap ? 6 : 1;
+    region.imageSubresource.layerCount =
+      m_imageData.type == Texture::Type::cubemap ? 6 : 1;
 
-    region.imageExtent.width  = m_props.width;
-    region.imageExtent.height = m_props.height;
+    region.imageExtent.width  = m_imageData.width;
+    region.imageExtent.height = m_imageData.height;
     region.imageExtent.depth  = 1;
 
-    LOG_TRACE("vkCmdCopyBufferToImage region: {}/{}", m_props.width, m_props.height);
+    LOG_TRACE(
+      "vkCmdCopyBufferToImage region: {}/{}", m_imageData.width, m_imageData.height
+    );
 
     vkCmdCopyBufferToImage(
       commandBuffer.getHandle(), buffer.getHandle(), m_handle,
@@ -148,7 +175,8 @@ void VKImage::transitionLayout(
     barrier.subresourceRange.baseMipLevel   = 0;
     barrier.subresourceRange.levelCount     = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount     = m_props.type == Type::cubemap ? 6 : 1;
+    barrier.subresourceRange.layerCount =
+      m_imageData.type == Texture::Type::cubemap ? 6 : 1;
 
     VkPipelineStageFlags source;
     VkPipelineStageFlags destination;
@@ -187,23 +215,23 @@ void VKImage::transitionLayout(
     );
 }
 
-VkImageCreateInfo createImageCreateInfo(const VKImage::Properties& properties) {
-    bool isCubemap = properties.type == VKImage::Type::cubemap;
+VkImageCreateInfo createImageCreateInfo(const Texture::ImageData& imageData) {
+    bool isCubemap = imageData.type == Texture::Type::cubemap;
 
     VkImageCreateInfo imageCreateInfo;
     imageCreateInfo.flags         = 0;
     imageCreateInfo.pNext         = nullptr;
     imageCreateInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType     = VK_IMAGE_TYPE_2D;
-    imageCreateInfo.extent.width  = properties.width;
-    imageCreateInfo.extent.height = properties.height;
+    imageCreateInfo.extent.width  = imageData.width;
+    imageCreateInfo.extent.height = imageData.height;
     imageCreateInfo.extent.depth  = 1;  // TODO: Support configurable depth.
     imageCreateInfo.mipLevels     = 4;  // TODO: Support mip mapping
     imageCreateInfo.arrayLayers   = isCubemap ? 6 : 1;
-    imageCreateInfo.format        = properties.format;
-    imageCreateInfo.tiling        = properties.tiling;
+    imageCreateInfo.format        = toVk(imageData.format, imageData.channels);
+    imageCreateInfo.tiling        = toVk(imageData.tiling);
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageCreateInfo.usage         = properties.usage;
+    imageCreateInfo.usage         = toVk(imageData.usage);
     imageCreateInfo.samples =
       VK_SAMPLE_COUNT_1_BIT;  // TODO: Configurable sample count.
     imageCreateInfo.sharingMode =
@@ -214,20 +242,19 @@ VkImageCreateInfo createImageCreateInfo(const VKImage::Properties& properties) {
 }
 
 VkImageViewCreateInfo createViewCreateInfo(
-  const VKImage::Properties& properties, VkImage imageHandle
+  const Texture::ImageData& imageData, VkImage imageHandle
 ) {
     VkImageViewCreateInfo viewCreateInfo;
     clearMemory(&viewCreateInfo);
     viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
-    bool isCubemap = properties.type == VKImage::Type::cubemap;
+    bool isCubemap = imageData.type == Texture::Type::cubemap;
 
     viewCreateInfo.image = imageHandle;
     viewCreateInfo.viewType =
       isCubemap ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
-    viewCreateInfo.format                          = properties.format;
-    viewCreateInfo.subresourceRange.aspectMask     = properties.viewAspectFlags;
-    viewCreateInfo.subresourceRange.baseMipLevel   = 0;
+    viewCreateInfo.format = toVk(imageData.format, imageData.channels);
+    viewCreateInfo.subresourceRange.aspectMask     = toVk(imageData.aspect);
     viewCreateInfo.subresourceRange.levelCount     = 1;
     viewCreateInfo.subresourceRange.baseArrayLayer = 0;
     viewCreateInfo.subresourceRange.layerCount     = isCubemap ? 6 : 1;
@@ -260,7 +287,7 @@ VkImageView VKImage::getView() const { return m_view; }
 void VKImage::createImage(
 
 ) {
-    auto imageCreateInfo = createImageCreateInfo(m_props);
+    auto imageCreateInfo = createImageCreateInfo(m_imageData);
     VK_ASSERT(vkCreateImage(
       m_device.getHandle(), &imageCreateInfo, m_context.getAllocator(), &m_handle
     ));
@@ -273,7 +300,7 @@ void VKImage::allocateAndBindMemory() {
     auto memoryRequirements  = getMemoryRequirements(logicalDeviceHandle, m_handle);
 
     auto memoryType = m_device.findMemoryIndex(
-      memoryRequirements.memoryTypeBits, m_props.memoryFlags
+      memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     );
 
     if (not memoryType)
@@ -291,7 +318,7 @@ void VKImage::allocateAndBindMemory() {
 void VKImage::createView(
 
 ) {
-    auto viewCreateInfo = createViewCreateInfo(m_props, m_handle);
+    auto viewCreateInfo = createViewCreateInfo(m_imageData, m_handle);
     VK_ASSERT(vkCreateImageView(
       m_device.getHandle(), &viewCreateInfo, m_context.getAllocator(), &m_view
     ));
