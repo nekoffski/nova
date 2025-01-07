@@ -13,9 +13,9 @@ namespace sl {
 
 class Texture : public NonMovable, public Identificable<Texture> {
 public:
-    static constexpr u32 defaultWidth    = 1024;
-    static constexpr u32 defaultHeight   = 1024;
-    static constexpr u32 defaultChannels = 4;
+    static constexpr u32 defaultWidth   = 1024;
+    static constexpr u32 defaultHeight  = 1024;
+    static constexpr u8 defaultChannels = 4;
 
     using PixelWidth = u8;
     using Pixels     = std::vector<PixelWidth>;
@@ -45,7 +45,11 @@ public:
     };
 
     struct ImageData {
-        static ImageData createDefault();
+        static ImageData createDefault(PixelWidth pixelColor);
+        static ImageData createDefault(
+          u32 width = defaultWidth, u32 height = defaultHeight,
+          u8 channels = defaultChannels, std::optional<PixelWidth> pixelColor = {}
+        );
         static std::optional<ImageData> load(
           std::string_view path, Texture::Type textureType
         );
@@ -98,6 +102,8 @@ class TextureManager
     : public ResourceManager<Texture>,
       public kc::core::Singleton<TextureManager> {
 public:
+    constexpr static Texture::PixelWidth defaultPixelColor = 255;
+
     explicit TextureManager(const std::string& path, RendererBackend& renderer);
 
     ResourceRef<Texture> load(
@@ -112,12 +118,14 @@ public:
 
     ResourceRef<Texture> create(
       const std::string& name,
-      const Texture::ImageData& image = Texture::ImageData::createDefault(),
+      const Texture::ImageData& image =
+        Texture::ImageData::createDefault(defaultPixelColor),
       const Texture::SamplerProperties& sampler =
         Texture::SamplerProperties::createDefault()
     );
     ResourceRef<Texture> create(
-      const Texture::ImageData& image = Texture::ImageData::createDefault(),
+      const Texture::ImageData& image =
+        Texture::ImageData::createDefault(defaultPixelColor),
       const Texture::SamplerProperties& sampler =
         Texture::SamplerProperties::createDefault()
     );

@@ -17,16 +17,6 @@ namespace sl::vk {
 
 class VKImage {
 public:
-    struct Properties {
-        VkFormat format;
-        VkImageTiling tiling;
-        VkImageUsageFlags usage;
-        VkMemoryPropertyFlags memoryFlags;
-        bool createView;
-        VkImageAspectFlags viewAspectFlags;
-        u8 channels;
-    };
-
     explicit VKImage(
       VKContext& context, VKLogicalDevice&, const Texture::ImageData& imageData
     );
