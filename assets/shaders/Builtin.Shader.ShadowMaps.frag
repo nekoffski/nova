@@ -9,5 +9,7 @@ layout (std430, set = 0, binding = 0) uniform GlobalUBO {
 } globalUBO;
 
 
-void main() {}
+void main() {
+    gl_FragDepth = gl_FragCoord.z;
+}
    

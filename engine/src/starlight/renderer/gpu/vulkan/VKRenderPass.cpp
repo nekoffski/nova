@@ -11,7 +11,8 @@ class VKRenderPassCreateInfo {
 public:
     explicit VKRenderPassCreateInfo(
       VkFormat depthFormat, VkSurfaceFormatKHR surfaceFormat,
-      VKRenderPass::Properties props, RenderPass::ChainFlags chainFlags
+      VKRenderPass::Properties props, RenderPass::ChainFlags chainFlags,
+      bool hasColorAttachment, bool hasDepthAttachment
     );
 
     VkRenderPassCreateInfo handle;
@@ -42,11 +43,19 @@ private:
 VKRenderPass::VKRenderPass(
   VKContext& context, VKLogicalDevice& device, const VKSwapchain& swapchain,
   const Properties& properties, ChainFlags chainFlags
-) : RenderPass(properties), m_context(context), m_device(device) {
+) :
+    RenderPass(properties), m_context(context), m_device(device),
+    m_hasColorAttachment(false), m_hasDepthAttachment(false) {
     LOG_TRACE("Creating VKRenderPass instance");
 
+    for (auto& target : properties.renderTargets) {
+        if (target.colorAttachment != nullptr) m_hasColorAttachment = true;
+        if (target.depthAttachment != nullptr) m_hasDepthAttachment = true;
+    }
+
     VKRenderPassCreateInfo createInfo(
-      m_device.getDepthFormat(), swapchain.getSurfaceFormat(), properties, chainFlags
+      m_device.getDepthFormat(), swapchain.getSurfaceFormat(), properties,
+      chainFlags, m_hasColorAttachment, m_hasDepthAttachment
     );
 
     VK_ASSERT(vkCreateRenderPass(
@@ -73,9 +82,9 @@ VkRenderPass VKRenderPass::getHandle() { return m_handle; }
 
 std::vector<VkClearValue> VKRenderPass::createClearValues(ClearFlags flags) const {
     std::vector<VkClearValue> clearValues;
-    clearValues.resize(2);
+    clearValues.reserve(2);
 
-    if (isFlagEnabled(flags, ClearFlags::color)) {
+    if (m_hasColorAttachment) {
         VkClearValue clearValue;
 
         clearValue.color.float32[0] = m_props.clearColor.r;
@@ -83,17 +92,17 @@ std::vector<VkClearValue> VKRenderPass::createClearValues(ClearFlags flags) cons
         clearValue.color.float32[2] = m_props.clearColor.b;
         clearValue.color.float32[3] = m_props.clearColor.a;
 
-        clearValues[0] = clearValue;
+        clearValues.push_back(clearValue);
     }
 
-    if (isFlagEnabled(flags, ClearFlags::depth)) {
+    if (m_hasDepthAttachment && isFlagEnabled(flags, ClearFlags::depth)) {
         VkClearValue clearValue;
         clearValue.depthStencil.depth = m_depth;
 
         if (isFlagEnabled(flags, ClearFlags::stencil))
             clearValue.depthStencil.stencil = m_stencil;
 
-        clearValues[1] = clearValue;
+        clearValues.push_back(clearValue);
     }
 
     return clearValues;
@@ -181,16 +190,10 @@ void VKRenderPass::generateRenderTargets() {
 
 VKRenderPassCreateInfo::VKRenderPassCreateInfo(
   VkFormat depthFormat, VkSurfaceFormatKHR surfaceFormat,
-  VKRenderPass::Properties props, RenderPass::ChainFlags chainFlags
+  VKRenderPass::Properties props, RenderPass::ChainFlags chainFlags,
+  bool hasColorAttachment, bool hasDepthAttachment
 ) {
     m_attachmentDescriptions.reserve(2);
-    bool hasColorAttachment = false;
-    bool hasDepthAttachment = false;
-
-    for (auto& target : props.renderTargets) {
-        if (target.colorAttachment != nullptr) hasColorAttachment = true;
-        if (target.depthAttachment != nullptr) hasDepthAttachment = true;
-    }
 
     if (hasColorAttachment) {
         createColorAttachment(surfaceFormat, props, chainFlags);

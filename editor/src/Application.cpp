@@ -14,14 +14,21 @@
 
 namespace sle {
 
-Application::Application(const sl::Config& config) :
+Application::Application(
+  const sl::Config& config, std::optional<std::string> scenePath
+) :
     m_isRunning(true), m_config(config), m_context(config),
     m_eventProxy(m_context.getEventProxy()), m_window(m_context.getWindow()),
     m_renderer(m_context.getWindow(), m_eventProxy, config),
     m_eventSentinel(m_eventProxy),
     m_cameras(m_window.getFramebufferSize(), m_eventProxy),
     m_scene(m_window, m_cameras.getActive()),
-    m_userInterface(m_eventProxy, m_window.getFramebufferSize(), &m_scene) {}
+    m_userInterface(m_eventProxy, m_window.getFramebufferSize(), &m_scene) {
+    if (scenePath) {
+        LOG_INFO("Loading initial scene: {}", *scenePath);
+        m_sceneParser.deserialize(m_scene, *scenePath);
+    }
+}
 
 int Application::start() {
     init();
