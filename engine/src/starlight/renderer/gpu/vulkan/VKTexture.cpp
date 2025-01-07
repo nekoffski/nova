@@ -53,28 +53,6 @@ VkSamplerCreateInfo createSamplerCreateInfo(const Texture::SamplerProperties& pr
     return samplerInfo;
 }
 
-// VKImage::Properties getImageProperties(
-//   u32 width, u32 height, Texture::Type textureType,
-//   VkFormat format = VK_FORMAT_R8G8B8A8_UNORM
-// ) {
-//     return VKImage::Properties{
-//         textureType == Texture::Type::cubemap
-//           ? VKImage::Type::cubemap
-//           : VKImage::Type::flat,
-//         width,
-//         height,
-//         format,
-//         VK_IMAGE_TILING_OPTIMAL,
-//         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-//           | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-//
-//         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-//         true,
-//         VK_IMAGE_ASPECT_COLOR_BIT,
-//         3  // TODO: how to get those channels?
-//     };
-// }
-
 }  // namespace
 
 VKTexture::VKTexture(
@@ -96,26 +74,6 @@ VKTexture::VKTexture(
     LOG_TRACE("Texture created from existing VKImage");
     createSampler(sampler);
 }
-
-// VKTexture::VKTexture(
-//   VKContext& context, VKLogicalDevice& device, const VKImage::Properties& props
-// ) :
-//     Texture(Properties{
-//       props.width,
-//       props.height,
-//       props.channels,
-//       true,
-//       false,
-//       Type::flat,
-//       Filter::linear,
-//       Filter::linear,
-//       Repeat::repeat,
-//       Repeat::repeat,
-//       Repeat::repeat,
-//     }),
-//     m_context(context), m_device(device), m_image(m_context, m_device, props) {
-//     createSampler(m_props);
-// }
 
 VKTexture::~VKTexture() {
     const auto logicalDeviceHandle = m_device.getHandle();

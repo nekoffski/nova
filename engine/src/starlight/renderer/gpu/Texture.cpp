@@ -128,11 +128,29 @@ std::optional<Texture::ImageData> loadCubemapData(std::string_view path) {
     return data;
 }
 
-Texture::ImageData Texture::ImageData::createDefault() {
+Texture::ImageData Texture::ImageData::createDefault(PixelWidth pixelColor) {
+    return createDefault(defaultWidth, defaultHeight, defaultChannels, pixelColor);
+}
+
+Texture::ImageData Texture::ImageData::createDefault(
+  u32 width, u32 height, u8 channels, std::optional<PixelWidth> pixelColor
+) {
+    Pixels pixels;
+
+    if (pixelColor) {
+        const auto bufferSize = width * height * channels;
+        pixels.resize(bufferSize, 255);
+        for (u64 i = 0u; i < bufferSize; ++i) {
+            pixels[i]     = *pixelColor;
+            pixels[i + 1] = *pixelColor;
+            pixels[i + 2] = *pixelColor;
+        }
+    }
+
     return ImageData{
-        .width    = defaultWidth,
-        .height   = defaultHeight,
-        .channels = defaultChannels,
+        .width    = width,
+        .height   = height,
+        .channels = channels,
         .flags    = Flags::none,
         .type     = Type::flat,
         .format   = Format::undefined,
@@ -140,7 +158,7 @@ Texture::ImageData Texture::ImageData::createDefault() {
         .usage    = Usage::transferDest | Usage::transferSrc | Usage::sampled
                  | Usage::colorAttachment,
         .aspect = Aspect::color,
-        .pixels = {},
+        .pixels = pixels,
     };
 }
 
@@ -261,19 +279,9 @@ OwningPtr<Texture> Texture::create(
 ) {
 #ifdef SL_USE_VK
     auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
-
-    if (image.pixels.size() == 0) {
-        auto defaultImage = image;
-        defaultImage.pixels.resize(image.width * image.height * image.channels, 0);
-        return createOwningPtr<vk::VKTexture>(
-          vkRenderer.getContext(), vkRenderer.getLogicalDevice(), defaultImage,
-          sampler
-        );
-    } else {
-        return createOwningPtr<vk::VKTexture>(
-          vkRenderer.getContext(), vkRenderer.getLogicalDevice(), image, sampler
-        );
-    }
+    return createOwningPtr<vk::VKTexture>(
+      vkRenderer.getContext(), vkRenderer.getLogicalDevice(), image, sampler
+    );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
 #endif
