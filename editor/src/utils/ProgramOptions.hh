@@ -8,6 +8,7 @@ struct ProgramOptions {
     static std::optional<ProgramOptions> parse(int argc, char** argv);
 
     std::string configPath;
+    std::optional<std::string> scene;
 };
 
 }  // namespace sle

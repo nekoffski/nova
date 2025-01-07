@@ -46,6 +46,9 @@ private:
 
     State m_state;
 
+    bool m_hasColorAttachment;
+    bool m_hasDepthAttachment;
+
     // TODO: use local mem pool or static array or something
     std::vector<OwningPtr<VKFramebuffer>> m_framebuffers;
 };

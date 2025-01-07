@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <optional>
 
 #include <starlight/core/math/Core.hh>
 #include <starlight/core/Config.hh>
@@ -18,7 +19,9 @@ namespace sle {
 
 class Application {
 public:
-    explicit Application(const sl::Config& config);
+    explicit Application(
+      const sl::Config& config, std::optional<std::string> scenePath
+    );
 
     int start();
 

@@ -24,7 +24,6 @@ RenderPass::Properties ShadowMapsRenderView::generateRenderPassProperties(
 
     RenderPass::Properties props;
 
-    props.clearColor = Vec4<f32>{ 0.0f };
     props.clearFlags = RenderPass::ClearFlags::depth;
     props.rect       = Rect2<u32>{
         Vec2<u32>{ 0u,    0u    },
