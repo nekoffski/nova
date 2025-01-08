@@ -408,7 +408,36 @@ void VKShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
 
     const auto globalSetBindingCount =
       m_descriptorSets[descSetIndexGlobal].bindingCount;
-    ASSERT(globalSetBindingCount <= 1, "Global image samplers not supported yet");
+    // ASSERT(globalSetBindingCount <= 1, "Global image samplers not supported yet");
+
+    std::vector<VkDescriptorImageInfo> imageInfos;
+    if (m_globalUniformSamplerCount > 0) {
+        imageInfos.reserve(m_globalTextures.size());
+        for (u32 i = 0; i < m_globalTextures.size(); ++i) {
+            const VKTexture* texture =
+              static_cast<const VKTexture*>(m_globalTextures[i]);
+            ASSERT(
+              texture,
+              "Could not cast texture to internal type, something went wrong"
+            );
+            imageInfos.emplace_back(
+              texture->getSampler(), texture->getImage()->getView(),
+              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            );
+
+            VkWriteDescriptorSet samplerDescriptor;
+            clearMemory(&samplerDescriptor);
+            samplerDescriptor.sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            samplerDescriptor.dstSet     = m_globalDescriptorSets[imageIndex];
+            samplerDescriptor.dstBinding = 1;
+            samplerDescriptor.descriptorType =
+              VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerDescriptor.descriptorCount = imageInfos.size();
+            samplerDescriptor.pImageInfo      = imageInfos.data();
+
+            descriptorWrites[1] = samplerDescriptor;
+        }
+    }
 
     vkUpdateDescriptorSets(
       m_device.getHandle(), globalSetBindingCount, descriptorWrites.data(), 0, 0
