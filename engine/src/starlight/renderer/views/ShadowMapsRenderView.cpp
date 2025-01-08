@@ -15,7 +15,7 @@ RenderPass::Properties ShadowMapsRenderView::generateRenderPassProperties(
     auto depthProperties   = renderer.getDepthTexture()->getImageData();
     depthProperties.width  = 1024;
     depthProperties.height = 1024;
-    depthProperties.aspect = Texture::Aspect::depth;
+    depthProperties.usage |= Texture::Usage::sampled;
 
     const auto swapchainImageCount = renderer.getSwapchainImageCount();
 
@@ -54,17 +54,19 @@ void ShadowMapsRenderView::render(
   [[maybe_unused]] const RenderProperties& properties,
   [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
 ) {
-    auto camera               = packet.camera;
-    const auto cameraPosition = camera->getPosition();
+    if (packet.directionalLights.empty()) return;
+
+    auto depthMVP =
+      math::ortho<float>(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 20)
+      * math::lookAt(
+        -packet.directionalLights[0].direction, Vec3<f32>(0.0f),
+        Vec3<f32>(0.0f, 1.0f, 0.0f)
+      );
 
     m_shader->use(commandBuffer);
     m_shader->setGlobalUniforms(
       commandBuffer, imageIndex,
-      [&](Shader::UniformProxy& proxy) {
-          proxy.set("view", camera->getViewMatrix());
-          proxy.set("projection", camera->getProjectionMatrix());
-          proxy.set("viewPosition", cameraPosition);
-      }
+      [&](Shader::UniformProxy& proxy) { proxy.set("depthMVP", depthMVP); }
     );
 
     for (auto& [worldTransform, mesh, _] : packet.entities) {

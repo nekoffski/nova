@@ -142,10 +142,6 @@ public:
             m_shader.setUniform(uniform, value, m_commandBuffer);
         }
 
-        template <typename T> void set(const std::string& uniform, const T& value) {
-            m_shader.setUniform(uniform, &value, m_commandBuffer);
-        }
-
     private:
         explicit UniformProxy(Shader& shader, CommandBuffer& commandBuffer);
         Shader& m_shader;

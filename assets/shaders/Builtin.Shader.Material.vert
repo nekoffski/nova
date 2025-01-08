@@ -12,6 +12,7 @@ layout (location = 4) in vec4 inTangent;
 layout (std430, set = 0, binding = 0) uniform GlobalUBO {
     mat4 projection;
     mat4 view;
+    mat4 depthMVP;
     vec3 viewPosition;
     int mode;
     vec4 ambientColor;
@@ -27,6 +28,7 @@ layout (location = 1) out struct DTO {
     vec4 ambient;
     vec4 color;
     vec4 tangent;
+    vec4 shadowCoord;
 } dto;
 
 layout (push_constant) uniform pushConstants_t { 
@@ -41,6 +43,7 @@ void main() {
     dto.ambient = globalUBO.ambientColor;
     dto.color = inColor;
     dto.tangent = vec4(normalize(mat3(pushConstants.model) * inTangent.xyz), inTangent.w);
+    dto.shadowCoord = globalUBO.depthMVP * pushConstants.model * vec4(inPosition, 1.0);
     renderMode = globalUBO.mode;
 
     gl_Position = globalUBO.projection * 

@@ -1,5 +1,6 @@
 // clang-format off
 #version 450
+#extension GL_EXT_debug_printf : enable
 #extension GL_EXT_scalar_block_layout : require
 
 
@@ -19,6 +20,7 @@ struct DirectionalLight {
 layout (std430, set = 0, binding = 0) uniform GlobalUBO {
     mat4 projection;
     mat4 view;
+    mat4 depthMVP;
     vec3 viewPosition;
     int mode;
     vec4 ambientColor;
@@ -27,6 +29,8 @@ layout (std430, set = 0, binding = 0) uniform GlobalUBO {
     int pointLightCount;
     int directionalLightCount;
 } globalUBO;
+
+layout (set = 0, binding = 1) uniform sampler2D shadowMap;
 
 layout (set = 1, binding = 0) uniform LocalUBO {
     vec4 diffuseColor;
@@ -51,6 +55,7 @@ layout (location = 1) in struct DTO {
     vec4 ambient;
     vec4 color;
     vec4 tangent;
+    vec4 shadowCoord;
 } dto;
 
 mat3 TBN;
@@ -120,9 +125,16 @@ void main() {
     if (renderMode == 0 || renderMode == 1) {
         vec3 viewDirection = normalize(dto.viewPosition - dto.fragmentPosition);
         outColor = dto.ambient * texture(textures[diffuseMap], dto.textureCoordinates);
-        
-        for (int i = 0; i < globalUBO.directionalLightCount; ++i)
-            outColor += calculateDirectionalLight(globalUBO.directionalLights[i], normal, viewDirection);
+
+        for (int i = 0; i < globalUBO.directionalLightCount; ++i) {
+            float visibility = 1.0f;
+            float bias = 0.005;
+            float ss = texture(shadowMap, dto.shadowCoord.xy).x;
+
+            if (ss <= dto.shadowCoord.z - bias)
+                visibility = 0.0f;
+            outColor += visibility * calculateDirectionalLight(globalUBO.directionalLights[i], normal, viewDirection);
+        }
         
         for (int i = 0; i < globalUBO.pointLightCount; ++i)
             outColor += calculatePointLight(globalUBO.pointLights[i], normal, dto.fragmentPosition, viewDirection);

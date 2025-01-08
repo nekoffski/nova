@@ -47,11 +47,27 @@ void WorldRenderView::render(
     m_shader->setGlobalUniforms(
       commandBuffer, imageIndex,
       [&](Shader::UniformProxy& proxy) {
+          auto renderMode = static_cast<int>(properties.renderMode);
+
+          Mat4<f32> biasMatrix(
+            0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f
+          );
+
+          auto depthMVP =
+            math::ortho<float>(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 20)
+            * math::lookAt(
+              -packet.directionalLights[0].direction, Vec3<f32>(0.0f),
+              Vec3<f32>(0.0f, 1.0f, 0.0f)
+            );
+
           proxy.set("view", camera->getViewMatrix());
           proxy.set("projection", camera->getProjectionMatrix());
+          proxy.set("depthMVP", biasMatrix * depthMVP);
           proxy.set("viewPosition", cameraPosition);
           proxy.set("ambientColor", ambientColor);
-          proxy.set("renderMode", static_cast<int>(properties.renderMode));
+          proxy.set("renderMode", &renderMode);
+          proxy.set("shadowMap", packet.shadowMaps[0]);
 
           const auto pointLightCount = packet.pointLights.size();
 
@@ -68,8 +84,8 @@ void WorldRenderView::render(
           if (directionalLightCount > 0)
               proxy.set("directionalLights", packet.directionalLights);
 
-          proxy.set("pointLightCount", pointLightCount);
-          proxy.set("directionalLightCount", directionalLightCount);
+          proxy.set("pointLightCount", &pointLightCount);
+          proxy.set("directionalLightCount", &directionalLightCount);
       }
     );
 
