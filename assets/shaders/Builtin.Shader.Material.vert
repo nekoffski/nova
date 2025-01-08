@@ -35,6 +35,12 @@ layout (push_constant) uniform pushConstants_t {
     mat4 model; 
 } pushConstants;
 
+const mat4 bias = mat4( 
+  0.5, 0.0, 0.0, 0.0,
+  0.0, 0.5, 0.0, 0.0,
+  0.0, 0.0, 1.0, 0.0,
+  0.5, 0.5, 0.0, 1.0 );
+
 void main() {
     dto.textureCoordinates = inTextureCoordinates;
     dto.normal = normalize(mat3(pushConstants.model) * inNormal);
@@ -43,7 +49,7 @@ void main() {
     dto.ambient = globalUBO.ambientColor;
     dto.color = inColor;
     dto.tangent = vec4(normalize(mat3(pushConstants.model) * inTangent.xyz), inTangent.w);
-    dto.shadowCoord = globalUBO.depthMVP * pushConstants.model * vec4(inPosition, 1.0);
+    dto.shadowCoord = bias * globalUBO.depthMVP * pushConstants.model * vec4(inPosition, 1.0);
     renderMode = globalUBO.mode;
 
     gl_Position = globalUBO.projection * 

@@ -57,9 +57,9 @@ void ShadowMapsRenderView::render(
     if (packet.directionalLights.empty()) return;
 
     auto depthMVP =
-      math::ortho<float>(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 20)
+      math::ortho<float>(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 20.0f)
       * math::lookAt(
-        -packet.directionalLights[0].direction, Vec3<f32>(0.0f),
+        -packet.directionalLights[0].direction, Vec3<f32>(0.0f, 0.0f, 0.0f),
         Vec3<f32>(0.0f, 1.0f, 0.0f)
       );
 

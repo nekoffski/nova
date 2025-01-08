@@ -98,6 +98,12 @@ void Application::initEvents() {
           if (event.key == SL_KEY_ESCAPE && event.action == sl::KeyAction::press) {
               LOG_INFO("Key ESC pressed, quitting");
               exit();
+          } else if (event.key == SL_KEY_Z) {
+              m_renderer.setRenderMode(sl::RenderMode::lights);
+          } else if (event.key == SL_KEY_X) {
+              m_renderer.setRenderMode(sl::RenderMode::normals);
+          } else if (event.key == SL_KEY_C) {
+              m_renderer.setRenderMode(sl::RenderMode::standard);
           }
           return sl::EventChainBehaviour::propagate;
       })
