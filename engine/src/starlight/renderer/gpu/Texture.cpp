@@ -244,9 +244,9 @@ void TextureManager::createDefaults() {
     m_defaultSpecularMap = create("DefaultSpecularMap", image);
 
     for (auto index = 0u; index < bufferSize; index += image.channels) {
-        image.pixels[index]     = 0;
-        image.pixels[index + 1] = 255;
-        image.pixels[index + 2] = 0;
+        image.pixels[index]     = 128;
+        image.pixels[index + 1] = 128;
+        image.pixels[index + 2] = 255;
     }
     m_defaultNormalMap = create("DefaultNormalMap", image);
 

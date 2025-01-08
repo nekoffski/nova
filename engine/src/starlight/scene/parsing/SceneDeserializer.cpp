@@ -8,6 +8,7 @@ void SceneDeserializer::deserialize(
   Scene& scene, const std::string& path, const FileSystem& fs
 ) {
     LOG_DEBUG("Deserializing scene: {}", path);
+    ASSERT(fs.isFile(path), "Scene file does not exist");
     auto root = kc::json::loadJson(fs.readFile(path));
 
     if (root.isMember("skybox")) {

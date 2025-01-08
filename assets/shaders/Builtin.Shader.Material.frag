@@ -61,10 +61,10 @@ layout (location = 1) in struct DTO {
 mat3 TBN;
 
 vec4 calculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection) {
-    vec3 direction = normalize(light.direction);
-    float diffuseFactor = max(dot(normal, -direction), 0.0);
+    vec3 direction = normalize(-light.direction);
+    float diffuseFactor = max(dot(normal, direction), 0.0);
 
-    vec3 halfDirection = normalize(viewDirection - direction);
+    vec3 halfDirection = normalize(viewDirection + direction);
     float specularFactor = pow(max(dot(halfDirection, normal), epsilon), localUBO.shininess);
 
     vec4 diffuseTextureSample = texture(textures[diffuseMap], dto.textureCoordinates);
@@ -127,12 +127,15 @@ void main() {
         outColor = dto.ambient * texture(textures[diffuseMap], dto.textureCoordinates);
 
         for (int i = 0; i < globalUBO.directionalLightCount; ++i) {
+            float bias = 0.05f;
             float visibility = 1.0f;
-            float bias = 0.005;
-            float ss = texture(shadowMap, dto.shadowCoord.xy).x;
 
-            if (ss <= dto.shadowCoord.z - bias)
-                visibility = 0.0f;
+            vec3 projCoords = dto.shadowCoord.xyz / dto.shadowCoord.w;
+            float ss = texture(shadowMap, projCoords.xy).r;
+            
+            if (ss < projCoords.z - bias) {
+                visibility = 0.3f;
+            }
             outColor += visibility * calculateDirectionalLight(globalUBO.directionalLights[i], normal, viewDirection);
         }
         

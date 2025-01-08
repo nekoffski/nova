@@ -92,6 +92,9 @@ void PropertiesView::EntityTab::renderEntityUI() {
                 ADD_COMPONENT(sl::DirectionalLight);
             }
         }
+
+        if (sl::ui::button("Remove Entity", sl::ui::parentWidth)) {
+        }
     });
 }
 
