@@ -24,7 +24,7 @@ void DirectionalLightUI::renderInspector(sl::DirectionalLight& component) {
     sl::ui::text(ICON_FA_SUN "  DirectionalLight");
     sl::ui::separator();
     sl::ui::text("Direction:");
-    sl::ui::slider("##Direction", component.direction, { -1.0f, 1.0f, 0.01f });
+    sl::ui::slider("##Direction", component.direction, { -1.0f, 1.0f, 0.02f });
     sl::ui::text("Color:");
     ImGui::ColorEdit4("##Color", sl::math::value_ptr(component.color));
 }

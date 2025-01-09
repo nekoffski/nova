@@ -127,16 +127,20 @@ void main() {
         outColor = dto.ambient * texture(textures[diffuseMap], dto.textureCoordinates);
 
         for (int i = 0; i < globalUBO.directionalLightCount; ++i) {
-            float bias = 0.05f;
+            DirectionalLight light = globalUBO.directionalLights[i];
+            
+            float bias = max(0.05 * (1.0 - dot(normal, -light.direction)), 0.005); 
             float visibility = 1.0f;
-
             vec3 projCoords = dto.shadowCoord.xyz / dto.shadowCoord.w;
-            float ss = texture(shadowMap, projCoords.xy).r;
+            vec2 shadowSample = vec2(projCoords.x, 1.0 - projCoords.y);
+            float ss = texture(shadowMap, shadowSample).r;
             
             if (ss < projCoords.z - bias) {
                 visibility = 0.3f;
             }
-            outColor += visibility * calculateDirectionalLight(globalUBO.directionalLights[i], normal, viewDirection);
+
+            // outColor += vec4(ss, 0.0, 0.0, 1.0);
+            outColor += visibility * calculateDirectionalLight(light, normal, viewDirection);
         }
         
         for (int i = 0; i < globalUBO.pointLightCount; ++i)
