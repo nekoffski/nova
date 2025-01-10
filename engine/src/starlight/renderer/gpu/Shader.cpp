@@ -152,7 +152,7 @@ std::string Shader::scopeToString(Shader::Scope scope) {
     __builtin_unreachable();
 }
 
-ResourceRef<Shader> ShaderManager::load(
+ResourceRef<Shader> ShaderFactory::load(
   const std::string& name, const FileSystem& fs
 ) {
     if (auto resource = find(name); resource) {
@@ -161,7 +161,7 @@ ResourceRef<Shader> ShaderManager::load(
     }
 
     const auto properties = loadPropertiesFromFile(
-      name, TextureManager::get().getDefaultDiffuseMap(), m_shadersPath, fs
+      name, TextureFactory::get().getDefaultDiffuseMap(), m_shadersPath, fs
     );
 
     if (not properties) {
@@ -378,8 +378,8 @@ void Shader::UniformProxy::set(const std::string& uniform, const Texture* value)
 Shader::UniformProxy::UniformProxy(Shader& shader, CommandBuffer& commandBuffer) :
     m_shader(shader), m_commandBuffer(commandBuffer) {}
 
-ShaderManager::ShaderManager(const std::string& path, RendererBackend& renderer) :
-    ResourceManager("Shader"), m_shadersPath(path), m_renderer(renderer) {}
+ShaderFactory::ShaderFactory(const std::string& path, RendererBackend& renderer) :
+    ResourceFactory("Shader"), m_shadersPath(path), m_renderer(renderer) {}
 
 Shader::Instance::Instance(const std::vector<Texture*>& textures
 ) : m_textures(textures) {}

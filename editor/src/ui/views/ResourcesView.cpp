@@ -60,14 +60,14 @@ ResourcesView::ResourcesView(Resources& resources) :
 void ResourcesView::render() { m_tabMenu.render(); }
 
 void ResourcesView::renderMeshesTab() {
-    for (auto& mesh : sl::MeshManager::get().getAll()) {
+    for (auto& mesh : sl::MeshFactory::get().getAll()) {
         sl::ui::text("{}", mesh.getName());
     }
 }
 
 void ResourcesView::renderMaterialsTab() {
     renderResourceTab(
-      "Material", sl::MaterialManager::get(),
+      "Material", sl::MaterialFactory::get(),
       [&]() { return m_resources.addMaterial(); },
       [&](auto& material) { m_materialUI.render(material); },
       [&](auto& material, const auto width) {
@@ -79,7 +79,7 @@ void ResourcesView::renderMaterialsTab() {
 
 void ResourcesView::renderTexturesTab() {
     renderResourceTab(
-      "Texture", sl::TextureManager::get(),
+      "Texture", sl::TextureFactory::get(),
       [&]() { return m_resources.addTexture(); },
       [&](auto& texture) { m_textureUI.render(texture); },
       [&](auto& texture, const auto width) {

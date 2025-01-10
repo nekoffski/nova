@@ -3,27 +3,27 @@
 namespace sle {
 
 Resources::Resources() {
-    m_materials.insert(sl::MaterialManager::get().load("Builtin.Material.Test"));
+    m_materials.insert(sl::MaterialFactory::get().load("Builtin.Material.Test"));
     sync();
 
-    // materials.push_back(sl::MaterialManager::get().getDefault());
+    // materials.push_back(sl::MaterialFactory::get().getDefault());
 
     // // load some default stuff
 
-    // auto mat = sl::MaterialManager::get().load("Builtin.Material.Test");
+    // auto mat = sl::MaterialFactory::get().load("Builtin.Material.Test");
     // materials.push_back(mat);
 
     // textures.push_back(mat->)
 }
 
 void Resources::sync() {
-    auto meshes = sl::MeshManager::get().getAll();
+    auto meshes = sl::MeshFactory::get().getAll();
     m_meshes.insert(meshes.begin(), meshes.end());
 
-    auto materials = sl::MaterialManager::get().getAll();
+    auto materials = sl::MaterialFactory::get().getAll();
     m_materials.insert(materials.begin(), materials.end());
 
-    auto textures = sl::TextureManager::get().getAll();
+    auto textures = sl::TextureFactory::get().getAll();
     m_textures.insert(textures.begin(), textures.end());
 }
 
@@ -34,17 +34,17 @@ static auto addResource(auto& manager, auto& refSet) {
 }
 
 sl::ResourceRef<sl::Mesh> Resources::addMesh() {
-    // auto mesh = sl::MeshManager::get().create();
+    // auto mesh = sl::MeshFactory::get().create();
     // TODO:
     return nullptr;
 }
 
 sl::ResourceRef<sl::Texture> Resources::addTexture() {
-    return addResource(sl::TextureManager::get(), m_textures);
+    return addResource(sl::TextureFactory::get(), m_textures);
 }
 
 sl::ResourceRef<sl::Material> Resources::addMaterial() {
-    return addResource(sl::MaterialManager::get(), m_materials);
+    return addResource(sl::MaterialFactory::get(), m_materials);
 }
 
 sl::ui::ImageHandle& Resources::getImageHandle(sl::Texture* texture) {

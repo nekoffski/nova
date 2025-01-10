@@ -47,7 +47,7 @@ void SkyboxRenderView::render(
     });
     skybox->applyUniforms(m_shader, commandBuffer, imageIndex);
 
-    renderer.drawMesh(*MeshManager::get().getCube());
+    renderer.drawMesh(*MeshFactory::get().getCube());
 }
 
 }  // namespace sl

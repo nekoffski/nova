@@ -29,12 +29,12 @@ void MeshCompositeDeserializer::deserialize(
 
 // TODO: store default materials/meshes/shaders/textures in some lookup table
 ResourceRef<Mesh> MeshCompositeDeserializer::getMesh(const std::string& name) const {
-    return MeshManager::get().find(name);
+    return MeshFactory::get().find(name);
 }
 
 ResourceRef<Material> MeshCompositeDeserializer::getMaterial(const std::string& name
 ) const {
-    return MaterialManager::get().find(name);
+    return MaterialFactory::get().find(name);
 }
 
 }  // namespace sl

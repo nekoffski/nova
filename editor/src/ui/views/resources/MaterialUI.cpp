@@ -14,7 +14,7 @@ void MaterialUI::render(sl::ResourceRef<sl::Material> material) {
     auto materialTextures = material->getTextures();
     const auto width      = ImGui::GetWindowWidth() / 1.5f;
 
-    auto textures = sl::TextureManager::get().getAll();
+    auto textures = sl::TextureFactory::get().getAll();
 
     bool textureChanged = false;
 

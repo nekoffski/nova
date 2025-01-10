@@ -33,32 +33,32 @@ static OwningPtr<Mesh> createMesh(
 #endif
 }
 
-MeshManager::MeshManager(RendererBackend& renderer
-) : ResourceManager("Mesh"), m_renderer(renderer) {
+MeshFactory::MeshFactory(RendererBackend& renderer
+) : ResourceFactory("Mesh"), m_renderer(renderer) {
     createDefaults();
 }
 
-ResourceRef<Mesh> MeshManager::create(
+ResourceRef<Mesh> MeshFactory::create(
   const std::string& name, const Mesh::Properties2D& config
 ) {
     if (auto resource = find(name); resource) return resource;
     return store(name, createMesh(m_renderer, config.toMeshData()));
 }
 
-ResourceRef<Mesh> MeshManager::create(
+ResourceRef<Mesh> MeshFactory::create(
   const std::string& name, const Mesh::Properties3D& config
 ) {
     if (auto resource = find(name); resource) return resource;
     return store(name, createMesh(m_renderer, config.toMeshData()));
 }
 
-ResourceRef<Mesh> MeshManager::getCube() { return m_cube; }
+ResourceRef<Mesh> MeshFactory::getCube() { return m_cube; }
 
-ResourceRef<Mesh> MeshManager::getPlane() { return m_plane; }
+ResourceRef<Mesh> MeshFactory::getPlane() { return m_plane; }
 
-ResourceRef<Mesh> MeshManager::getUnitSphere() { return m_unitSphere; }
+ResourceRef<Mesh> MeshFactory::getUnitSphere() { return m_unitSphere; }
 
-void MeshManager::createDefaults() {
+void MeshFactory::createDefaults() {
     Mesh::Properties3D cubeConfig{
         CubeProperties{ 1.0f, 1.0f, 1.0f, 1, 1 }
     };

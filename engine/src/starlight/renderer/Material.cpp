@@ -48,24 +48,24 @@ void Material::setTextures(const Material::Textures& textures) {
     m_instance.emplace(m_textures.asArray());
 }
 
-MaterialManager::MaterialManager(const std::string& path) :
-    ResourceManager("Material"), m_materialsPath(path),
+MaterialFactory::MaterialFactory(const std::string& path) :
+    ResourceFactory("Material"), m_materialsPath(path),
     m_defaultMaterial(create("DefaultMaterial")) {}
 
-ResourceRef<Material> MaterialManager::getDefault() { return m_defaultMaterial; }
+ResourceRef<Material> MaterialFactory::getDefault() { return m_defaultMaterial; }
 
-ResourceRef<Material> MaterialManager::create(
+ResourceRef<Material> MaterialFactory::create(
   const std::string& name, const Material::Properties& properties
 ) {
     return store(name, createOwningPtr<Material>(properties));
 }
 
-ResourceRef<Material> MaterialManager::create(const Material::Properties& properties
+ResourceRef<Material> MaterialFactory::create(const Material::Properties& properties
 ) {
     return store(createOwningPtr<Material>(properties));
 }
 
-ResourceRef<Material> MaterialManager::load(
+ResourceRef<Material> MaterialFactory::load(
   const std::string& name, const FileSystem& fs
 ) {
     const auto fullPath = fmt::format("{}/{}.json", m_materialsPath, name);
@@ -78,7 +78,7 @@ ResourceRef<Material> MaterialManager::load(
 }
 
 Material::Properties Material::Properties::createDefault() {
-    auto& textureManager = TextureManager::get();
+    auto& textureManager = TextureFactory::get();
 
     return Properties{
         .diffuseColor = defaultDiffuseColor,
@@ -104,7 +104,7 @@ std::optional<Material::Properties> Material::Properties::fromFile(
 
         auto props = Properties::createDefault();
 
-        auto& textureManager = TextureManager::get();
+        auto& textureManager = TextureFactory::get();
 
         getOptField<Vec4<f32>>(root, "diffuse-color", [&](const auto& value) {
             props.diffuseColor = value;

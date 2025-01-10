@@ -210,11 +210,11 @@ protected:
     PolygonMode m_polygonMode;
 };
 
-class ShaderManager
-    : public ResourceManager<Shader>,
-      public kc::core::Singleton<ShaderManager> {
+class ShaderFactory
+    : public ResourceFactory<Shader>,
+      public kc::core::Singleton<ShaderFactory> {
 public:
-    explicit ShaderManager(const std::string& path, RendererBackend& renderer);
+    explicit ShaderFactory(const std::string& path, RendererBackend& renderer);
 
     ResourceRef<Shader> load(
       const std::string& name, const FileSystem& fs = fileSystem

@@ -189,7 +189,7 @@ Texture::Texture(
   const ImageData& imageData, const SamplerProperties& samplerProperties
 ) : m_imageData(imageData), m_samplerProperties(samplerProperties) {}
 
-ResourceRef<Texture> TextureManager::load(
+ResourceRef<Texture> TextureFactory::load(
   const std::string& name, Texture::Type textureType,
   const Texture::SamplerProperties& sampler
 ) {
@@ -205,19 +205,19 @@ ResourceRef<Texture> TextureManager::load(
     return nullptr;
 }
 
-ResourceRef<Texture> TextureManager::getDefaultDiffuseMap() {
+ResourceRef<Texture> TextureFactory::getDefaultDiffuseMap() {
     return m_defaultDiffuseMap;
 }
 
-ResourceRef<Texture> TextureManager::getDefaultNormalMap() {
+ResourceRef<Texture> TextureFactory::getDefaultNormalMap() {
     return m_defaultNormalMap;
 }
 
-ResourceRef<Texture> TextureManager::getDefaultSpecularMap() {
+ResourceRef<Texture> TextureFactory::getDefaultSpecularMap() {
     return m_defaultSpecularMap;
 }
 
-ResourceRef<Texture> TextureManager::create(
+ResourceRef<Texture> TextureFactory::create(
   const std::string& name, const Texture::ImageData& image,
   const Texture::SamplerProperties& sampler
 
@@ -225,18 +225,18 @@ ResourceRef<Texture> TextureManager::create(
     return store(name, Texture::create(m_renderer, image, sampler));
 }
 
-ResourceRef<Texture> TextureManager::create(
+ResourceRef<Texture> TextureFactory::create(
   const Texture::ImageData& image, const Texture::SamplerProperties& sampler
 ) {
     return store(Texture::create(m_renderer, image, sampler));
 }
 
-TextureManager::TextureManager(const std::string& path, RendererBackend& renderer) :
-    ResourceManager("Texture"), m_texturesPath(path), m_renderer(renderer) {
+TextureFactory::TextureFactory(const std::string& path, RendererBackend& renderer) :
+    ResourceFactory("Texture"), m_texturesPath(path), m_renderer(renderer) {
     createDefaults();
 }
 
-void TextureManager::createDefaults() {
+void TextureFactory::createDefaults() {
     auto image            = Texture::ImageData::createDefault();
     const auto bufferSize = image.width * image.height * image.channels;
     image.pixels.resize(bufferSize, 255);

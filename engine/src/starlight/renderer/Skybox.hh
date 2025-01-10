@@ -25,11 +25,11 @@ private:
     LocalPtr<Shader::Instance> m_instance;
 };
 
-class SkyboxManager
-    : public ResourceManager<Skybox>,
-      public kc::core::Singleton<SkyboxManager> {
+class SkyboxFactory
+    : public ResourceFactory<Skybox>,
+      public kc::core::Singleton<SkyboxFactory> {
 public:
-    explicit SkyboxManager();
+    explicit SkyboxFactory();
 
     ResourceRef<Skybox> load(const std::string& name);
     ResourceRef<Shader> getDefaultShader();

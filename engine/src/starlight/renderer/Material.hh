@@ -66,11 +66,11 @@ private:
     LocalPtr<Shader::Instance> m_instance;
 };
 
-class MaterialManager
-    : public ResourceManager<Material>,
-      public kc::core::Singleton<MaterialManager> {
+class MaterialFactory
+    : public ResourceFactory<Material>,
+      public kc::core::Singleton<MaterialFactory> {
 public:
-    explicit MaterialManager(const std::string& path);
+    explicit MaterialFactory(const std::string& path);
 
     ResourceRef<Material> create(
       const std::string& name,

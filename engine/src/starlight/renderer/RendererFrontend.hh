@@ -52,11 +52,11 @@ private:
     Vec2<u32> m_viewportSize;
 
     // singletons, we want to expicitly specify order of initialization
-    ShaderManager m_shaderManager;
-    TextureManager m_textureManager;
-    MaterialManager m_materialManager;
-    MeshManager m_meshManager;
-    SkyboxManager m_skyboxManager;
+    ShaderFactory m_shaderFactory;
+    TextureFactory m_textureFactory;
+    MaterialFactory m_materialFactory;
+    MeshFactory m_meshFactory;
+    SkyboxFactory m_skyboxFactory;
 };
 
 }  // namespace sl

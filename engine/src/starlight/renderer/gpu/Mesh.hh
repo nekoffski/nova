@@ -133,11 +133,11 @@ protected:
     Extent3 m_extent;
 };
 
-class MeshManager
-    : public ResourceManager<Mesh>,
-      public kc::core::Singleton<MeshManager> {
+class MeshFactory
+    : public ResourceFactory<Mesh>,
+      public kc::core::Singleton<MeshFactory> {
 public:
-    explicit MeshManager(RendererBackend& renderer);
+    explicit MeshFactory(RendererBackend& renderer);
 
     template <typename T>
     requires std::is_constructible_v<Mesh::Properties3D, const T&>

@@ -22,11 +22,11 @@ void MeshCompositeUI::renderInstanceUI(sl::Transform& instance) {
 
 void MeshCompositeUI::renderNodeUI(sl::MeshComposite::Node& node) {
     sl::ui::combo(
-      "Mesh", node.mesh.getName(), sl::MeshManager::get().getAll(),
+      "Mesh", node.mesh.getName(), sl::MeshFactory::get().getAll(),
       [&](auto& mesh) { node.mesh = mesh; }
     );
     sl::ui::combo(
-      "Material", node.material.getName(), sl::MaterialManager::get().getAll(),
+      "Material", node.material.getName(), sl::MaterialFactory::get().getAll(),
       [&](auto& material) { node.material = material; }
     );
     if (sl::ui::button("Add Instance")) node.addInstance();

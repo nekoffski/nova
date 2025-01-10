@@ -98,13 +98,13 @@ protected:
     SamplerProperties m_samplerProperties;
 };
 
-class TextureManager
-    : public ResourceManager<Texture>,
-      public kc::core::Singleton<TextureManager> {
+class TextureFactory
+    : public ResourceFactory<Texture>,
+      public kc::core::Singleton<TextureFactory> {
 public:
     constexpr static Texture::PixelWidth defaultPixelColor = 255;
 
-    explicit TextureManager(const std::string& path, RendererBackend& renderer);
+    explicit TextureFactory(const std::string& path, RendererBackend& renderer);
 
     ResourceRef<Texture> load(
       const std::string& name, Texture::Type textureType,

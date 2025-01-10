@@ -10,7 +10,7 @@
 
 namespace sl {
 
-template <typename T> class ResourceManager;
+template <typename T> class ResourceFactory;
 
 template <typename T> class ResourceRef {
 public:
@@ -21,7 +21,7 @@ public:
     };
 
     explicit ResourceRef(
-      T* resource, ResourceManager<T>* manager, const std::string& name
+      T* resource, ResourceFactory<T>* manager, const std::string& name
     );
 
     ResourceRef(std::nullptr_t);
@@ -60,11 +60,11 @@ public:
 
 private:
     T* m_resource;
-    ResourceManager<T>* m_manager;
+    ResourceFactory<T>* m_manager;
     std::optional<std::string> m_name;
 };
 
-template <typename T> class ResourceManager {
+template <typename T> class ResourceFactory {
     friend class ResourceRef<T>;
 
     struct ResourceRecord {
@@ -74,7 +74,7 @@ template <typename T> class ResourceManager {
     };
 
 public:
-    explicit ResourceManager(const std::string& resourceName
+    explicit ResourceFactory(const std::string& resourceName
     ) : m_resourceName(resourceName) {}
 
     ResourceRef<T> find(const std::string& name) {
@@ -163,7 +163,7 @@ private:
 
 template <typename T>
 ResourceRef<T>::ResourceRef(
-  T* resource, ResourceManager<T>* manager, const std::string& name
+  T* resource, ResourceFactory<T>* manager, const std::string& name
 ) : m_resource(resource), m_manager(manager), m_name(name) {
     LOG_TRACE("Creating resource ref: {}", name);
     ASSERT(

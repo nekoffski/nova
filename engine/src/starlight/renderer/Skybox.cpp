@@ -21,19 +21,19 @@ void Skybox::applyUniforms(
 
 Texture* Skybox::getCubeMap() { return m_cubeMap.get(); }
 
-SkyboxManager::SkyboxManager() :
-    ResourceManager("Skybox"),
-    m_defaultSkyboxShader(ShaderManager::get().load("Builtin.Shader.Skybox")) {}
+SkyboxFactory::SkyboxFactory() :
+    ResourceFactory("Skybox"),
+    m_defaultSkyboxShader(ShaderFactory::get().load("Builtin.Shader.Skybox")) {}
 
-ResourceRef<Skybox> SkyboxManager::load(const std::string& name) {
+ResourceRef<Skybox> SkyboxFactory::load(const std::string& name) {
     if (auto resource = find(name); resource) [[unlikely]]
         return resource;
 
-    auto cubemap = TextureManager::get().load(name, Texture::Type::cubemap);
+    auto cubemap = TextureFactory::get().load(name, Texture::Type::cubemap);
     return store(name, createOwningPtr<Skybox>(cubemap));
 }
 
-ResourceRef<Shader> SkyboxManager::getDefaultShader() {
+ResourceRef<Shader> SkyboxFactory::getDefaultShader() {
     return m_defaultSkyboxShader;
 }
 

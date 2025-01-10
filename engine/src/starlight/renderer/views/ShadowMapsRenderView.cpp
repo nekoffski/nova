@@ -7,7 +7,7 @@ namespace sl {
 
 ShadowMapsRenderView::ShadowMapsRenderView(const Vec2<f32>& viewportOffset) :
     RenderView("ShadowMapsRenderView", viewportOffset),
-    m_shader(ShaderManager::get().load("Builtin.Shader.ShadowMaps")) {}
+    m_shader(ShaderFactory::get().load("Builtin.Shader.ShadowMaps")) {}
 
 RenderPass::Properties ShadowMapsRenderView::generateRenderPassProperties(
   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
