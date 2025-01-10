@@ -125,12 +125,16 @@ public:
         friend class Shader;
 
     public:
-        void set(const std::string& uniform, const Texture* value);
-
         template <typename T>
         requires GlmCompatible<T>
         void set(const std::string& uniform, const T& value) {
             m_shader.setUniform(uniform, glm::value_ptr(value), m_commandBuffer);
+        }
+
+        template <typename T>
+        requires(not std::is_pointer_v<T> && not GlmCompatible<T>)
+        void set(const std::string& uniform, const T& value) {
+            m_shader.setUniform(uniform, std::addressof(value), m_commandBuffer);
         }
 
         template <typename T>
@@ -141,6 +145,8 @@ public:
         template <typename T> void set(const std::string& uniform, const T* value) {
             m_shader.setUniform(uniform, value, m_commandBuffer);
         }
+
+        void set(const std::string& uniform, const Texture* value);
 
     private:
         explicit UniformProxy(Shader& shader, CommandBuffer& commandBuffer);

@@ -47,8 +47,6 @@ void WorldRenderView::render(
     m_shader->setGlobalUniforms(
       commandBuffer, imageIndex,
       [&](Shader::UniformProxy& proxy) {
-          auto renderMode = static_cast<int>(properties.renderMode);
-
           auto depthMVP =
             math::ortho<float>(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 20.0f)
             * math::lookAt(
@@ -61,7 +59,7 @@ void WorldRenderView::render(
           proxy.set("depthMVP", depthMVP);
           proxy.set("viewPosition", cameraPosition);
           proxy.set("ambientColor", ambientColor);
-          proxy.set("renderMode", &renderMode);
+          proxy.set("renderMode", static_cast<int>(properties.renderMode));
           proxy.set("shadowMap", packet.shadowMaps[0]);
 
           const auto pointLightCount = packet.pointLights.size();

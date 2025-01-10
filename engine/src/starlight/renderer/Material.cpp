@@ -33,7 +33,7 @@ void Material::applyUniforms(
               proxy.set("diffuseTexture", m_textures.diffuseMap);
               proxy.set("specularTexture", m_textures.specularMap);
               proxy.set("normalTexture", m_textures.normalMap);
-              proxy.set("shininess", &shininess);
+              proxy.set("shininess", shininess);
           }
         );
         m_renderFrameNumber = renderFrameNumber;
