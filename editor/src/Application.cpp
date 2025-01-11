@@ -6,6 +6,7 @@
 #include <starlight/renderer/views/SkyboxRenderView.hh>
 #include <starlight/renderer/views/LightsDebugRenderView.hh>
 #include <starlight/renderer/views/ShadowMapsRenderView.hh>
+#include <starlight/renderer/views/GridRenderView.hh>
 #include <starlight/ui/fonts/FontAwesome.hh>
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/Scene.hh>
@@ -67,6 +68,7 @@ void Application::startRenderLoop() {
         .addView<sl::SkyboxRenderView>(viewportOffset)
         .addView<sl::ShadowMapsRenderView>(viewportOffset)
         .addView<sl::WorldRenderView>(viewportOffset, worldShader)
+        .addView<sl::GridRenderView>(viewportOffset)
         .addView<sl::LightsDebugRenderView>(viewportOffset)
         .addView<sl::UIRenderView>(
           std::vector<sl::Font::Properties>{ font },
