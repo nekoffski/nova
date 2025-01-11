@@ -25,7 +25,7 @@ void GridRenderView::init(
 }
 
 void GridRenderView::render(
-  RendererBackend& renderer, RenderPacket& packet,
+  [[maybe_unused]] RendererBackend& renderer, RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& properties,
   [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
 ) {
