@@ -19,23 +19,36 @@ public:
 
     template <typename T>
     [[nodiscard]] EventHandlerId pushEventHandler(
-      std::function<EventChainBehaviour(const T&)>&& handler
+      std::function<void(const T&, details::HandledCallback&&)>&& handler
     ) {
-        // TODO: thread safety
-        auto& chain = m_handlers[typeid(T)];
-
-        chain.emplace_back(
-          [handler](details::EventStorageBase& event) -> EventChainBehaviour {
-              return handler(event.as<T>());
-          }
+        return pushEventHandlerImpl(
+          typeid(T),
+          [handler = std::move(handler)](
+            details::EventStorageBase& event, details::HandledCallback&& handled
+          ) { handler(event.as<T>(), std::move(handled)); }
         );
+    }
 
-        return chain.back().getId();
+    template <typename T>
+    [[nodiscard]] EventHandlerId pushEventHandler(
+      std::function<void(const T&)>&& handler
+    ) {
+        return pushEventHandlerImpl(
+          typeid(T),
+          [handler = std::move(handler)](
+            details::EventStorageBase& event,
+            [[maybe_unused]] details::HandledCallback&& handled
+          ) { handler(event.as<T>()); }
+        );
     }
 
     void popEventHandler(const EventHandlerId id);
 
 private:
+    EventHandlerId pushEventHandlerImpl(
+      const std::type_index& type, details::EventCallback&& wraper
+    );
+
     details::Events& m_events;
     details::EventHandlers& m_handlers;
 };

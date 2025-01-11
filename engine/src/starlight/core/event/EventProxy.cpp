@@ -19,4 +19,13 @@ void EventProxy::popEventHandler(const EventHandlerId id) {
     LOG_WARN("Event handler with id='{}' not found", id);
 }
 
+EventHandlerId EventProxy::pushEventHandlerImpl(
+  const std::type_index& type, details::EventCallback&& wrapper
+) {
+    // TODO: ensure thread safety
+    auto& chain = m_handlers[type];
+    chain.emplace_back(std::move(wrapper));
+    return chain.back().getId();
+}
+
 }  // namespace sl

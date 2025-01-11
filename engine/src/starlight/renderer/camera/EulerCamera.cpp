@@ -10,10 +10,8 @@ EulerCamera::EulerCamera(const Properties& props, sl::EventProxy& eventProxy) :
     m_radius(props.radius), m_yaw(90.0f), m_pitch(90.0f) {
     recalculateVectors();
 
-    m_eventSentinel.add<sl::ScrollEvent>([&](auto& event) {
-        onScroll(event.offset);
-        return EventChainBehaviour::propagate;
-    });
+    m_eventSentinel.add<sl::ScrollEvent>([&](auto& event) { onScroll(event.offset); }
+    );
 }
 
 Mat4<f32> EulerCamera::getViewMatrix() const { return m_viewMatrix; }

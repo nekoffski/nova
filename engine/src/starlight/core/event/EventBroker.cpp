@@ -14,8 +14,10 @@ void EventBroker::dispatch() {
             handlerRecord == m_handlers.end()) {
             break;
         } else {
+            bool handled = false;
             for (auto& handler : handlerRecord->second) {
-                if (handler.callback(*event) == EventChainBehaviour::stop) break;
+                handler.callback(*event, [&handled]() -> void { handled = true; });
+                if (handled) break;
             }
         }
     }

@@ -22,7 +22,6 @@ RendererFrontend::RendererFrontend(
     m_materialFactory(config.paths.materials), m_meshFactory(m_backend) {
     m_eventSentinel.add<WindowResized>([&](const auto& event) {
         onViewportResize(event.size);
-        return sl::EventChainBehaviour::propagate;
     });
 }
 

@@ -10,7 +10,6 @@
 namespace sl {
 
 using EventHandlerId = u32;
-enum class EventChainBehaviour { propagate, stop };
 
 namespace details {
 
@@ -33,8 +32,9 @@ private:
     T m_event;
 };
 
-using EventCallback = std::function<EventChainBehaviour(EventStorageBase&)>;
-using Events        = std::vector<OwningPtr<EventStorageBase>>;
+using HandledCallback = std::function<void()>;
+using EventCallback   = std::function<void(EventStorageBase&, HandledCallback&&)>;
+using Events          = std::vector<OwningPtr<EventStorageBase>>;
 
 struct EventHandlerRecord : Identificable<EventHandlerRecord, EventHandlerId> {
     explicit EventHandlerRecord(EventCallback&& callback);

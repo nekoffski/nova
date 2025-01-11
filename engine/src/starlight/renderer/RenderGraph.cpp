@@ -47,7 +47,6 @@ OwningPtr<RenderGraph> RenderGraph::Builder::build() && {
 RenderGraph::RenderGraph(EventProxy& eventProxy) : m_eventSentinel(eventProxy) {
     m_eventSentinel.add<WindowResized>([&](const auto& event) {
         onViewportResize(event.size);
-        return sl::EventChainBehaviour::propagate;
     });
 }
 

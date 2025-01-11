@@ -81,10 +81,8 @@ int main(int argc, char** argv) {
     sl::EventHandlerSentinel sentinel{ eventProxy };
 
     sentinel
-      .add<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) {
-          isRunning = false;
-          return sl::EventChainBehaviour::propagate;
-      })
+      .add<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) { isRunning = false; }
+      )
       .add<sl::KeyEvent>([&](const auto& ev) {
           if (ev.key == SL_KEY_ESCAPE)
               isRunning = false;
@@ -94,7 +92,6 @@ int main(int argc, char** argv) {
               renderer.setRenderMode(sl::RenderMode::normals);
           else if (ev.key == SL_KEY_C)
               renderer.setRenderMode(sl::RenderMode::standard);
-          return sl::EventChainBehaviour::propagate;
       });
 
     sl::Scene scene{ window, &camera };

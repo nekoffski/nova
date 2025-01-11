@@ -48,7 +48,6 @@ UserInterface::UserInterface(
     m_resourcesView(m_resources) {
     m_eventSentinel.add<sl::WindowResized>([&](auto& event) {
         onViewportReisze(event.size);
-        return sl::EventChainBehaviour::propagate;
     });
 
     initMenu();

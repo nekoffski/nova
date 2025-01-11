@@ -13,9 +13,10 @@ public:
     explicit EventHandlerSentinel(EventProxy& eventProxy);
     ~EventHandlerSentinel();
 
-    template <typename T>
-    EventHandlerSentinel& add(std::function<EventChainBehaviour(const T&)>&& handler
-    ) {
+    template <typename T, typename Handler>
+    EventHandlerSentinel& add(Handler&& handler)
+    requires(Callable<Handler, void, const T&> || Callable<Handler, void, const T&, details::HandledCallback>)
+    {
         const auto id = m_eventProxy.pushEventHandler<T>(std::move(handler));
         m_handlerIds.push_back(id);
         return *this;

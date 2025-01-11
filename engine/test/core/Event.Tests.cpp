@@ -34,8 +34,6 @@ TEST_F(EventTests, givenHandler_whenEmittingEvent_shouldBeCalled) {
 
           EXPECT_EQ(ev.x, 1337.0f);
           EXPECT_EQ(ev.y, 1337);
-
-          return EventChainBehaviour::propagate;
       });
 
     proxy.emit<TestEvent>(1337.0f, 1337);
@@ -48,17 +46,13 @@ TEST_F(EventTests, givenTwoHandlers_whenEmittingEventWithPropagate_shouldCallBot
     bool called  = false;
     bool called2 = false;
 
-    [[maybe_unused]] auto id =
-      proxy.pushEventHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
-          called = true;
-          return EventChainBehaviour::propagate;
-      });
+    [[maybe_unused]] auto id = proxy.pushEventHandler<TestEvent>(
+      [&]([[maybe_unused]] const TestEvent& ev) { called = true; }
+    );
 
-    id =
-      proxy.pushEventHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
-          called2 = true;
-          return EventChainBehaviour::propagate;
-      });
+    id = proxy.pushEventHandler<TestEvent>(
+      [&]([[maybe_unused]] const TestEvent& ev) { called2 = true; }
+    );
 
     proxy.emit<TestEvent>(1337.0f, 1337);
     broker.dispatch();
@@ -71,17 +65,16 @@ TEST_F(EventTests, givenTwoHandlers_whenEmittingEventWithStop_shouldNotCallBoth)
     bool called  = false;
     bool called2 = false;
 
-    auto id =
-      proxy.pushEventHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
+    auto id = proxy.pushEventHandler<TestEvent>(
+      [&]([[maybe_unused]] const TestEvent& ev, auto&& handled) {
           called = true;
-          return EventChainBehaviour::stop;
-      });
+          handled();
+      }
+    );
 
-    id =
-      proxy.pushEventHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
-          called2 = true;
-          return EventChainBehaviour::propagate;
-      });
+    id = proxy.pushEventHandler<TestEvent>(
+      [&]([[maybe_unused]] const TestEvent& ev) { called2 = true; }
+    );
 
     proxy.emit<TestEvent>(1337.0f, 1337);
     broker.dispatch();
@@ -94,17 +87,13 @@ TEST_F(EventTests, givenTwoHandlers_whenPoppingHandler_shouldNotBeCalled) {
     bool called  = false;
     bool called2 = false;
 
-    auto id =
-      proxy.pushEventHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
-          called = true;
-          return EventChainBehaviour::propagate;
-      });
+    auto id = proxy.pushEventHandler<TestEvent>(
+      [&]([[maybe_unused]] const TestEvent& ev) { called = true; }
+    );
 
-    id =
-      proxy.pushEventHandler<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
-          called2 = true;
-          return EventChainBehaviour::propagate;
-      });
+    id = proxy.pushEventHandler<TestEvent>(
+      [&]([[maybe_unused]] const TestEvent& ev) { called2 = true; }
+    );
 
     proxy.emit<TestEvent>(1337.0f, 1337);
     broker.dispatch();
@@ -134,12 +123,10 @@ TEST_F(
 
         sentinel.add<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
             called = true;
-            return EventChainBehaviour::propagate;
         });
 
         sentinel.add<TestEvent>([&]([[maybe_unused]] const TestEvent& ev) {
             called2 = true;
-            return EventChainBehaviour::propagate;
         });
 
         proxy.emit<TestEvent>(1337.0f, 1337);

@@ -28,10 +28,7 @@ struct WindowCallbacksTests : WindowTests {
 
 TEST_F(WindowCallbacksTests, givenWindow_whenWindowCloses_shouldEmitQuitEvent) {
     [[maybe_unused]] auto id = eventBroker.getProxy().pushEventHandler<QuitEvent>(
-      [&]([[maybe_unused]] const auto&) {
-          called = true;
-          return EventChainBehaviour::propagate;
-      }
+      [&]([[maybe_unused]] const auto&) { called = true; }
     );
 
     EXPECT_CALL(windowImpl, onWindowCloseCallback)

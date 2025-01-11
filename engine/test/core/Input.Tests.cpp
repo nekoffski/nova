@@ -41,12 +41,10 @@ TEST_F(
       });
 
     [[maybe_unused]] auto id = eventBroker.getProxy().pushEventHandler<MouseEvent>(
-      [&]([[maybe_unused]] const MouseEvent& event) {
+      [&](const MouseEvent& event) {
           EXPECT_EQ(event.action, MouseAction::press);
           EXPECT_EQ(event.button, 1);
           called = true;
-
-          return EventChainBehaviour::propagate;
       }
     );
 
@@ -65,14 +63,12 @@ TEST_F(
           callback(KeyAction::press, 1);
       });
 
-    [[maybe_unused]] auto id = eventBroker.getProxy().pushEventHandler<KeyEvent>(
-      [&]([[maybe_unused]] const KeyEvent& event) {
+    [[maybe_unused]] auto id =
+      eventBroker.getProxy().pushEventHandler<KeyEvent>([&](const KeyEvent& event) {
           EXPECT_EQ(event.action, KeyAction::press);
           EXPECT_EQ(event.key, 1);
           called = true;
-          return EventChainBehaviour::propagate;
-      }
-    );
+      });
 
     Input input{ windowImpl };
 

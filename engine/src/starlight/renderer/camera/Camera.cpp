@@ -13,7 +13,6 @@ Camera::Camera(
     m_eventSentinel.add<WindowResized>([&](auto& event) {
         m_viewportSize = event.size;
         calculateProjectionMatrix();
-        return EventChainBehaviour::propagate;
     });
     calculateProjectionMatrix();
 }

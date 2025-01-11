@@ -91,10 +91,10 @@ void Application::exit() { m_isRunning.store(false); }
 
 void Application::initEvents() {
     m_eventSentinel
-      .add<sl::QuitEvent>([&](const auto& event) {
+      .add<sl::QuitEvent>([&](const auto& event, auto&& handled) {
           LOG_INFO("Received quit request: '{}'", event.reason);
           exit();
-          return sl::EventChainBehaviour::stop;
+          handled();
       })
       .add<sl::KeyEvent>([&](const auto& event) {
           if (event.key == SL_KEY_ESCAPE && event.action == sl::KeyAction::press) {
@@ -107,9 +107,8 @@ void Application::initEvents() {
           } else if (event.key == SL_KEY_C) {
               m_renderer.setRenderMode(sl::RenderMode::standard);
           }
-          return sl::EventChainBehaviour::propagate;
       })
-      .add<events::SceneSerialization>([&](const auto& event) {
+      .add<events::SceneSerialization>([&](const auto& event, auto&& handled) {
           if (event.action == events::SceneSerialization::Action::serialize) {
               EDITOR_LOG_DEBUG("Serializing scene: {}", event.path);
               m_sceneParser.serialize(m_scene, event.path);
@@ -118,7 +117,7 @@ void Application::initEvents() {
               m_scene.clear();
               m_sceneParser.deserialize(m_scene, event.path);
           }
-          return sl::EventChainBehaviour::stop;
+          handled();
       });
 }
 

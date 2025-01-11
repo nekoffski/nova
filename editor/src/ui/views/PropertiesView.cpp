@@ -24,17 +24,15 @@ void PropertiesView::render() { m_tabMenu.render(); }
 
 PropertiesView::EntityTab::EntityTab() : m_eventSentinel(sl::EventProxy::get()) {
     m_eventSentinel
-      .add<events::SetComponentUICallback>([&](auto& event) {
+      .add<events::SetComponentUICallback>([&](auto& event, auto&& handled) {
           m_componentCallback = event.callback;
-          return sl::EventChainBehaviour::stop;
+          handled();
       })
       .add<events::EntitySelected>([&](auto& event) {
           m_data.selectedEntity = event.entity;
           m_data.nameBuffer     = event.entity->name;
 
           if (event.clearComponentCallback) m_componentCallback.reset();
-
-          return sl::EventChainBehaviour::propagate;
       });
 }
 
@@ -99,10 +97,12 @@ void PropertiesView::EntityTab::renderEntityUI() {
 }
 
 PropertiesView::ResourceTab::ResourceTab() : m_eventSentinel(sl::EventProxy::get()) {
-    m_eventSentinel.add<events::SetResourceUICallback>([&](auto& event) {
-        m_resourceCallback = event.callback;
-        return sl::EventChainBehaviour::stop;
-    });
+    m_eventSentinel.add<events::SetResourceUICallback>(
+      [&](auto& event, auto&& handled) {
+          m_resourceCallback = event.callback;
+          handled();
+      }
+    );
 }
 
 void PropertiesView::ResourceTab::render() {
