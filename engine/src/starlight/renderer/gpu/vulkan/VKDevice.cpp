@@ -15,7 +15,9 @@ VKDevice::VKDevice(Window& window, const Config& config) :
 #endif
     m_surface(m_instance.get(), window, m_allocator),
     m_physicalDevice(m_instance.get(), m_surface.get()),
-    m_logicalDevice(m_physicalDevice.get(), m_allocator) {
+    m_logicalDevice(
+      m_physicalDevice.get(), m_allocator, m_physicalDevice.info.queueIndices
+    ) {
 }
 
 VKDevice::~VKDevice() {}
@@ -358,6 +360,33 @@ static bool validateExtensions(
     return true;
 }
 
+static bool detectDepthFormat(
+  VkPhysicalDevice device, VKDevice::Physical::Info& info
+) {
+    static std::vector<std::pair<VkFormat, u8>> candidates = {
+        { VK_FORMAT_D32_SFLOAT,         4 },
+        { VK_FORMAT_D32_SFLOAT_S8_UINT, 4 },
+        { VK_FORMAT_D24_UNORM_S8_UINT,  3 },
+    };
+
+    uint32_t flags   = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    info.depthFormat = VK_FORMAT_UNDEFINED;
+
+    for (const auto& [format, channelCount] : candidates) {
+        VkFormatProperties properties;
+        vkGetPhysicalDeviceFormatProperties(device, format, &properties);
+
+        if (((properties.linearTilingFeatures & flags) == flags)
+            || ((properties.optimalTilingFeatures & flags) == flags)) {
+            info.depthChannelCount = format;
+            info.depthChannelCount = channelCount;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static std::optional<VKDevice::Physical::Info> getPhysicalDeviceInfo(
   VkPhysicalDevice device, VkSurfaceKHR surface,
   const VKDevice::Physical::Requirements& requirements
@@ -385,12 +414,17 @@ static std::optional<VKDevice::Physical::Info> getPhysicalDeviceInfo(
     }
 
     if (not validateExtensions(device, requirements.extensions)) {
-        LOG_WARN("Device doesn't provide required extensions, skipping");
+        LOG_INFO("Device doesn't provide required extensions, skipping");
         return {};
     }
 
     if (requirements.supportsSamplerAnisotropy && !info.features.samplerAnisotropy) {
         LOG_INFO("Device does not support samplerAnisotropy, skipping");
+        return {};
+    }
+
+    if (not detectDepthFormat(device, info)) {
+        LOG_INFO("Could not detect depth format, skipping");
         return {};
     }
 
@@ -462,8 +496,8 @@ VKDevice::Physical::Physical(VkInstance instance, VkSurfaceKHR surface) :
     for (const auto device : getPhysicalDevices(instance)) {
         if (auto info = getPhysicalDeviceInfo(device, surface, requirements); info) {
             showDeviceInfo(*info);
-            m_info   = *info;
-            m_handle = device;
+            this->info = *info;
+            m_handle   = device;
             break;
         }
     }
@@ -478,8 +512,18 @@ VkPhysicalDevice VKDevice::Physical::get() { return m_handle; }
     Logical Device
 */
 
-VKDevice::Logical::Logical(VkPhysicalDevice device, Allocator* allocator) :
-    m_handle(VK_NULL_HANDLE), m_allocator(allocator) {}
+VKDevice::Logical::Logical(
+  VkPhysicalDevice device, Allocator* allocator,
+  const Physical::QueueIndices& queueIndices
+) :
+    m_physicalDevice(device), m_handle(VK_NULL_HANDLE), m_allocator(allocator),
+    m_graphicsCommandPool(VK_NULL_HANDLE) {
+    createDevice(queueIndices);
+    assignQueues(queueIndices);
+    createCommandPool(queueIndices);
+
+    LOG_TRACE("Vulkan logical device created");
+}
 
 VKDevice::Logical::~Logical() {
     LOG_TRACE("Destroying vulkan logical device");
@@ -489,5 +533,79 @@ VKDevice::Logical::~Logical() {
 }
 
 VkDevice VKDevice::Logical::get() { return m_handle; }
+
+void VKDevice::Logical::createDevice(const Physical::QueueIndices& queueIndices) {
+    static constexpr u64 maximumExpectedQueuesCount = 3;
+
+    std::vector<u32> indices;
+    indices.reserve(maximumExpectedQueuesCount);
+    indices.push_back(queueIndices.at(QueueType::graphics));
+
+    if (queueIndices.at(QueueType::graphics) != queueIndices.at(QueueType::present))
+        indices.push_back(queueIndices.at(QueueType::present));
+    if (queueIndices.at(QueueType::graphics) != queueIndices.at(QueueType::transfer))
+        indices.push_back(queueIndices.at(QueueType::transfer));
+
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<f32> queueProrities;
+
+    auto queueCount = indices.size();
+    queueProrities.reserve(queueCount);
+    queueCreateInfos.reserve(queueCount);
+
+    for (const auto index : indices) {
+        LOG_TRACE("Adding queue family index: {}", index);
+
+        queueProrities.push_back(1.0f);
+        VkDeviceQueueCreateInfo info;
+        clearMemory(&info);
+        info.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        info.queueFamilyIndex = index;
+        info.queueCount       = 1;
+        info.flags            = 0;
+        info.pQueuePriorities = &queueProrities.back();
+        queueCreateInfos.push_back(info);
+    }
+
+    VkPhysicalDeviceFeatures deviceFeatures;
+    clearMemory(&deviceFeatures);
+    deviceFeatures.samplerAnisotropy        = VK_TRUE;
+    std::vector<const char*> extensionNames = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+    VkDeviceCreateInfo deviceCreateInfo;
+    clearMemory(&deviceCreateInfo);
+    deviceCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.queueCreateInfoCount    = queueCreateInfos.size();
+    deviceCreateInfo.pQueueCreateInfos       = queueCreateInfos.data();
+    deviceCreateInfo.pEnabledFeatures        = &deviceFeatures;
+    deviceCreateInfo.enabledExtensionCount   = extensionNames.size();
+    deviceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
+
+    VK_ASSERT(
+      vkCreateDevice(m_physicalDevice, &deviceCreateInfo, m_allocator, &m_handle)
+    );
+}
+
+void VKDevice::Logical::createCommandPool(const Physical::QueueIndices& queueIndices
+) {
+    VkCommandPoolCreateInfo poolCreateInfo;
+    clearMemory(&poolCreateInfo);
+    poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+
+    poolCreateInfo.queueFamilyIndex = queueIndices.at(QueueType::graphics);
+    poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+    VK_ASSERT(vkCreateCommandPool(
+      m_handle, &poolCreateInfo, m_allocator, &m_graphicsCommandPool
+    ));
+}
+
+void VKDevice::Logical::assignQueues(const Physical::QueueIndices& queueIndices) {
+    const auto types = {
+        QueueType::graphics, QueueType::present, QueueType::transfer
+    };
+    for (auto type : types)
+        vkGetDeviceQueue(m_handle, queueIndices.at(type), 0, &m_queues[type]);
+}
 
 }  // namespace sl::vk

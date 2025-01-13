@@ -57,8 +57,12 @@ public:
         compute  = 0x8
     };
 
+    using Queues = std::unordered_map<QueueType, VkQueue>;
+
     class Physical : public NonCopyable, public NonMovable {
     public:
+        using QueueIndices = std::unordered_map<QueueType, u32>;
+
         struct Requirements {
             QueueType supportedQueues;
             bool isDiscrete;
@@ -70,32 +74,43 @@ public:
             VkPhysicalDeviceProperties coreProperties;
             VkPhysicalDeviceMemoryProperties memoryProperties;
             VkPhysicalDeviceFeatures features;
-            std::unordered_map<QueueType, u32> queueIndices;
+            QueueIndices queueIndices;
             VkSurfaceCapabilitiesKHR surfaceCapabilities;
             std::vector<VkSurfaceFormatKHR> surfaceFormats;
             std::vector<VkPresentModeKHR> presentModes;
+            VkFormat depthFormat;
+            u8 depthChannelCount;
         };
 
         explicit Physical(VkInstance instance, VkSurfaceKHR surface);
 
         VkPhysicalDevice get();
+        Info info;
 
     private:
-        Info m_info;
         VkPhysicalDevice m_handle;
     };
 
     class Logical : public NonCopyable, public NonMovable {
     public:
-        Logical(VkPhysicalDevice device, Allocator* allocator);
+        Logical(
+          VkPhysicalDevice device, Allocator* allocator,
+          const Physical::QueueIndices& queueIndices
+        );
         ~Logical();
 
         VkDevice get();
 
     private:
+        void createDevice(const Physical::QueueIndices& queueIndices);
+        void assignQueues(const Physical::QueueIndices& queueIndices);
+        void createCommandPool(const Physical::QueueIndices& queueIndices);
+
+        VkPhysicalDevice m_physicalDevice;
         VkDevice m_handle;
         Allocator* m_allocator;
         VkCommandPool m_graphicsCommandPool;
+        Queues m_queues;
     };
 
     explicit VKDevice(Window& window, const Config& config);
