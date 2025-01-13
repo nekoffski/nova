@@ -34,6 +34,7 @@ private:
     float beginFrame();
     void endFrame();
 
+    Config m_config;
     EventBroker m_eventBroker;
 
     WindowVendor m_windowImpl;

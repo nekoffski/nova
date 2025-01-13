@@ -1,7 +1,9 @@
 name: Starlight CD pipeline
 
-on: [push]
-
+on:
+  push:
+    branches:
+      - "dev"
 jobs:
   build:
     runs-on: ubuntu-24.04
