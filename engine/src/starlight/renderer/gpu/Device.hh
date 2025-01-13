@@ -8,6 +8,8 @@ namespace sl {
 
 class Device : public NonCopyable, public NonMovable {
 public:
+    virtual ~Device() = default;
+
     static OwningPtr<Device> create(Context& context);
 };
 
