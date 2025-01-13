@@ -11,8 +11,9 @@
 #include "starlight/renderer/views/LightsDebugRenderView.hh"
 #include "starlight/renderer/views/SkyboxRenderView.hh"
 #include "starlight/renderer/views/UIRenderView.hh"
+#include "starlight/renderer/views/ShadowMapsRenderView.hh"
 #include "starlight/renderer/camera/EulerCamera.hh"
-#include "starlight/renderer/RendererFrontend.hh"
+#include "starlight/renderer/Renderer.hh"
 #include "starlight/renderer/RenderGraph.hh"
 #include "starlight/renderer/gpu/Shader.hh"
 #include "starlight/renderer/light/PointLight.hh"
@@ -36,7 +37,8 @@ int main(int argc, char** argv) {
     auto& window     = context.getWindow();
     auto& eventProxy = sl::EventProxy::get();
 
-    sl::RendererFrontend renderer{ window, eventProxy, *config };
+    sl::Renderer renderer{ context };
+    sl::v2::RenderGraph renderGraph{ renderer };
 
     const auto viewportSize = window.getFramebufferSize();
 
@@ -49,77 +51,9 @@ int main(int argc, char** argv) {
       eventProxy
     );
 
-    auto& rendererBackend = renderer.getRendererBackend();
-    auto skybox           = sl::SkyboxFactory::get().load("skybox2/skybox");
-    auto worldShader      = sl::ShaderFactory::get().load("Builtin.Shader.Material");
-
-    sl::Font::SubfontProperties icons{
-        "/home/nek0/kapik/projects/starlight/assets/fonts/fa-solid-900.ttf",
-        ICON_MIN_FA, ICON_MAX_FA
-    };
-    sl::Font::Properties font{
-        .name = "main-font",
-        .path =
-          "/home/nek0/kapik/projects/starlight/assets/fonts/Roboto-Regular.ttf",
-        .size     = 15,
-        .subfonts = { icons }
-    };
-
-    const auto viewportOffset = sl::Vec2<sl::f32>{ 0.0f, 0.0f };
-
-    auto renderGraph =
-      sl::RenderGraph::Builder{ rendererBackend, eventProxy, viewportSize }
-        .addView<sl::SkyboxRenderView>(viewportOffset)
-        .addView<sl::WorldRenderView>(viewportOffset, worldShader)
-        .addView<sl::LightsDebugRenderView>(viewportOffset)
-        .addView<sl::UIRenderView>(
-          std::vector<sl::Font::Properties>{ font },
-          []() { sl::ui::text("Hello world!"); }
-        )
-        .build();
-
-    sl::EventHandlerSentinel sentinel{ eventProxy };
-
-    sentinel
-      .add<sl::QuitEvent>([&]([[maybe_unused]] const auto& ev) { isRunning = false; }
-      )
-      .add<sl::KeyEvent>([&](const auto& ev) {
-          if (ev.key == SL_KEY_ESCAPE)
-              isRunning = false;
-          else if (ev.key == SL_KEY_Z)
-              renderer.setRenderMode(sl::RenderMode::lights);
-          else if (ev.key == SL_KEY_X)
-              renderer.setRenderMode(sl::RenderMode::normals);
-          else if (ev.key == SL_KEY_C)
-              renderer.setRenderMode(sl::RenderMode::standard);
-      });
-
-    sl::Scene scene{ window, &camera };
-    scene.skybox = skybox;
-
-    auto& entity = scene.addEntity();
-
-    auto& instance =
-      entity
-        .addComponent<sl::MeshComposite>(
-          sl::MeshFactory::get().getCube(),
-          sl::MaterialFactory::get().load("Builtin.Material.Test")
-        )
-        .data()
-        .getRoot()
-        .getInstances()
-        .front();
-
     while (isRunning) {
-        auto renderPacket = scene.getRenderPacket();
-        context.beginFrame([&](float deltaTime) {
-            renderer.renderFrame(deltaTime, renderPacket, *renderGraph);
-            camera.update(deltaTime);
-
-            instance.rotate(
-              sl::Vec3<sl::f32>{ 0.0f, 1.0f, 0.0f }, 0.25f * deltaTime
-            );
-        });
+        context.beginFrame([&](float deltaTime) { renderGraph.render(); });
+        isRunning = false;
     }
 
     return 0;

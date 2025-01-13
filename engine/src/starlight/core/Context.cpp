@@ -4,8 +4,9 @@
 
 namespace sl {
 
-Context::Context(const Config& config
-) : m_windowImpl(config.window), m_window(m_windowImpl), m_input(m_windowImpl) {}
+Context::Context(const Config& config) :
+    m_config(config), m_windowImpl(config.window), m_window(m_windowImpl),
+    m_input(m_windowImpl) {}
 
 float Context::beginFrame() {
     const auto deltaTime = m_clock.getDeltaTime();
@@ -28,5 +29,7 @@ void Context::endFrame() {
 Window& Context::getWindow() { return m_window; }
 
 EventProxy& Context::getEventProxy() { return m_eventBroker.getProxy(); }
+
+const Config& Context::getConfig() const { return m_config; }
 
 }  // namespace sl

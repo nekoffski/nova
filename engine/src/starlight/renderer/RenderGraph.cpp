@@ -4,6 +4,14 @@
 
 namespace sl {
 
+namespace v2 {
+
+RenderGraph::RenderGraph(Renderer& renderer) : m_renderer(renderer) {}
+
+void RenderGraph::render() {}
+
+}  // namespace v2
+
 RenderGraph::Builder::Builder(
   RendererBackend& renderer, EventProxy& eventProxy, const Vec2<u32>& viewportSize
 ) : m_renderer(renderer), m_eventProxy(eventProxy), m_viewportSize(viewportSize) {}

@@ -42,6 +42,8 @@ RenderPacket Scene::getRenderPacket() {
       }
     );
 
+    packet.directionalLights.emplace_back();
+
     // mock for testing
     // PointLight light;
 

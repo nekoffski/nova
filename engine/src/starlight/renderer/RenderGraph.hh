@@ -7,8 +7,22 @@
 #include "starlight/core/math/Core.hh"
 #include "gpu/RendererBackend.hh"
 #include "views/RenderView.hh"
+#include "Renderer.hh"
 
 namespace sl {
+
+namespace v2 {
+
+class RenderGraph {
+public:
+    explicit RenderGraph(Renderer& renderer);
+
+    void render();
+
+private:
+    Renderer& m_renderer;
+};
+}  // namespace v2
 
 class RenderGraph {
     friend class Builder;
