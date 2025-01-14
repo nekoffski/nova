@@ -34,6 +34,12 @@ OwningPtr<Swapchain> VKDevice::createSwapchain(const Vec2<u32>& size) {
     return OwningPtr<Swapchain>();
 }
 
+OwningPtr<sl::v2::RenderPass::Impl> VKDevice::createRenderPass(
+  const sl::v2::RenderPass::Properties& props
+) {
+    return OwningPtr<sl::v2::RenderPass::Impl>();
+}
+
 OwningPtr<Semaphore> VKDevice::createSemaphore() {
     return createOwningPtr<v2::VKSemaphore>(m_logicalDevice.handle, m_allocator);
 }

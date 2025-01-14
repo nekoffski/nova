@@ -21,6 +21,7 @@
 #include "starlight/renderer/MeshComposite.hh"
 #include "starlight/ui/UI.hh"
 #include "starlight/ui/fonts/FontAwesome.hh"
+#include "starlight/renderer/passes/DummyRenderPass.hh"
 
 static std::atomic_bool isRunning = true;
 
@@ -40,6 +41,8 @@ int main(int argc, char** argv) {
     sl::Renderer renderer{ context };
     sl::v2::RenderGraph renderGraph{ renderer };
 
+    renderGraph.addRenderPass<sl::DummyRenderPass>();
+
     const auto viewportSize = window.getFramebufferSize();
 
     sl::EulerCamera camera(
@@ -51,8 +54,13 @@ int main(int argc, char** argv) {
       eventProxy
     );
 
+    sl::Scene scene{ window, &camera };
+
     while (isRunning) {
-        context.beginFrame([&](float deltaTime) { renderGraph.render(); });
+        context.beginFrame([&](float deltaTime) {
+            auto renderPacket = scene.getRenderPacket();
+            renderGraph.render(renderPacket);
+        });
         isRunning = false;
     }
 
