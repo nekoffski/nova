@@ -1,8 +1,9 @@
 #pragma once
 
-#include <limits>
-
+#include "starlight/core/memory/Memory.hh"
 #include "starlight/core/Core.hh"
+
+#include "fwd.hh"
 
 namespace sl {
 

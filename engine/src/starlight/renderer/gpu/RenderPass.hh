@@ -15,7 +15,18 @@
 
 namespace sl {
 
-class RenderPass : public NonMovable, public Identificable<RenderTarget> {
+namespace v2 {
+
+class RenderPass : public NonMovable, public Identificable<RenderPass> {
+    struct Impl {};
+
+public:
+private:
+};
+
+}  // namespace v2
+
+class RenderPass : public NonMovable, public Identificable<RenderPass> {
 public:
     enum class ClearFlags : unsigned char {
         none    = 0x0,

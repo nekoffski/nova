@@ -5,9 +5,19 @@ namespace sl {
 Renderer::Renderer(Context& context) :
     m_context(context), m_window(context.getWindow()),
     m_device(Device::create(m_context)), m_currentFrame(0u),
-    m_maxFramesInFlight(m_swapchain->getImageCount()) {}
+    m_maxFramesInFlight(m_swapchain->getImageCount()) {
+    createSyncPrimitives();
+}
 
 Context& Renderer::getContext() { return m_context; }
+
+void Renderer::createSyncPrimitives() {
+    for (u8 i = 0; i < m_maxFramesInFlight; ++i) {
+        m_frameFences.push_back(m_device->createFence(Fence::State::signaled));
+        m_imageAvailableSemaphores.push_back(m_device->createSemaphore());
+        m_queueCompleteSemaphores.push_back(m_device->createSemaphore());
+    }
+}
 
 std::optional<u8> Renderer::beginFrame() {
     m_frameFences[m_currentFrame]->wait();
@@ -39,11 +49,23 @@ void Renderer::endFrame(u8 imageIndex) {
     auto& commandBuffer = *m_commandBuffers[imageIndex];
     commandBuffer.end();
 
-    auto& graphicsQueue = m_device->getQueue(Queue::Type::graphics);
-    graphicsQueue.submit(
-      commandBuffer, m_imageAvailableSemaphores[imageIndex].get(),
-      m_queueCompleteSemaphores[imageIndex].get()
-    );
+    Queue::SubmitInfo submitInfo{
+        .commandBuffer   = commandBuffer,
+        .waitSemaphore   = m_imageAvailableSemaphores[imageIndex].get(),
+        .signalSemaphore = m_queueCompleteSemaphores[imageIndex].get()
+    };
+
+    if (not m_device->getGraphicsQueue().submit(submitInfo)) {
+    }
+
+    Queue::PresentInfo presentInfo{
+        .swapchain     = *m_swapchain,
+        .imageIndex    = imageIndex,
+        .waitSemaphore = m_queueCompleteSemaphores[m_currentFrame].get()
+    };
+
+    if (not m_device->getPresentQueue().present(presentInfo)) {
+    }
 
     m_currentFrame = (m_currentFrame + 1) % m_maxFramesInFlight;
 }

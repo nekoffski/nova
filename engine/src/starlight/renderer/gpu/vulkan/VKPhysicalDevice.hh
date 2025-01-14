@@ -12,17 +12,15 @@
 
 namespace sl::vk {
 
-enum class Queue : uint16_t {
-    graphics = 0b0001,
-    present  = 0b0010,
-    transfer = 0b0100,
-    compute  = 0b1000
-};
-
-constexpr void enableBitOperations(Queue);
-
 class VKPhysicalDevice {
 public:
+    enum class Queue : uint16_t {
+        graphics = 0b0001,
+        present  = 0b0010,
+        transfer = 0b0100,
+        compute  = 0b1000
+    };
+
     struct DeviceProperties {
         static DeviceProperties fetch(VkPhysicalDevice device);
 
@@ -93,5 +91,7 @@ private:
     DeviceInfo m_deviceInfo;
     DeviceProperties m_deviceProperties;
 };
+
+constexpr void enableBitOperations(VKPhysicalDevice::Queue);
 
 }  // namespace sl::vk
