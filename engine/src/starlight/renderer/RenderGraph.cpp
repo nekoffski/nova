@@ -1,5 +1,7 @@
 #include "RenderGraph.hh"
 
+#include <ranges>
+
 #include "starlight/core/event/WindowResized.hh"
 
 namespace sl {
@@ -8,7 +10,30 @@ namespace v2 {
 
 RenderGraph::RenderGraph(Renderer& renderer) : m_renderer(renderer) {}
 
-void RenderGraph::render() {}
+void RenderGraph::render(RenderPacket& renderPacket) {
+    m_renderer.renderFrame([&](v2::CommandBuffer& commandBuffer, u8 imageIndex) {
+        for (auto& [renderPass, active] : m_nodes) {
+            if (active) renderPass->run(renderPacket, commandBuffer, imageIndex);
+        }
+    });
+}
+
+void RenderGraph::rebuildChain() {
+    std::vector<RenderPass*> activePasses;
+    activePasses.reserve(m_nodes.size());
+
+    for (auto& [renderPass, active] : m_nodes)
+        if (active) activePasses.push_back(renderPass.get());
+
+    const auto n = activePasses.size();
+
+    for (u64 i = 0; i < n; ++i) {
+        bool hasPreviousPass = (i != 0);
+        bool hasNextPass     = (i != (n - 1));
+
+        activePasses[i]->init(hasPreviousPass, hasNextPass);
+    }
+}
 
 }  // namespace v2
 

@@ -7,5 +7,6 @@ namespace sl {
 
 class RendererFrontend;
 class Material;
+class Renderer;
 
 }  // namespace sl

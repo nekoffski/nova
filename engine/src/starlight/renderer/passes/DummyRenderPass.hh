@@ -6,7 +6,21 @@ namespace sl {
 
 class DummyRenderPass : public v2::RenderPass {
 public:
+    explicit DummyRenderPass(Renderer& renderer) : RenderPass(renderer) {}
+
 private:
+    Properties createProperties(bool hasPreviousPass, bool hasNextPass) override {
+        auto clearFlags = ClearFlags::depth | ClearFlags::stencil;
+        if (not hasPreviousPass) clearFlags |= RenderPass::ClearFlags::color;
+
+        return createDefaultProperties(
+          Attachment::swapchainColor | Attachment::depth, clearFlags
+        );
+    }
+
+    void render(
+      RenderPacket& packet, v2::CommandBuffer& commandBuffer, u8 imageIndex
+    ) override {}
 };
 
 }  // namespace sl

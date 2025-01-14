@@ -4,12 +4,19 @@ namespace sl {
 
 Renderer::Renderer(Context& context) :
     m_context(context), m_window(context.getWindow()),
-    m_device(Device::create(m_context)), m_currentFrame(0u),
-    m_maxFramesInFlight(m_swapchain->getImageCount()) {
+    m_device(Device::create(m_context)),
+    m_swapchain(m_device->createSwapchain(m_window.getFramebufferSize())),
+    m_currentFrame(0u), m_maxFramesInFlight(m_swapchain->getImageCount()) {
     createSyncPrimitives();
 }
 
 Context& Renderer::getContext() { return m_context; }
+
+Window& Renderer::getWindow() { return m_window; }
+
+Device& Renderer::getDevice() { return *m_device; }
+
+Swapchain& Renderer::getSwapchain() { return *m_swapchain; }
 
 void Renderer::createSyncPrimitives() {
     for (u8 i = 0; i < m_maxFramesInFlight; ++i) {

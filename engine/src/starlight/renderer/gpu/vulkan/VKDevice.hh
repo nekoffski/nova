@@ -115,6 +115,9 @@ public:
     VkInstance getInstance();
     VkSurfaceKHR getSurface();
 
+    OwningPtr<sl::v2::RenderPass::Impl> createRenderPass(
+      const sl::v2::RenderPass::Properties& props
+    ) override;
     OwningPtr<Semaphore> createSemaphore() override;
     OwningPtr<Fence> createFence(Fence::State) override;
     OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) override;

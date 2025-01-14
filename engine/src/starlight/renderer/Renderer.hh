@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "starlight/core/memory/Memory.hh"
 #include "starlight/core/Core.hh"
 #include "starlight/core/Context.hh"
 
@@ -17,12 +18,15 @@ public:
     explicit Renderer(Context& context);
 
     Context& getContext();
+    Window& getWindow();
+    Device& getDevice();
+    Swapchain& getSwapchain();
 
     template <typename Callback>
     requires Callable<Callback, void, v2::CommandBuffer&, u8>
     void renderFrame(Callback&& callback) {
         if (auto imageIndex = beginFrame(); imageIndex) [[likely]] {
-            callback();
+            callback(*m_commandBuffers[*imageIndex], *imageIndex);
             endFrame(*imageIndex);
         }
     }
