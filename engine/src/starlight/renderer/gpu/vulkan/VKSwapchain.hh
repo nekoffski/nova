@@ -15,6 +15,10 @@
 
 namespace sl::vk {
 
+namespace v2 {
+
+}
+
 class VKSwapchain {
 public:
     explicit VKSwapchain(

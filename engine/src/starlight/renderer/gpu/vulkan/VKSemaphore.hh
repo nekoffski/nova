@@ -9,6 +9,10 @@
 
 namespace sl::vk {
 
+namespace v2 {
+
+}
+
 class VKSemaphore : public NonCopyable, public NonMovable {
 public:
     explicit VKSemaphore(VKContext& context, VKLogicalDevice& device);

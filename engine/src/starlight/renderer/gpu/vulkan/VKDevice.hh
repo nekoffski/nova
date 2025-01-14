@@ -5,6 +5,7 @@
 #include "starlight/core/Config.hh"
 #include "starlight/core/utils/Enum.hh"
 #include "starlight/renderer/gpu/Device.hh"
+#include "VKQueue.hh"
 #include "Vulkan.hh"
 
 namespace sl::vk {
@@ -15,11 +16,10 @@ class VKDevice : public Device {
         explicit VKInstance(const Config& config, Allocator* allocator);
         ~VKInstance();
 
-        VkInstance get();
+        VkInstance handle;
 
     private:
         Allocator* m_allocator;
-        VkInstance m_handle;
     };
 
     class VKDebugMessenger : public NonCopyable, public NonMovable {
@@ -40,31 +40,22 @@ class VKDevice : public Device {
         );
         ~VKSurface();
 
-        VkSurfaceKHR get();
+        VkSurfaceKHR handle;
 
     private:
         VkInstance m_instance;
         Allocator* m_allocator;
-        VkSurfaceKHR m_handle;
     };
 
 public:
-    enum class QueueType : u8 {
-        none     = 0x0,
-        graphics = 0x1,
-        present  = 0x2,
-        transfer = 0x4,
-        compute  = 0x8
-    };
-
-    using Queues = std::unordered_map<QueueType, VkQueue>;
+    using Queues = std::unordered_map<Queue::Type, VKQueue>;
 
     class Physical : public NonCopyable, public NonMovable {
     public:
-        using QueueIndices = std::unordered_map<QueueType, u32>;
+        using QueueIndices = std::unordered_map<Queue::Type, u32>;
 
         struct Requirements {
-            QueueType supportedQueues;
+            Queue::Type supportedQueues;
             bool isDiscrete;
             bool supportsSamplerAnisotropy;
             std::vector<const char*> extensions;
@@ -84,11 +75,10 @@ public:
 
         explicit Physical(VkInstance instance, VkSurfaceKHR surface);
 
-        VkPhysicalDevice get();
+        VkPhysicalDevice handle;
         Info info;
 
     private:
-        VkPhysicalDevice m_handle;
     };
 
     class Logical : public NonCopyable, public NonMovable {
@@ -99,7 +89,8 @@ public:
         );
         ~Logical();
 
-        VkDevice get();
+        VkDevice handle;
+        Queues queues;
 
     private:
         void createDevice(const Physical::QueueIndices& queueIndices);
@@ -107,14 +98,15 @@ public:
         void createCommandPool(const Physical::QueueIndices& queueIndices);
 
         VkPhysicalDevice m_physicalDevice;
-        VkDevice m_handle;
         Allocator* m_allocator;
         VkCommandPool m_graphicsCommandPool;
-        Queues m_queues;
     };
 
     explicit VKDevice(Window& window, const Config& config);
     ~VKDevice();
+
+    void waitIdle() override;
+    Queue& getQueue(Queue::Type type) override;
 
     Allocator* getAllocator();
     VkInstance getInstance();
@@ -132,7 +124,5 @@ private:
     Physical m_physicalDevice;
     Logical m_logicalDevice;
 };
-
-constexpr void enableBitOperations(VKDevice::QueueType);
 
 }  // namespace sl::vk
