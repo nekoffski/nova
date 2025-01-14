@@ -17,7 +17,9 @@ namespace sl::vk {
 std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 VKPhysicalDevice::Requirements physicalDeviceRequirements{
-    .supportedQueues           = Queue::graphics | Queue::present | Queue::transfer,
+    .supportedQueues =
+      VKPhysicalDevice::Queue::graphics | VKPhysicalDevice::Queue::present
+      | VKPhysicalDevice::Queue::transfer,
     .isDiscreteGPU             = true,
     .supportsSamplerAnisotropy = true,
     .extensions                = extensions,

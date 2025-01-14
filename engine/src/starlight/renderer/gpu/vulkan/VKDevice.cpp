@@ -4,8 +4,12 @@
 
 #include <kc/core/Utils.hpp>
 
+#include "VKQueue.hh"
+
 #include "starlight/core/Log.hh"
 #include "starlight/core/window/glfw/Vulkan.hh"
+
+#include "VKSemaphore.hh"
 
 namespace sl::vk {
 VKDevice::VKDevice(Window& window, const Config& config) :
@@ -23,6 +27,16 @@ VKDevice::VKDevice(Window& window, const Config& config) :
 VKDevice::~VKDevice() {}
 
 VkSurfaceKHR VKDevice::getSurface() { return VkSurfaceKHR(); }
+
+OwningPtr<Fence> VKDevice::createFence(Fence::State) { return OwningPtr<Fence>(); }
+
+OwningPtr<Swapchain> VKDevice::createSwapchain(const Vec2<u32>& size) {
+    return OwningPtr<Swapchain>();
+}
+
+OwningPtr<Semaphore> VKDevice::createSemaphore() {
+    return createOwningPtr<v2::VKSemaphore>(m_logicalDevice.handle, m_allocator);
+}
 
 VkInstance VKDevice::getInstance() { return VkInstance(); }
 

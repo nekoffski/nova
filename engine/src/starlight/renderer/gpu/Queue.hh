@@ -5,6 +5,7 @@
 
 #include "CommandBuffer.hh"
 #include "Sync.hh"
+#include "Swapchain.hh"
 
 namespace sl {
 
@@ -17,12 +18,23 @@ struct Queue : NonCopyable, NonMovable {
         compute  = 0x8
     };
 
+    struct SubmitInfo {
+        v2::CommandBuffer& commandBuffer;
+        Semaphore* waitSemaphore   = nullptr;
+        Semaphore* signalSemaphore = nullptr;
+        Fence* fence               = nullptr;
+    };
+
+    struct PresentInfo {
+        Swapchain& swapchain;
+        u8 imageIndex;
+        Semaphore* waitSemaphore = nullptr;
+    };
+
     virtual ~Queue() = default;
 
-    virtual void submit(
-      v2::CommandBuffer& commandBuffer, Semaphore* waitSemaphore = nullptr,
-      Semaphore* signalSemaphore = nullptr, Fence* fence = nullptr
-    ) = 0;
+    virtual bool submit(const SubmitInfo& submitInfo)    = 0;
+    virtual bool present(const PresentInfo& presentInfo) = 0;
 };
 
 constexpr void enableBitOperations(Queue::Type);

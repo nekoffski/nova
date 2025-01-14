@@ -10,6 +10,11 @@ OwningPtr<Device> Device::create(Context& context) {
 #ifdef SL_USE_VK
     return createOwningPtr<vk::VKDevice>(context.getWindow(), context.getConfig());
 #endif
+    return nullptr;
 }
+
+Queue& Device::getPresentQueue() { return getQueue(Queue::Type::present); }
+
+Queue& Device::getGraphicsQueue() { return getQueue(Queue::Type::graphics); }
 
 }  // namespace sl

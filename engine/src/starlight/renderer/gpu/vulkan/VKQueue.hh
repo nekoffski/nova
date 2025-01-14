@@ -10,10 +10,8 @@ class VKQueue : public Queue {
 public:
     explicit VKQueue(VkQueue handle);
 
-    void submit(
-      CommandBuffer& commandBuffer, Semaphore* waitSemaphore,
-      Semaphore* signalSemaphore, Fence* fence
-    ) override;
+    bool submit(const SubmitInfo& submitInfo) override;
+    bool present(const PresentInfo& presentInfo) override;
 
 private:
     VkQueue m_handle;

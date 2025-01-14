@@ -18,7 +18,9 @@ public:
 
     Context& getContext();
 
-    template <typename Callback> void renderFrame(Callback&& callback) {
+    template <typename Callback>
+    requires Callable<Callback, void, v2::CommandBuffer&, u8>
+    void renderFrame(Callback&& callback) {
         if (auto imageIndex = beginFrame(); imageIndex) [[likely]] {
             callback();
             endFrame(*imageIndex);
@@ -26,6 +28,8 @@ public:
     }
 
 private:
+    void createSyncPrimitives();
+
     std::optional<u8> beginFrame();
     void endFrame(u8 imageIndex);
 
@@ -38,9 +42,9 @@ private:
     u8 m_currentFrame;
     u8 m_maxFramesInFlight;
 
-    std::vector<LocalPtr<v2::CommandBuffer>> m_commandBuffers;
-    std::vector<LocalPtr<Semaphore>> m_imageAvailableSemaphores;
-    std::vector<LocalPtr<Semaphore>> m_queueCompleteSemaphores;
+    std::vector<OwningPtr<v2::CommandBuffer>> m_commandBuffers;
+    std::vector<OwningPtr<Semaphore>> m_imageAvailableSemaphores;
+    std::vector<OwningPtr<Semaphore>> m_queueCompleteSemaphores;
     std::vector<OwningPtr<Fence>> m_frameFences;
 };
 

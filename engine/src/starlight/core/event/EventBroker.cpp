@@ -9,7 +9,7 @@ EventBroker::EventBroker() : m_proxy(m_events, m_handlers) {
 EventProxy& EventBroker::getProxy() { return m_proxy; }
 
 void EventBroker::dispatch() {
-    for (auto& event : m_events) {
+    for (auto& event : std::exchange(m_events, {})) {
         if (auto handlerRecord = m_handlers.find(event->getType());
             handlerRecord == m_handlers.end()) {
             break;
@@ -21,7 +21,6 @@ void EventBroker::dispatch() {
             }
         }
     }
-    m_events.clear();
 }
 
 }  // namespace sl

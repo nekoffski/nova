@@ -4,7 +4,10 @@
 #include "starlight/core/window/Window.hh"
 #include "starlight/core/Config.hh"
 #include "starlight/core/utils/Enum.hh"
+
 #include "starlight/renderer/gpu/Device.hh"
+#include "starlight/renderer/gpu/Sync.hh"
+
 #include "VKQueue.hh"
 #include "Vulkan.hh"
 
@@ -111,6 +114,10 @@ public:
     Allocator* getAllocator();
     VkInstance getInstance();
     VkSurfaceKHR getSurface();
+
+    OwningPtr<Semaphore> createSemaphore() override;
+    OwningPtr<Fence> createFence(Fence::State) override;
+    OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) override;
 
 private:
     Allocator* m_allocator;
