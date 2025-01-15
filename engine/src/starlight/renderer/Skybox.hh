@@ -17,7 +17,7 @@ public:
     Texture* getCubeMap();
 
     void applyUniforms(
-      ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u8 imageIndex
+      ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex
     );
 
 private:

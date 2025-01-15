@@ -2,6 +2,7 @@
 
 #include "starlight/core/window/Window.hh"
 #include "starlight/core/Algorithms.hh"
+#include "starlight/renderer/factories/TextureFactory.hh"
 
 namespace sl {
 
@@ -19,8 +20,8 @@ RenderPass::Properties ShadowMapsRenderView::generateRenderPassProperties(
 
     const auto swapchainImageCount = renderer.getSwapchainImageCount();
 
-    for (u32 i = 0; i < swapchainImageCount; ++i)
-        m_shadowMaps.push_back(Texture::create(renderer, depthProperties));
+    // for (u32 i = 0; i < swapchainImageCount; ++i)
+    //     m_shadowMaps.push_back(Texture::create(renderer, depthProperties));
 
     RenderPass::Properties props;
 
@@ -52,7 +53,7 @@ void ShadowMapsRenderView::init(
 void ShadowMapsRenderView::render(
   RendererBackend& renderer, RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& properties,
-  [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
+  [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
 ) {
     if (packet.directionalLights.empty()) return;
 

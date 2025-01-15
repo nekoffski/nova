@@ -28,7 +28,7 @@ void LightsDebugRenderView::init(
 void LightsDebugRenderView::render(
   RendererBackend& renderer, RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& properties,
-  [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
+  [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
 ) {
     m_shader->use(commandBuffer);
     m_shader->setGlobalUniforms(commandBuffer, imageIndex, [&](auto& proxy) {

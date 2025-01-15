@@ -37,7 +37,7 @@ struct MeshRenderData {
 void WorldRenderView::render(
   RendererBackend& renderer, RenderPacket& packet,
   const RenderProperties& properties, [[maybe_unused]] float deltaTime,
-  CommandBuffer& commandBuffer, u8 imageIndex
+  CommandBuffer& commandBuffer, u32 imageIndex
 ) {
     Vec4<f32> ambientColor(0.05f, 0.05f, 0.05f, 1.0f);
     auto camera               = packet.camera;

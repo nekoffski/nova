@@ -22,12 +22,12 @@ static OwningPtr<Mesh> createMesh(
   RendererBackend& renderer, const Mesh::Data& data
 ) {
 #ifdef SL_USE_VK
-    auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
+    // auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
 
-    return createOwningPtr<vk::VKMesh>(
-      vkRenderer.getContext(), vkRenderer.getLogicalDevice(),
-      vkRenderer.getVertexBuffer(), vkRenderer.getIndexBuffer(), data
-    );
+    // return createOwningPtr<vk::VKMesh>(
+    //   vkRenderer.getContext(), vkRenderer.getLogicalDevice(),
+    //   vkRenderer.getVertexBuffer(), vkRenderer.getIndexBuffer(), data
+    // );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
 #endif

@@ -35,7 +35,7 @@ private:
     void createSyncPrimitives();
 
     std::optional<u8> beginFrame();
-    void endFrame(u8 imageIndex);
+    void endFrame(u32 imageIndex);
 
     Context& m_context;
     Window& m_window;

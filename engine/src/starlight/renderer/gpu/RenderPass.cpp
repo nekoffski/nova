@@ -23,11 +23,20 @@ RenderPass::RenderPass(
     name(name.value_or(fmt::format("RenderPass_{}", getId()))) {}
 
 void RenderPass::run(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u8 imageIndex
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
 ) {
-    m_renderPassImpl->begin(commandBuffer, imageIndex);
-    render(packet, commandBuffer, imageIndex);
-    m_renderPassImpl->end(commandBuffer);
+    m_renderPassImpl->run(
+      commandBuffer, imageIndex,
+      [&](CommandBuffer& commandBuffer, u32 imageIndex) {
+          const auto viewport = getViewport();
+          commandBuffer.execute(SetViewportCommand{
+            .offset = viewport.offset,
+            .size   = viewport.size,
+          });
+
+          render(packet, commandBuffer, imageIndex);
+      }
+    );
 }
 
 void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
@@ -90,14 +99,14 @@ OwningPtr<RenderPass> RenderPass::create(
   RendererBackend& renderer, const Properties& props, ChainFlags chainFlags
 ) {
 #ifdef SL_USE_VK
-    auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
+    // auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
 
-    LOG_TRACE("Creating instance of vulkan render pass");
+    // LOG_TRACE("Creating instance of vulkan render pass");
 
-    return createOwningPtr<vk::VKRenderPass>(
-      vkRenderer.getContext(), vkRenderer.getLogicalDevice(),
-      vkRenderer.getSwapchain(), props, chainFlags
-    );
+    // return createOwningPtr<vk::VKRenderPass>(
+    //   vkRenderer.getContext(), vkRenderer.getLogicalDevice(),
+    //   vkRenderer.getSwapchain(), props, chainFlags
+    // );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
 #endif

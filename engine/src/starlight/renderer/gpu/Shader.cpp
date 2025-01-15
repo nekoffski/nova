@@ -9,6 +9,7 @@
 #include <fmt/core.h>
 
 #include "starlight/core/utils/Json.hh"
+#include "starlight/renderer/factories/TextureFactory.hh"
 
 #ifdef SL_USE_VK
 #include "starlight/renderer/gpu/vulkan/VKShader.hh"
@@ -170,16 +171,16 @@ ResourceRef<Shader> ShaderFactory::load(
     }
 
 #ifdef SL_USE_VK
-    auto& vkRenderer = static_cast<vk::VKRendererBackend&>(m_renderer);
+    // auto& vkRenderer = static_cast<vk::VKRendererBackend&>(m_renderer);
 
-    LOG_TRACE("Loading shader with vulkan backend");
+    // LOG_TRACE("Loading shader with vulkan backend");
 
-    return store(
-      name,
-      createOwningPtr<vk::VKShader>(
-        vkRenderer.getContext(), vkRenderer.getLogicalDevice(), *properties
-      )
-    );
+    // return store(
+    //   name,
+    //   createOwningPtr<vk::VKShader>(
+    //     vkRenderer.getContext(), vkRenderer.getLogicalDevice(), *properties
+    //   )
+    // );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
 #endif

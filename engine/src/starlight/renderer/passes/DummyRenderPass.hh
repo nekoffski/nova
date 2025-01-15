@@ -9,7 +9,9 @@ public:
     explicit DummyRenderPass(Renderer& renderer) : RenderPass(renderer) {}
 
 private:
-    Properties createProperties(bool hasPreviousPass, bool hasNextPass) override {
+    Properties createProperties(
+      bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
+    ) override {
         auto clearFlags = ClearFlags::depth | ClearFlags::stencil;
         if (not hasPreviousPass) clearFlags |= RenderPass::ClearFlags::color;
 
@@ -19,7 +21,7 @@ private:
     }
 
     void render(
-      RenderPacket& packet, v2::CommandBuffer& commandBuffer, u8 imageIndex
+      RenderPacket& packet, v2::CommandBuffer& commandBuffer, u32 imageIndex
     ) override {}
 };
 

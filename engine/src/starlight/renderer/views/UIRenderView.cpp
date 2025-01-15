@@ -40,7 +40,7 @@ void UIRenderView::init(RendererBackend& renderer, RenderPass& renderPass) {
 void UIRenderView::render(
   [[maybe_unused]] RendererBackend& renderer, [[maybe_unused]] RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& props, [[maybe_unused]] float deltaTime,
-  CommandBuffer& commandBuffer, [[maybe_unused]] u8 imageIndex
+  CommandBuffer& commandBuffer, [[maybe_unused]] u32 imageIndex
 ) {
     m_uiRenderer->render(commandBuffer, m_uiCallback);
 }

@@ -9,9 +9,11 @@
 #include "starlight/core/Log.hh"
 #include "starlight/core/window/glfw/Vulkan.hh"
 
+#include "VKFence.hh"
 #include "VKSemaphore.hh"
 
 namespace sl::vk {
+
 VKDevice::VKDevice(Window& window, const Config& config) :
     m_allocator(nullptr), m_instance(config, m_allocator),
 #ifdef SL_VK_DEBUG
@@ -24,11 +26,16 @@ VKDevice::VKDevice(Window& window, const Config& config) :
     ) {
 }
 
-VKDevice::~VKDevice() {}
-
 VkSurfaceKHR VKDevice::getSurface() { return VkSurfaceKHR(); }
 
-OwningPtr<Fence> VKDevice::createFence(Fence::State) { return OwningPtr<Fence>(); }
+OwningPtr<Texture> VKDevice::
+  createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&) {
+    return OwningPtr<Texture>();
+}
+
+OwningPtr<Fence> VKDevice::createFence(Fence::State state) {
+    return createOwningPtr<VKFence>(m_logicalDevice.handle, m_allocator, state);
+}
 
 OwningPtr<Swapchain> VKDevice::createSwapchain(const Vec2<u32>& size) {
     return OwningPtr<Swapchain>();
@@ -41,7 +48,7 @@ OwningPtr<sl::v2::RenderPass::Impl> VKDevice::createRenderPass(
 }
 
 OwningPtr<Semaphore> VKDevice::createSemaphore() {
-    return createOwningPtr<v2::VKSemaphore>(m_logicalDevice.handle, m_allocator);
+    return createOwningPtr<VKSemaphore>(m_logicalDevice.handle, m_allocator);
 }
 
 VkInstance VKDevice::getInstance() { return VkInstance(); }
@@ -310,7 +317,7 @@ static bool queryDeviceSwapchainSupport(
   VkPhysicalDevice device, VkSurfaceKHR surface, VKDevice::Physical::Info& info
 ) {
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-      device, surface, &info.surfaceCapabilities
+      device, surface, &info.swapchain.surfaceCapabilities
     ));
 
     u32 count = 0;
@@ -321,9 +328,9 @@ static bool queryDeviceSwapchainSupport(
         return false;
     }
 
-    info.surfaceFormats.resize(count);
+    info.swapchain.surfaceFormats.resize(count);
     VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(
-      device, surface, &count, info.surfaceFormats.data()
+      device, surface, &count, info.swapchain.surfaceFormats.data()
     ));
 
     count = 0;
@@ -334,9 +341,9 @@ static bool queryDeviceSwapchainSupport(
         return false;
     }
 
-    info.presentModes.resize(count);
+    info.swapchain.presentModes.resize(count);
     VK_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(
-      device, surface, &count, info.presentModes.data()
+      device, surface, &count, info.swapchain.presentModes.data()
     ));
 
     return true;

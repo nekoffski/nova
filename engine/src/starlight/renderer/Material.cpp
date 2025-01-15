@@ -3,6 +3,8 @@
 #include "starlight/core/utils/Json.hh"
 #include "starlight/core/utils/Enum.hh"
 
+#include "starlight/renderer/factories/TextureFactory.hh"
+
 namespace sl {
 
 Material::Material(const Properties& props) :

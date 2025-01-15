@@ -3,34 +3,26 @@
 #include "Vulkan.hh"
 #include "fwd.hh"
 
-#include "VKLogicalDevice.hh"
-#include "VKContext.hh"
+#include "starlight/renderer/gpu/Sync.hh"
 
 namespace sl::vk {
 
-namespace v2 {
-
-}
-
-class VKFence : public NonCopyable, public NonMovable {
+class VKFence : public Fence {
 public:
-    enum class State : unsigned char { signaled, notSignaled };
-
-    explicit VKFence(VKContext& context, VKLogicalDevice& device, State state);
+    explicit VKFence(VkDevice device, Allocator* allocator, State state);
     ~VKFence();
 
-    bool wait(Nanoseconds timeout);
-    void reset();
+    bool wait(Nanoseconds timeout) override;
+    void reset() override;
 
     VkFence getHandle();
 
 private:
     VkFence m_handle;
-
-    VKContext& m_context;
-    VKLogicalDevice& m_device;
-
-    State m_state;
+    VkDevice m_device;
+    Allocator* m_allocator;
 };
+
+VKFence& toVk(Fence&);
 
 }  // namespace sl::vk

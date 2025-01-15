@@ -15,9 +15,9 @@
 #include "VKCommandBuffer.hh"
 
 namespace sl::vk {
-namespace {
 
-VkSamplerCreateInfo createSamplerCreateInfo(const Texture::SamplerProperties& props
+static VkSamplerCreateInfo createSamplerCreateInfo(
+  const Texture::SamplerProperties& props
 ) {
     static std::unordered_map<Texture::Repeat, VkSamplerAddressMode> vkRepeat{
         { Texture::Repeat::repeat,         VK_SAMPLER_ADDRESS_MODE_REPEAT          },
@@ -53,61 +53,80 @@ VkSamplerCreateInfo createSamplerCreateInfo(const Texture::SamplerProperties& pr
     return samplerInfo;
 }
 
-}  // namespace
+/*
 
-VKTexture::VKTexture(
-  VKContext& context, VKLogicalDevice& device, const ImageData& imageData,
-  const SamplerProperties& sampler
-) :
-    Texture(imageData, sampler), m_context(context), m_device(device),
-    m_image(m_context, m_device, imageData), m_generation(1u) {
-    LOG_TRACE("Texture created");
-    createSampler(sampler);
+    VKTextureBase
+
+*/
+
+void VKTextureBase::createSampler() {
+    const auto samplerInfo = createSamplerCreateInfo(m_samplerProperties);
+    VK_ASSERT(vkCreateSampler(m_device, &samplerInfo, m_allocator, &m_sampler));
 }
 
-VKTexture::VKTexture(
-  VKContext& context, VKLogicalDevice& device, VkImage handle,
-  const ImageData& imageData, const SamplerProperties& sampler
+VKTextureBase::VKTextureBase(
+  VkDevice device, Allocator* allocator, const ImageData& imageData,
+  const SamplerProperties& sampler
 ) :
-    Texture(imageData, sampler), m_context(context), m_device(device),
-    m_image(m_context, m_device, imageData, handle), m_generation(1u) {
-    LOG_TRACE("Texture created from existing VKImage");
-    createSampler(sampler);
+    Texture(imageData, sampler), m_device(device), m_allocator(allocator),
+    m_image(VK_NULL_HANDLE), m_sampler(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE) {}
+
+VkImageView VKTextureBase::getView() const { return m_view; }
+
+VkSampler VKTextureBase::getSampler() const { return m_sampler; }
+
+/*
+
+    VKTexture
+
+*/
+
+VKTexture::VKTexture(
+  VkDevice device, Allocator* allocator, const ImageData& imageData,
+  const SamplerProperties& sampler
+) : VKTextureBase(device, allocator, imageData, sampler) {
+    LOG_TRACE("Texture created");
+    createSampler();
 }
 
 VKTexture::~VKTexture() {
-    const auto logicalDeviceHandle = m_device.getHandle();
-
-    vkDeviceWaitIdle(logicalDeviceHandle);
-    vkDestroySampler(logicalDeviceHandle, m_sampler, m_context.getAllocator());
+    vkDestroySampler(m_device, m_sampler, m_allocator);
     LOG_TRACE("Texture destroyed");
 }
 
-const VKImage* VKTexture::getImage() const { return &m_image; }
-
-VkSampler VKTexture::getSampler() const { return m_sampler; }
-
 void VKTexture::resize(u32 width, u32 height) {
-    m_imageData.width  = width;
-    m_imageData.height = height;
-    m_image.recreate(m_imageData);
+    // m_imageData.width  = width;
+    // m_imageData.height = height;
+    // m_image.recreate(m_imageData);
 }
 
-void VKTexture::resize(u32 width, u32 height, VkImage handle) {
-    m_imageData.width  = width;
-    m_imageData.height = height;
-    m_image.recreate(m_imageData, handle);
+void VKTexture::write(std::span<u8> pixels) {
+    // m_image.write(pixels);
 }
 
-void VKTexture::write(u32 offset, std::span<u8> pixels) {
-    m_image.write(offset, pixels);
+/*
+
+    VKSwapchainTexture
+
+*/
+
+VKSwapchainTexture::VKSwapchainTexture(
+  VkDevice device, Allocator* allocator, VkImage handle, const ImageData& imageData,
+  const SamplerProperties& sampler
+) : VKTextureBase(device, allocator, imageData, sampler) {
+    m_image = handle;
+    createSampler();
+    LOG_TRACE("Swapchain texture created");
 }
 
-void VKTexture::createSampler(const Texture::SamplerProperties& props) {
-    const auto samplerInfo = createSamplerCreateInfo(props);
-    VK_ASSERT(vkCreateSampler(
-      m_device.getHandle(), &samplerInfo, m_context.getAllocator(), &m_sampler
-    ));
+VKSwapchainTexture::~VKSwapchainTexture() {}
+
+void VKSwapchainTexture::resize(u32 width, u32 height) {
+    LOG_ERROR("Cannot resize swapchain texture");
+}
+
+void VKSwapchainTexture::write(std::span<u8> pixels) {
+    LOG_ERROR("Cannot write to swapchain texture");
 }
 
 }  // namespace sl::vk

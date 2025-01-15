@@ -11,10 +11,9 @@ namespace v2 {
 RenderGraph::RenderGraph(Renderer& renderer) : m_renderer(renderer) {}
 
 void RenderGraph::render(RenderPacket& renderPacket) {
-    m_renderer.renderFrame([&](v2::CommandBuffer& commandBuffer, u8 imageIndex) {
-        for (auto& [renderPass, active] : m_nodes) {
-            if (active) renderPass->run(renderPacket, commandBuffer, imageIndex);
-        }
+    m_renderer.renderFrame([&](v2::CommandBuffer& commandBuffer, u32 imageIndex) {
+        for (auto& renderPass : m_activeRenderPasses)
+            renderPass->run(renderPacket, commandBuffer, imageIndex);
     });
 }
 
@@ -33,6 +32,8 @@ void RenderGraph::rebuildChain() {
 
         activePasses[i]->init(hasPreviousPass, hasNextPass);
     }
+
+    std::swap(activePasses, m_activeRenderPasses);
 }
 
 }  // namespace v2

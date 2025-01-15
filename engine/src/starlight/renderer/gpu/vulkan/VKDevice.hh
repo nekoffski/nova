@@ -8,7 +8,9 @@
 #include "starlight/renderer/gpu/Device.hh"
 #include "starlight/renderer/gpu/Sync.hh"
 
+#include "VKSwapchain.hh"
 #include "VKQueue.hh"
+#include "VKTexture.hh"
 #include "Vulkan.hh"
 
 namespace sl::vk {
@@ -69,9 +71,7 @@ public:
             VkPhysicalDeviceMemoryProperties memoryProperties;
             VkPhysicalDeviceFeatures features;
             QueueIndices queueIndices;
-            VkSurfaceCapabilitiesKHR surfaceCapabilities;
-            std::vector<VkSurfaceFormatKHR> surfaceFormats;
-            std::vector<VkPresentModeKHR> presentModes;
+            VKSwapchain::SupportInfo swapchain;
             VkFormat depthFormat;
             u8 depthChannelCount;
         };
@@ -106,7 +106,6 @@ public:
     };
 
     explicit VKDevice(Window& window, const Config& config);
-    ~VKDevice();
 
     void waitIdle() override;
     Queue& getQueue(Queue::Type type) override;
@@ -115,11 +114,18 @@ public:
     VkInstance getInstance();
     VkSurfaceKHR getSurface();
 
+    OwningPtr<Texture>
+      createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&)
+        override;
+
     OwningPtr<sl::v2::RenderPass::Impl> createRenderPass(
       const sl::v2::RenderPass::Properties& props
     ) override;
+
     OwningPtr<Semaphore> createSemaphore() override;
+
     OwningPtr<Fence> createFence(Fence::State) override;
+
     OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) override;
 
 private:
