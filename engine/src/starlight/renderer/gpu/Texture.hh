@@ -2,11 +2,10 @@
 
 #include <span>
 
-#include "starlight/core/utils/Resource.hh"
+#include "starlight/core/utils/Id.hh"
 #include "starlight/core/Core.hh"
 #include "starlight/core/memory/Memory.hh"
 
-#include "starlight/renderer/gpu/RendererBackend.hh"
 #include "starlight/renderer/Core.hh"
 
 namespace sl {
@@ -78,13 +77,8 @@ public:
 
     virtual ~Texture() = default;
 
-    virtual void resize(u32 width, u32 height)           = 0;
-    virtual void write(u32 offset, std::span<u8> pixels) = 0;
-
-    static OwningPtr<Texture> create(
-      RendererBackend& renderer, const ImageData& image = ImageData::createDefault(),
-      const SamplerProperties& sampler = SamplerProperties::createDefault()
-    );
+    virtual void resize(u32 width, u32 height) = 0;
+    virtual void write(std::span<u8> pixels)   = 0;
 
     const SamplerProperties& getSamplerProperties() const;
     const ImageData& getImageData() const;
@@ -96,49 +90,6 @@ protected:
 
     ImageData m_imageData;
     SamplerProperties m_samplerProperties;
-};
-
-class TextureFactory
-    : public ResourceFactory<Texture>,
-      public kc::core::Singleton<TextureFactory> {
-public:
-    constexpr static Texture::PixelWidth defaultPixelColor = 255;
-
-    explicit TextureFactory(const std::string& path, RendererBackend& renderer);
-
-    ResourceRef<Texture> load(
-      const std::string& name, Texture::Type textureType,
-      const Texture::SamplerProperties& sampler =
-        Texture::SamplerProperties::createDefault()
-    );
-
-    ResourceRef<Texture> getDefaultDiffuseMap();
-    ResourceRef<Texture> getDefaultNormalMap();
-    ResourceRef<Texture> getDefaultSpecularMap();
-
-    ResourceRef<Texture> create(
-      const std::string& name,
-      const Texture::ImageData& image =
-        Texture::ImageData::createDefault(defaultPixelColor),
-      const Texture::SamplerProperties& sampler =
-        Texture::SamplerProperties::createDefault()
-    );
-    ResourceRef<Texture> create(
-      const Texture::ImageData& image =
-        Texture::ImageData::createDefault(defaultPixelColor),
-      const Texture::SamplerProperties& sampler =
-        Texture::SamplerProperties::createDefault()
-    );
-
-private:
-    void createDefaults();
-
-    ResourceRef<Texture> m_defaultDiffuseMap;
-    ResourceRef<Texture> m_defaultNormalMap;
-    ResourceRef<Texture> m_defaultSpecularMap;
-
-    const std::string m_texturesPath;
-    RendererBackend& m_renderer;
 };
 
 constexpr void enableBitOperations(Texture::Flags);

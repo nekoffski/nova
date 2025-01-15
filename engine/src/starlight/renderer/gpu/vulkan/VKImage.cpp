@@ -44,7 +44,7 @@ VKImage::VKImage(
     m_handle(VK_NULL_HANDLE), m_memory(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE),
     m_destroyImage(true) {
     create();
-    if (imageData.pixels.size() > 0) write(0, imageData.pixels);
+    if (imageData.pixels.size() > 0) write(imageData.pixels);
 }
 
 VKImage::VKImage(
@@ -91,7 +91,7 @@ void VKImage::create() {
 
 VKImage::~VKImage() { destroy(); }
 
-void VKImage::write([[maybe_unused]] u32 offset, std::span<const u8> pixels) {
+void VKImage::write(std::span<const u8> pixels) {
     VkDeviceSize imageSize = pixels.size();
 
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -315,9 +315,7 @@ void VKImage::allocateAndBindMemory() {
     VK_ASSERT(vkBindImageMemory(logicalDeviceHandle, m_handle, m_memory, 0));
 }
 
-void VKImage::createView(
-
-) {
+void VKImage::createView() {
     auto viewCreateInfo = createViewCreateInfo(m_imageData, m_handle);
     VK_ASSERT(vkCreateImageView(
       m_device.getHandle(), &viewCreateInfo, m_context.getAllocator(), &m_view

@@ -8,6 +8,7 @@
 #include "Sync.hh"
 #include "Swapchain.hh"
 #include "RenderPass.hh"
+#include "Texture.hh"
 
 namespace sl {
 
@@ -23,11 +24,17 @@ public:
     Queue& getGraphicsQueue();
     Queue& getPresentQueue();
 
+    virtual OwningPtr<Texture>
+      createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&) = 0;
+
     virtual OwningPtr<v2::RenderPass::Impl> createRenderPass(
       const v2::RenderPass::Properties& props
-    )                                                                   = 0;
+    ) = 0;
+
     virtual OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) = 0;
-    virtual OwningPtr<Semaphore> createSemaphore()                      = 0;
+
+    virtual OwningPtr<Semaphore> createSemaphore() = 0;
+
     virtual OwningPtr<Fence> createFence(
       Fence::State = Fence::State::notSignaled
     ) = 0;

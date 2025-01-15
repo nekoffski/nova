@@ -1,12 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <array>
-#include <optional>
 #include <memory>
 
-#include "VKPhysicalDevice.hh"
-#include "VKContext.hh"
+#include "starlight/renderer/gpu/Swapchain.hh"
 
 #include "Vulkan.hh"
 #include "VKTexture.hh"
@@ -15,36 +12,34 @@
 
 namespace sl::vk {
 
-namespace v2 {
-
-}
-
-class VKSwapchain {
+class VKSwapchain : public Swapchain {
 public:
+    struct SupportInfo {
+        VkSurfaceCapabilitiesKHR surfaceCapabilities;
+        std::vector<VkSurfaceFormatKHR> surfaceFormats;
+        std::vector<VkPresentModeKHR> presentModes;
+    };
+
     explicit VKSwapchain(
-      VKContext& context, VKLogicalDevice& device, u32 viewportWidth,
-      u32 viewportHeight
+      VkDevice device, Allocator* allocator, VkSurfaceKHR surface,
+      u32 graphicsQueueIndex, u32 presentQueueIndex, VkFormat depthFormat,
+      u8 depthChannels, const SupportInfo& supportInfo, const Vec2<u32>& size
     );
     ~VKSwapchain();
 
-    std::optional<uint32_t> acquireNextImageIndex(
-      Nanoseconds timeout, VkSemaphore imageSemaphore, VkFence fence
-    );
+    void recreate(const Vec2<u32>& size) override;
 
-    void present(
-      VkQueue graphicsQueue, VkQueue presentQueue, VkSemaphore renderSemaphore,
-      uint32_t presentImageIndex
-    );
+    std::optional<u32> acquireNextImageIndex(
+      Semaphore* imageSemaphore, Fence* fence, Nanoseconds timeout
+    ) override;
+    u32 getImageCount() const override;
 
-    void recreate(u32 viewportWidth, u32 viewportHeight);
+    Texture* getImage(u32 index) override;
+    Texture* getDepthBuffer() override;
 
-    u32 getImageCount() const;
-
-    VKTexture* getFramebuffer(u64 id);
-    VKTexture* getDepthBuffer();
     VkSurfaceFormatKHR getSurfaceFormat() const;
 
-    std::span<LocalPtr<VKTexture>> getTextures();
+    VkSwapchainKHR* getHandlePtr();
 
 private:
     void create();
@@ -53,20 +48,28 @@ private:
     void createSwapchain();
     void createImages();
 
-    VKContext& m_context;
-    VKLogicalDevice& m_device;
+    VkSwapchainKHR m_handle;
+    VkDevice m_device;
+    Allocator* m_allocator;
+    VkSurfaceKHR m_surface;
+    u32 m_graphicsQueueIndex;
+    u32 m_presentQueueIndex;
 
-    u32 m_viewportWidth;
-    u32 m_viewportHeight;
+    VkFormat m_depthFormat;
+    u8 m_depthChannels;
+
+    SupportInfo m_supportInfo;
+    Vec2<u32> m_size;
 
     VkSurfaceFormatKHR m_imageFormat;
-    VkSwapchainKHR m_handle;
     VkExtent2D m_swapchainExtent;
 
     LocalPtr<VKTexture> m_depthTexture;
-    std::vector<LocalPtr<VKTexture>> m_textures;
+    std::vector<LocalPtr<VKSwapchainTexture>> m_textures;
 
     u32 m_imageCount;
 };
+
+VKSwapchain& toVk(Swapchain&);
 
 }  // namespace sl::vk

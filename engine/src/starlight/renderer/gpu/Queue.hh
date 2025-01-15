@@ -27,7 +27,7 @@ struct Queue : NonCopyable, NonMovable {
 
     struct PresentInfo {
         Swapchain& swapchain;
-        u8 imageIndex;
+        u32 imageIndex;
         Semaphore* waitSemaphore = nullptr;
     };
 

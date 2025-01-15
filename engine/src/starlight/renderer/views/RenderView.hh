@@ -26,7 +26,7 @@ public:
 
     virtual void render(
       RendererBackend& renderer, RenderPacket& packet, const RenderProperties& props,
-      float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
+      float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
     ) = 0;
 
     virtual Rect2<u32> getViewport() const;

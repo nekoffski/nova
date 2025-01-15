@@ -21,7 +21,7 @@ public:
 
     void render(
       RendererBackend& renderer, RenderPacket& packet, const RenderProperties& props,
-      float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
+      float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
     ) override;
 
     Rect2<u32> getViewport() const override;

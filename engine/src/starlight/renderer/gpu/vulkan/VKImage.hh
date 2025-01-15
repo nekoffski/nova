@@ -31,12 +31,7 @@ public:
     void recreate(const Texture::ImageData& imageData, VkImage handle);
     void recreate(const Texture::ImageData& imageData);
 
-    VKImage(const VKImage& oth)            = delete;
-    VKImage& operator=(const VKImage& oth) = delete;
-    VKImage& operator=(VKImage&& oth)      = delete;
-    VKImage(VKImage&&)                     = delete;
-
-    void write(u32 offset, std::span<const u8> pixels);
+    void write(std::span<const u8> pixels);
 
     VkImageView getView() const;
 

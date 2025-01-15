@@ -160,9 +160,9 @@ void VKRenderPass::regenerateRenderTargets(const Vec2<u32>& viewportSize) {
 static void addAttachment(
   std::vector<VkImageView>& attachmentViews, Texture* attachment
 ) {
-    attachmentViews.push_back(
-      static_cast<VKTexture*>(attachment)->getImage()->getView()
-    );
+    // attachmentViews.push_back(
+    //   static_cast<VKTexture*>(attachment)->getImage()->getView()
+    // );
 }
 
 void VKRenderPass::generateRenderTargets() {

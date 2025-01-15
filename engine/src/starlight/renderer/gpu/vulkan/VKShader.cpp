@@ -276,7 +276,7 @@ void VKShader::addUniforms(
 }
 
 void VKShader::addSampler(
-  const Shader::Uniform::Properties& props, [[maybe_unused]] Texture* defaultTexture
+  const Shader::Uniform::Properties& props, Texture* defaultTexture
 ) {
     ASSERT(
       props.scope != Scope::instance || m_useInstances,
@@ -296,7 +296,7 @@ void VKShader::addSampler(
           globalTextureCount
         );
         location = globalTextureCount;
-        m_globalTextures.push_back(TextureFactory::get().getDefaultDiffuseMap());
+        m_globalTextures.push_back(defaultTexture);
     } else {
         ASSERT(
           m_instanceTextureCount + 1 <= maxInstanceTextures,
@@ -414,14 +414,14 @@ void VKShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
     if (m_globalUniformSamplerCount > 0) {
         imageInfos.reserve(m_globalTextures.size());
         for (u32 i = 0; i < m_globalTextures.size(); ++i) {
-            const VKTexture* texture =
-              static_cast<const VKTexture*>(m_globalTextures[i]);
+            const auto texture =
+              static_cast<const VKTextureBase*>(m_globalTextures[i]);
             ASSERT(
               texture,
               "Could not cast texture to internal type, something went wrong"
             );
             imageInfos.emplace_back(
-              texture->getSampler(), texture->getImage()->getView(),
+              texture->getSampler(), texture->getView(),
               VK_IMAGE_LAYOUT_GENERAL  // TODO: transition layout?
             );
 
@@ -499,7 +499,7 @@ void VKShader::applyInstance(CommandBuffer& commandBuffer, u32 imageIndex) {
             .descriptorCount;
         imageInfos.reserve(totalSamplerCount);
         for (u32 i = 0; i < totalSamplerCount; ++i) {
-            const VKTexture* texture = static_cast<const VKTexture*>(
+            const auto texture = static_cast<const VKTextureBase*>(
               m_instanceStates[m_boundInstanceId].instanceTextures[i]
             );
             ASSERT(
@@ -507,7 +507,7 @@ void VKShader::applyInstance(CommandBuffer& commandBuffer, u32 imageIndex) {
               "Could not cast texture to internal type, something went wrong"
             );
             imageInfos.emplace_back(
-              texture->getSampler(), texture->getImage()->getView(),
+              texture->getSampler(), texture->getView(),
               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             );
         }
@@ -559,7 +559,7 @@ u32 VKShader::acquireInstanceResources(const std::vector<Texture*>& textures) {
           "Provided texture map range size doesn't match with instance texture count, ignoring and setting all to default map"
         );
         instanceState.instanceTextures.resize(
-          m_instanceTextureCount, TextureFactory::get().getDefaultDiffuseMap()
+          m_instanceTextureCount, nullptr  // TODO: pass default texture
         );
     } else {
         instanceState.instanceTextures.reserve(m_instanceTextureCount);

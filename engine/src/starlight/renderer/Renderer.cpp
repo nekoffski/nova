@@ -52,7 +52,7 @@ std::optional<u8> Renderer::beginFrame() {
     return imageIndex;
 }
 
-void Renderer::endFrame(u8 imageIndex) {
+void Renderer::endFrame(u32 imageIndex) {
     auto& commandBuffer = *m_commandBuffers[imageIndex];
     commandBuffer.end();
 

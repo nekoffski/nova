@@ -15,12 +15,12 @@ OwningPtr<UIRenderer> UIRenderer::create(
   RendererBackend& renderer, RenderPass& renderPass
 ) {
 #ifdef SL_USE_VK
-    auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
+    // auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
 
-    return createOwningPtr<vk::VKUIRenderer>(
-      vkRenderer.getContext(), vkRenderer.getPhysicalDevice(),
-      vkRenderer.getLogicalDevice(), vkRenderer.getWindow(), renderPass
-    );
+    // return createOwningPtr<vk::VKUIRenderer>(
+    //   vkRenderer.getContext(), vkRenderer.getPhysicalDevice(),
+    //   vkRenderer.getLogicalDevice(), vkRenderer.getWindow(), renderPass
+    // );
 #else
     FATAL_ERROR("Could not find renderer backend implementation");
 #endif

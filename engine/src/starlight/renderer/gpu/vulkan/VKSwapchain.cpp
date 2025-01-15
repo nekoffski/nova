@@ -3,54 +3,54 @@
 #include <kc/core/Log.h>
 #include <kc/core/Utils.hpp>
 
-#include "VKImage.hh"
 #include "VKFramebuffer.hh"
+#include "VKSemaphore.hh"
+#include "VKDevice.hh"
+#include "VKFence.hh"
 
 namespace sl::vk {
 
 VKSwapchain::VKSwapchain(
-  VKContext& context, VKLogicalDevice& device, u32 viewportWidth, u32 viewportHeight
+  VkDevice device, Allocator* allocator, VkSurfaceKHR surface,
+  u32 graphicsQueueIndex, u32 presentQueueIndex, VkFormat depthFormat,
+  u8 depthChannels, const SupportInfo& supportInfo, const Vec2<u32>& size
 ) :
-    m_context(context), m_device(device), m_viewportWidth(viewportWidth),
-    m_viewportHeight(viewportHeight) {
+    m_handle(VK_NULL_HANDLE), m_device(device), m_allocator(allocator),
+    m_surface(surface), m_graphicsQueueIndex(graphicsQueueIndex),
+    m_presentQueueIndex(presentQueueIndex), m_depthFormat(depthFormat),
+    m_depthChannels(depthChannels), m_supportInfo(supportInfo), m_size(size) {
     create();
 }
 
-VkSurfaceFormatKHR pickSurfaceFormat(
-  const VKPhysicalDevice::SwapchainSupportInfo& swapchainSupport
+VkSurfaceFormatKHR pickSurfaceFormat(const VKSwapchain::SupportInfo& swapchainSupport
 ) {
-    const auto demandedFormat     = VK_FORMAT_R8G8B8A8_UNORM;
-    const auto demandedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    static const auto demandedFormat     = VK_FORMAT_R8G8B8A8_UNORM;
+    static const auto demandedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
-    for (const auto& format : swapchainSupport.formats)
+    for (const auto& format : swapchainSupport.surfaceFormats)
         if (format.format == demandedFormat
             && format.colorSpace == demandedColorSpace)
             return format;
-
-    return swapchainSupport.formats[0];
+    return swapchainSupport.surfaceFormats[0];
 }
 
-VkPresentModeKHR pickPresentMode(
-  const VKPhysicalDevice::SwapchainSupportInfo& swapchainSupport
-) {
-    const auto defaultPresentMode  = VK_PRESENT_MODE_FIFO_KHR;
-    const auto demandedPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+VkPresentModeKHR pickPresentMode(const VKSwapchain::SupportInfo& swapchainSupport) {
+    static const auto defaultPresentMode  = VK_PRESENT_MODE_FIFO_KHR;
+    static const auto demandedPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 
     if (kc::core::contains(swapchainSupport.presentModes, demandedPresentMode))
         return demandedPresentMode;
-
     return defaultPresentMode;
 }
 
 VkExtent2D createSwapchainExtent(
   u32 viewportWidth, u32 viewportHeight,
-  const VKPhysicalDevice::SwapchainSupportInfo& swapchainSupport
+  const VKSwapchain::SupportInfo& swapchainSupport
 ) {
     VkExtent2D swapchainExtent = { viewportWidth, viewportHeight };
 
-    // Clamp to the value allowed by the GPU.bonestent.width, min.width, max.width);
-    auto& min = swapchainSupport.capabilities.minImageExtent;
-    auto& max = swapchainSupport.capabilities.maxImageExtent;
+    const auto min = swapchainSupport.surfaceCapabilities.minImageExtent;
+    const auto max = swapchainSupport.surfaceCapabilities.maxImageExtent;
 
     LOG_INFO(
       "Swapchain capabilities min/max - {} - {}/{} - {}", min.width, min.height,
@@ -63,21 +63,19 @@ VkExtent2D createSwapchainExtent(
     return swapchainExtent;
 }
 
-VKTexture* VKSwapchain::getFramebuffer(u64 id) {
-    ASSERT(id < m_textures.size(), "Invalid framebuffer id - {}", id);
+Texture* VKSwapchain::getImage(u32 id) {
+    ASSERT(id < m_textures.size(), "Invalid image id - {}", id);
     return m_textures[id].get();
 }
 
-VKTexture* VKSwapchain::getDepthBuffer() { return m_depthTexture.get(); }
+Texture* VKSwapchain::getDepthBuffer() { return m_depthTexture.get(); }
 
-uint32_t getDeviceImageCount(
-  const VKPhysicalDevice::SwapchainSupportInfo& swapchainSupport
-) {
-    uint32_t imageCount = swapchainSupport.capabilities.minImageCount + 1;
+static u8 getDeviceImageCount(const VKSwapchain::SupportInfo& swapchainSupport) {
+    auto imageCount = swapchainSupport.surfaceCapabilities.minImageCount + 1;
 
-    if (swapchainSupport.capabilities.maxImageCount > 0
-        && imageCount > swapchainSupport.capabilities.maxImageCount) {
-        imageCount = swapchainSupport.capabilities.maxImageCount;
+    if (swapchainSupport.surfaceCapabilities.maxImageCount > 0
+        && imageCount > swapchainSupport.surfaceCapabilities.maxImageCount) {
+        imageCount = swapchainSupport.surfaceCapabilities.maxImageCount;
     }
 
     return imageCount;
@@ -85,19 +83,19 @@ uint32_t getDeviceImageCount(
 
 VkSurfaceFormatKHR VKSwapchain::getSurfaceFormat() const { return m_imageFormat; }
 
-std::span<LocalPtr<VKTexture>> VKSwapchain::getTextures() { return m_textures; }
+VkSwapchainKHR* VKSwapchain::getHandlePtr() { return &m_handle; }
 
 struct SwapchainCreateInfo {
     explicit SwapchainCreateInfo() { clearMemory(&handle); }
 
     VkSwapchainCreateInfoKHR handle;
-    std::vector<uint32_t> queueFamilyIndices;
+    std::vector<u32> queueFamilyIndices;
 };
 
 SwapchainCreateInfo createSwapchainCreateInfo(
-  VKLogicalDevice& device, VkSurfaceKHR surface, uint32_t imageCount,
-  VkSurfaceFormatKHR imageFormat, VkExtent2D extent, VkPresentModeKHR presentMode,
-  const VKPhysicalDevice::SwapchainSupportInfo& swapchainSupport
+  VkDevice device, VkSurfaceKHR surface, u32 imageCount, u32 graphicsQueue,
+  u32 presentQueue, VkSurfaceFormatKHR imageFormat, VkExtent2D extent,
+  VkPresentModeKHR presentMode, const VKSwapchain::SupportInfo& swapchainSupport
 ) {
     SwapchainCreateInfo createInfo;
     auto& handle = createInfo.handle;
@@ -111,15 +109,10 @@ SwapchainCreateInfo createSwapchainCreateInfo(
     handle.imageArrayLayers = 1;
     handle.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    const auto& queueIndices = device.getQueueIndices();
-
-    createInfo.queueFamilyIndices = {
-        static_cast<uint32_t>(queueIndices.graphics),
-        static_cast<uint32_t>(queueIndices.present),
-    };
+    createInfo.queueFamilyIndices = { graphicsQueue, presentQueue };
 
     // Setup the queue family indices
-    if (queueIndices.graphics != queueIndices.present) {
+    if (graphicsQueue != presentQueue) {
         handle.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
         handle.queueFamilyIndexCount = 2;
         handle.pQueueFamilyIndices   = createInfo.queueFamilyIndices.data();
@@ -129,7 +122,7 @@ SwapchainCreateInfo createSwapchainCreateInfo(
         handle.pQueueFamilyIndices   = 0;
     }
 
-    handle.preTransform   = swapchainSupport.capabilities.currentTransform;
+    handle.preTransform   = swapchainSupport.surfaceCapabilities.currentTransform;
     handle.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     handle.presentMode    = presentMode;
     handle.clipped        = VK_TRUE;
@@ -154,43 +147,34 @@ VkImageViewCreateInfo createImageViewCreateInfo(VkImage image, VkFormat format) 
 }
 
 void VKSwapchain::createSwapchain() {
-    const auto swapchainSupport = m_device.getSwapchainSupport();
+    m_imageFormat    = pickSurfaceFormat(m_supportInfo);
+    auto presentMode = pickPresentMode(m_supportInfo);
 
-    m_imageFormat    = pickSurfaceFormat(swapchainSupport);
-    auto presentMode = pickPresentMode(swapchainSupport);
-
-    m_swapchainExtent =
-      createSwapchainExtent(m_viewportWidth, m_viewportHeight, swapchainSupport);
-    auto deviceImageCount = getDeviceImageCount(swapchainSupport);
+    m_swapchainExtent     = createSwapchainExtent(m_size.w, m_size.h, m_supportInfo);
+    auto deviceImageCount = getDeviceImageCount(m_supportInfo);
 
     LOG_INFO(
       "Creating swapchain: {}/{}", m_swapchainExtent.width, m_swapchainExtent.height
     );
 
     auto swapchainCreateInfo = createSwapchainCreateInfo(
-      m_device, m_context.getSurface(), deviceImageCount, m_imageFormat,
-      m_swapchainExtent, presentMode, swapchainSupport
+      m_device, m_surface, deviceImageCount, m_graphicsQueueIndex,
+      m_presentQueueIndex, m_imageFormat, m_swapchainExtent, presentMode,
+      m_supportInfo
     );
 
     VK_ASSERT(vkCreateSwapchainKHR(
-      m_device.getHandle(), &swapchainCreateInfo.handle, m_context.getAllocator(),
-      &m_handle
+      m_device, &swapchainCreateInfo.handle, m_allocator, &m_handle
     ));
 }
 
 void VKSwapchain::createImages() {
-    const auto logicalDeviceHandle = m_device.getHandle();
-
-    VK_ASSERT(
-      vkGetSwapchainImagesKHR(logicalDeviceHandle, m_handle, &m_imageCount, 0)
-    );
-
+    VK_ASSERT(vkGetSwapchainImagesKHR(m_device, m_handle, &m_imageCount, 0));
     ASSERT(m_imageCount > 0, "swapchainImageCount==0 for vulkan swapchain");
 
     std::vector<VkImage> swapchainImages(m_imageCount, 0);
-
     VK_ASSERT(vkGetSwapchainImagesKHR(
-      logicalDeviceHandle, m_handle, &m_imageCount, swapchainImages.data()
+      m_device, m_handle, &m_imageCount, swapchainImages.data()
     ));
 
     auto samplerProperties = Texture::SamplerProperties::createDefault();
@@ -211,7 +195,8 @@ void VKSwapchain::createImages() {
             auto& swapchainImageHandle = swapchainImages[i];
 
             m_textures[i].emplace(
-              m_context, m_device, swapchainImageHandle, imageData, samplerProperties
+              m_device, m_allocator, swapchainImageHandle, imageData,
+              samplerProperties
             );
         }
     } else {
@@ -226,10 +211,10 @@ void VKSwapchain::createImages() {
     imageData.height   = m_swapchainExtent.height;
     imageData.usage    = Texture::Usage::depthStencilAttachment;
     imageData.aspect   = Texture::Aspect::depth;
-    imageData.format   = static_cast<Format>(m_device.getDepthFormat());
-    imageData.channels = m_device.getDepthChannelCount();
+    imageData.format   = static_cast<Format>(m_depthFormat);
+    imageData.channels = m_depthChannels;
 
-    m_depthTexture.emplace(m_context, m_device, imageData, samplerProperties);
+    m_depthTexture.emplace(m_device, m_allocator, imageData, samplerProperties);
 }
 
 void VKSwapchain::create() {
@@ -241,80 +226,50 @@ void VKSwapchain::create() {
 VKSwapchain::~VKSwapchain() { destroy(); }
 
 void VKSwapchain::destroy() {
-    vkDestroySwapchainKHR(m_device.getHandle(), m_handle, m_context.getAllocator());
+    vkDestroySwapchainKHR(m_device, m_handle, m_allocator);
     m_textures.clear();
     m_depthTexture.clear();
     LOG_TRACE("VKSwapchain destroyed");
 }
 
-std::optional<uint32_t> VKSwapchain::acquireNextImageIndex(
-  Nanoseconds timeout, VkSemaphore imageSemaphore, VkFence fence
+std::optional<u32> VKSwapchain::acquireNextImageIndex(
+  Semaphore* imageSemaphore, Fence* fence, Nanoseconds timeout
 ) {
-    uint32_t index;
+    u32 index = 0;
 
     VkResult result = vkAcquireNextImageKHR(
-      m_device.getHandle(), m_handle, timeout, imageSemaphore, fence, &index
+      m_device, m_handle, timeout,
+      imageSemaphore != nullptr ? toVk(*imageSemaphore).getHandle() : nullptr,
+      fence != nullptr ? toVk(*fence).getHandle() : nullptr, &index
     );
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        // Trigger swapchain recreation, then boot out of the render loop.
-        // destroy();
-        // create();
+        LOG_WARN("Swapchain out of date, recreating");
+        destroy();
+        create();
         return {};
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        LOG_ERROR("Failed to acquire swapchain image!");
+        LOG_ERROR(
+          "Failed to acquire swapchain image: {}", getResultString(result, true)
+        );
         return {};
     }
 
     return index;
 }
 
-VkPresentInfoKHR createPresentInfo(
-  VkSemaphore* renderSemaphore, VkSwapchainKHR* swapchain,
-  uint32_t* presentImageIndex
-) {
-    // Return the image to the swapchain for presentation.
-    VkPresentInfoKHR presentInfo;
-    clearMemory(&presentInfo);
-    presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores    = renderSemaphore;
-    presentInfo.swapchainCount     = 1;
-    presentInfo.pSwapchains        = swapchain;
-    presentInfo.pImageIndices      = presentImageIndex;
-    presentInfo.pResults           = 0;
+void VKSwapchain::recreate(const Vec2<u32>& size) {
+    LOG_INFO("Recreating swapchain: {}/{}", size.w, size.h);
 
-    return presentInfo;
-}
-
-void VKSwapchain::present(
-  [[maybe_unused]] VkQueue graphicsQueue, VkQueue presentQueue,
-  VkSemaphore renderSemaphore, uint32_t presentImageIndex
-) {
-    const auto presentInfo =
-      createPresentInfo(&renderSemaphore, &m_handle, &presentImageIndex);
-
-    if (VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
-        result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        // VKSwapchain is out of date, suboptimal or a framebuffer resize has
-        // occurred. Trigger swapchain recreation
-        // destroy();
-        // create();
-    } else if (result != VK_SUCCESS) {
-        LOG_ERROR("Failed to present swap chain image!");
-    }
-}
-
-void VKSwapchain::recreate(u32 viewportWidth, u32 viewportHeight) {
-    LOG_INFO("Recreating swapchain: {}/{}", viewportWidth, viewportHeight);
-
-    m_viewportWidth  = viewportWidth;
-    m_viewportHeight = viewportHeight;
-
+    m_size = size;
     destroy();
     create();
 }
 
 u32 VKSwapchain::getImageCount() const { return m_imageCount; }
+
+VKSwapchain& toVk(Swapchain& swapchain) {
+    return static_cast<VKSwapchain&>(swapchain);
+}
 
 }  // namespace sl::vk

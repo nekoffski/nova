@@ -23,11 +23,21 @@ namespace v2 {
 
 class RenderPass : public NonMovable, public Identificable<RenderPass> {
 public:
-    struct Impl {
+    class Impl {
+    public:
         virtual ~Impl() = default;
 
-        virtual void begin(CommandBuffer& commandBuffer, u8 imageIndex) = 0;
-        virtual void end(CommandBuffer& commandBuffer)                  = 0;
+        template <typename Callback>
+        requires Callable<Callback, void, CommandBuffer&, u8>
+        void run(CommandBuffer& commandBuffer, u32 imageIndex, Callback&& callback) {
+            begin(commandBuffer, imageIndex);
+            callback(commandBuffer, imageIndex);
+            end(commandBuffer);
+        }
+
+    private:
+        virtual void begin(CommandBuffer& commandBuffer, u32 imageIndex) = 0;
+        virtual void end(CommandBuffer& commandBuffer)                   = 0;
     };
 
     enum class ClearFlags : u8 {
@@ -57,7 +67,7 @@ public:
     );
 
     void init(bool hasPreviousPass, bool hasNextPass);
-    void run(RenderPacket& packet, CommandBuffer& commandBuffer, u8 imageIndex);
+    void run(RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex);
 
 protected:
     Properties createDefaultProperties(
@@ -69,7 +79,7 @@ protected:
 
 private:
     virtual void render(
-      RenderPacket& packet, CommandBuffer& commandBuffer, u8 imageIndex
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
     ) = 0;
 
     Renderer& m_renderer;

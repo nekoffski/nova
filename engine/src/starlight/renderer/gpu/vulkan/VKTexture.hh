@@ -13,47 +13,55 @@
 #include "Vulkan.hh"
 #include "VKImage.hh"
 #include "VKBuffer.hh"
-#include "VKContext.hh"
-#include "VKPhysicalDevice.hh"
-#include "VKContext.hh"
 
 #include "VKCommandBuffer.hh"
 
 namespace sl::vk {
 
-class VKTexture : public Texture {
+class VKTextureBase : public Texture {
 public:
-    explicit VKTexture(
-      VKContext& context, VKLogicalDevice& device, const ImageData& imageData,
+    VKTextureBase(
+      VkDevice device, Allocator* allocator, const ImageData& imageData,
       const SamplerProperties& sampler
     );
 
-    // TODO: consider implementing separated VKSwapchainTexture
+    VkImageView getView() const;
+    VkSampler getSampler() const;
+
+protected:
+    void createSampler();
+
+    VkDevice m_device;
+    Allocator* m_allocator;
+    VkImage m_image;
+    VkSampler m_sampler;
+    VkImageView m_view;
+};
+
+class VKTexture : public VKTextureBase {
+public:
     explicit VKTexture(
-      VKContext& context, VKLogicalDevice& device, VkImage handle,
-      const ImageData& imageData, const SamplerProperties& sampler
+      VkDevice device, Allocator* allocator, const ImageData& imageData,
+      const SamplerProperties& sampler
     );
 
     ~VKTexture() override;
 
-    const VKImage* getImage() const;
-    VkSampler getSampler() const;
-
-    void resize(u32 width, u32 height, VkImage handle);
     void resize(u32 width, u32 height) override;
+    void write(std::span<u8> pixels) override;
+};
 
-    void write(u32 offset, std::span<u8> pixels) override;
+class VKSwapchainTexture : public VKTextureBase {
+public:
+    explicit VKSwapchainTexture(
+      VkDevice device, Allocator* allocator, VkImage handle,
+      const ImageData& imageData, const SamplerProperties& sampler
+    );
 
-private:
-    void createSampler(const SamplerProperties& props);
+    ~VKSwapchainTexture() override;
 
-    VKContext& m_context;
-    VKLogicalDevice& m_device;
-
-    VKImage m_image;
-    VkSampler m_sampler;
-
-    u32 m_generation;
+    void resize(u32 width, u32 height) override;
+    void write(std::span<u8> pixels) override;
 };
 
 }  // namespace sl::vk

@@ -17,7 +17,7 @@ public:
     virtual bool wait(Nanoseconds timeout = u64Max) = 0;
     virtual void reset()                            = 0;
 
-private:
+protected:
     State m_state;
 };
 

@@ -27,7 +27,7 @@ void GridRenderView::init(
 void GridRenderView::render(
   [[maybe_unused]] RendererBackend& renderer, RenderPacket& packet,
   [[maybe_unused]] const RenderProperties& properties,
-  [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u8 imageIndex
+  [[maybe_unused]] float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
 ) {
     m_shader->use(commandBuffer);
     m_shader->setGlobalUniforms(

@@ -4,7 +4,7 @@
 
 #include "Vulkan.hh"
 
-namespace sl {
+namespace sl::vk {
 
 class VKQueue : public Queue {
 public:
@@ -17,4 +17,4 @@ private:
     VkQueue m_handle;
 };
 
-}  // namespace sl
+}  // namespace sl::vk

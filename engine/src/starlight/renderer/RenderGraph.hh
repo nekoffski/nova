@@ -41,6 +41,7 @@ private:
 
     Renderer& m_renderer;
     std::vector<Node> m_nodes;
+    std::vector<RenderPass*> m_activeRenderPasses;
 };
 }  // namespace v2
 
