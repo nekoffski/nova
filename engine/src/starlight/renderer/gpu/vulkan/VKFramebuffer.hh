@@ -1,34 +1,34 @@
-#pragma once
+// #pragma once
 
-#include <vector>
+// #include <vector>
 
-#include "starlight/core/Core.hh"
+// #include "starlight/core/Core.hh"
 
-#include "VKLogicalDevice.hh"
-#include "VKContext.hh"
+// #include "VKLogicalDevice.hh"
+// #include "VKContext.hh"
 
-#include "Vulkan.hh"
-#include "fwd.hh"
+// #include "Vulkan.hh"
+// #include "fwd.hh"
 
-namespace sl::vk {
+// namespace sl::vk {
 
-class VKFramebuffer : public NonMovable, public NonCopyable {
-public:
-    explicit VKFramebuffer(
-      VKContext& context, VKLogicalDevice& device, VkRenderPass renderPass,
-      u32 width, u32 height, const std::vector<VkImageView>& attachments
-    );
+// class VKFramebuffer : public NonMovable, public NonCopyable {
+// public:
+//     explicit VKFramebuffer(
+//       VKContext& context, VKLogicalDevice& device, VkRenderPass renderPass,
+//       u32 width, u32 height, const std::vector<VkImageView>& attachments
+//     );
 
-    VkFramebuffer getHandle();
+//     VkFramebuffer getHandle();
 
-    ~VKFramebuffer();
+//     ~VKFramebuffer();
 
-private:
-    VKContext& m_context;
-    VKLogicalDevice& m_device;
+// private:
+//     VKContext& m_context;
+//     VKLogicalDevice& m_device;
 
-    std::vector<VkImageView> m_attachments;
-    VkFramebuffer m_handle;
-};
+//     std::vector<VkImageView> m_attachments;
+//     VkFramebuffer m_handle;
+// };
 
-}  // namespace sl::vk
+// }  // namespace sl::vk

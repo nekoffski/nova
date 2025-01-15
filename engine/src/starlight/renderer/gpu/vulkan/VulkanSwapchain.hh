@@ -12,20 +12,10 @@
 
 namespace sl::vk {
 
-class VKSwapchain : public Swapchain {
+class VulkanSwapchain : public Swapchain {
 public:
-    struct SupportInfo {
-        VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        std::vector<VkSurfaceFormatKHR> surfaceFormats;
-        std::vector<VkPresentModeKHR> presentModes;
-    };
-
-    explicit VKSwapchain(
-      VkDevice device, Allocator* allocator, VkSurfaceKHR surface,
-      u32 graphicsQueueIndex, u32 presentQueueIndex, VkFormat depthFormat,
-      u8 depthChannels, const SupportInfo& supportInfo, const Vec2<u32>& size
-    );
-    ~VKSwapchain();
+    explicit VulkanSwapchain(VulkanDevice& device, const Vec2<u32>& size);
+    ~VulkanSwapchain();
 
     void recreate(const Vec2<u32>& size) override;
 
@@ -49,27 +39,19 @@ private:
     void createImages();
 
     VkSwapchainKHR m_handle;
-    VkDevice m_device;
-    Allocator* m_allocator;
-    VkSurfaceKHR m_surface;
-    u32 m_graphicsQueueIndex;
-    u32 m_presentQueueIndex;
+    VulkanDevice& m_device;
 
-    VkFormat m_depthFormat;
-    u8 m_depthChannels;
-
-    SupportInfo m_supportInfo;
     Vec2<u32> m_size;
 
     VkSurfaceFormatKHR m_imageFormat;
     VkExtent2D m_swapchainExtent;
 
     LocalPtr<VKTexture> m_depthTexture;
-    std::vector<LocalPtr<VKSwapchainTexture>> m_textures;
+    std::vector<LocalPtr<VulkanSwapchainTexture>> m_textures;
 
     u32 m_imageCount;
 };
 
-VKSwapchain& toVk(Swapchain&);
+VulkanSwapchain& toVk(Swapchain&);
 
 }  // namespace sl::vk

@@ -7,10 +7,10 @@
 
 namespace sl::vk {
 
-class VKFence : public Fence {
+class VulkanFence : public Fence {
 public:
-    explicit VKFence(VkDevice device, Allocator* allocator, State state);
-    ~VKFence();
+    explicit VulkanFence(VulkanDevice& device, State state);
+    ~VulkanFence();
 
     bool wait(Nanoseconds timeout) override;
     void reset() override;
@@ -19,10 +19,11 @@ public:
 
 private:
     VkFence m_handle;
-    VkDevice m_device;
+    VulkanDevice& m_device;
+    State m_state;
     Allocator* m_allocator;
 };
 
-VKFence& toVk(Fence&);
+VulkanFence& toVk(Fence&);
 
 }  // namespace sl::vk

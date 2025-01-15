@@ -3,22 +3,24 @@
 namespace sl::vk {
 
 class VKContext;
-class VKCommandBuffer;
+class VulkanCommandBuffer;
 class VKPhysicalDevice;
 class VKLogicalDevice;
-class VKFence;
-class VKSemaphore;
 class VKImage;
 class VKFramebuffer;
 class VKRenderPass;
-class VKSwapchain;
+class VulkanSwapchain;
 class VKShaderStage;
 class VKShader;
 class VKMaterialShader;
 class VKPipeline;
-class VKBuffer;
+class VulkanBuffer;
 class VKTexture;
 class VKTextureLoader;
 class VKRendererBackend;
+class VulkanQueue;
+class VulkanFence;
+class VulkanSemaphore;
+class VulkanDevice;
 
 }  // namespace sl::vk

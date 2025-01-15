@@ -4,7 +4,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
-#include "starlight/renderer/gpu/vulkan/VKCommandBuffer.hh"
+#include "starlight/renderer/gpu/vulkan/VulkanCommandBuffer.hh"
 
 namespace sl {
 

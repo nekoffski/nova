@@ -1,13 +1,13 @@
 // #include "VKRendererBackend.hh"
 
-// #include "VKBuffer.hh"
-// #include "VKCommandBuffer.hh"
+// #include "VulkanBuffer.hh"
+// #include "VulkanCommandBuffer.hh"
 // #include "VKContext.hh"
 // #include "VKFence.hh"
 // #include "VKFramebuffer.hh"
 // #include "VKImage.hh"
 // #include "VKRenderPass.hh"
-// #include "VKSwapchain.hh"
+// #include "VulkanSwapchain.hh"
 // #include "VKShader.hh"
 
 // namespace sl::vk {
@@ -47,9 +47,9 @@
 //     const auto queue = m_logicalDevice.getQueues().graphics;
 
 //     vkQueueWaitIdle(queue);
-//     VKCommandBuffer commandBuffer(
+//     VulkanCommandBuffer commandBuffer(
 //       m_logicalDevice, m_logicalDevice.getGraphicsCommandPool(),
-//       VKCommandBuffer::Severity::primary
+//       VulkanCommandBuffer::Severity::primary
 //     );
 //     commandBuffer.createAndBeginSingleUse();
 //     callback(commandBuffer);
@@ -58,7 +58,7 @@
 // }
 
 // void VKRendererBackend::freeDataRange(
-//   VKBuffer& buffer, uint64_t offset, uint64_t size
+//   VulkanBuffer& buffer, uint64_t offset, uint64_t size
 // ) {
 //     buffer.free(size, offset);
 // }
@@ -92,18 +92,18 @@
 // void VKRendererBackend::createBuffers() {
 //     LOG_DEBUG("Creating buffers");
 
-//     m_objectVertexBuffer = createUniqPtr<VKBuffer>(
+//     m_objectVertexBuffer = createUniqPtr<VulkanBuffer>(
 //       m_context, m_logicalDevice,
-//       VKBuffer::Properties{
+//       VulkanBuffer::Properties{
 //         sizeof(Vertex3) * 1024 * 1024, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 //         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT
 //           | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 //         true }
 //     );
 
-//     m_objectIndexBuffer = createUniqPtr<VKBuffer>(
+//     m_objectIndexBuffer = createUniqPtr<VulkanBuffer>(
 //       m_context, m_logicalDevice,
-//       VKBuffer::Properties{
+//       VulkanBuffer::Properties{
 //         sizeof(u32) * 1024 * 1024, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 //         VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT
 //           | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -111,7 +111,7 @@
 //     );
 // }
 
-// VKCommandBuffer& VKRendererBackend::getCommandBuffer() {
+// VulkanCommandBuffer& VKRendererBackend::getCommandBuffer() {
 //     return *m_commandBuffers[m_imageIndex];
 // }
 
@@ -132,7 +132,7 @@
 // Window& VKRendererBackend::getWindow() { return m_window; }
 
 // void VKRendererBackend::createCoreComponents(sl::Window& window) {
-//     m_swapchain = createUniqPtr<VKSwapchain>(
+//     m_swapchain = createUniqPtr<VulkanSwapchain>(
 //       m_context, m_logicalDevice, window.getFramebufferWidth(),
 //       window.getFramebufferHeight()
 //     );
@@ -189,7 +189,8 @@
 //     m_commandBuffers.reserve(swapchainImagesCount);
 //     for (u32 i = 0; i < swapchainImagesCount; ++i) {
 //         m_commandBuffers.emplace_back(
-//           m_logicalDevice, graphicsCommandPool, VKCommandBuffer::Severity::primary
+//           m_logicalDevice, graphicsCommandPool,
+//           VulkanCommandBuffer::Severity::primary
 //         );
 //     }
 // }
@@ -212,11 +213,12 @@
 //     return fence;
 // }
 
-// VKBuffer& VKRendererBackend::getIndexBuffer() { return *m_objectIndexBuffer; }
+// VulkanBuffer& VKRendererBackend::getIndexBuffer() { return *m_objectIndexBuffer; }
 
-// VKBuffer& VKRendererBackend::getVertexBuffer() { return *m_objectVertexBuffer; }
+// VulkanBuffer& VKRendererBackend::getVertexBuffer() { return *m_objectVertexBuffer;
+// }
 
-// VKSwapchain& VKRendererBackend::getSwapchain() { return *m_swapchain; }
+// VulkanSwapchain& VKRendererBackend::getSwapchain() { return *m_swapchain; }
 
 // VKContext& VKRendererBackend::getContext() { return m_context; }
 
@@ -226,7 +228,7 @@
 // m_physicalDevice; }
 
 // void VKRendererBackend::setViewport(
-//   VKCommandBuffer& commandBuffer, const Rect2<u32>& viewport
+//   VulkanCommandBuffer& commandBuffer, const Rect2<u32>& viewport
 // ) {
 //     VkViewport vkViewport;
 //     vkViewport.x        = static_cast<float>(viewport.offset.x);
@@ -239,7 +241,7 @@
 //     vkCmdSetViewport(commandBuffer.getHandle(), 0, 1, &vkViewport);
 // }
 
-// void VKRendererBackend::setScissors(VKCommandBuffer& commandBuffer) {
+// void VKRendererBackend::setScissors(VulkanCommandBuffer& commandBuffer) {
 //     VkRect2D scissor;
 //     scissor.offset.x = scissor.offset.y = 0;
 //     scissor.extent.width                = m_framebufferWidth;
@@ -286,7 +288,7 @@
 //     auto commandBuffer = m_commandBuffers[m_imageIndex].get();
 
 //     commandBuffer->reset();
-//     commandBuffer->begin(VKCommandBuffer::BeginFlags{
+//     commandBuffer->begin(VulkanCommandBuffer::BeginFlags{
 //       .isSingleUse          = false,
 //       .isRenderpassContinue = false,
 //       .isSimultaneousUse    = false,

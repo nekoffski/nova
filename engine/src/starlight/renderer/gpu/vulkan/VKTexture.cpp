@@ -10,9 +10,10 @@
 
 #include "Vulkan.hh"
 #include "VKImage.hh"
-#include "VKBuffer.hh"
+#include "VulkanBuffer.hh"
 #include "VKContext.hh"
-#include "VKCommandBuffer.hh"
+#include "VulkanDevice.hh"
+#include "VulkanCommandBuffer.hh"
 
 namespace sl::vk {
 
@@ -59,17 +60,80 @@ static VkSamplerCreateInfo createSamplerCreateInfo(
 
 */
 
+static VkFormat channelsToFormat(u32 channels) {
+    switch (channels) {
+        case 1:
+            return VK_FORMAT_R8_UNORM;
+        case 2:
+            return VK_FORMAT_R8G8_UNORM;
+        case 3:
+            return VK_FORMAT_R8G8B8_UNORM;
+        case 4:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        default:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+    }
+}
+
+static VkImageTiling toVk(Texture::Tiling tiling) {
+    return static_cast<VkImageTiling>(tiling);
+}
+
+static VkImageAspectFlags toVk(Texture::Aspect aspect) {
+    return static_cast<VkImageAspectFlags>(aspect);
+}
+
+static VkImageUsageFlags toVk(Texture::Usage usage) {
+    return static_cast<VkImageUsageFlags>(usage);
+}
+
+static VkFormat toVk(Format format, u8 channels) {
+    return format != Format::undefined
+             ? static_cast<VkFormat>(format)
+             : channelsToFormat(channels);
+}
+
 void VKTextureBase::createSampler() {
     const auto samplerInfo = createSamplerCreateInfo(m_samplerProperties);
-    VK_ASSERT(vkCreateSampler(m_device, &samplerInfo, m_allocator, &m_sampler));
+    VK_ASSERT(vkCreateSampler(
+      m_device.logical.handle, &samplerInfo, m_device.allocator, &m_sampler
+    ));
+}
+
+static VkImageViewCreateInfo createViewCreateInfo(
+  const Texture::ImageData& imageData, VkImage imageHandle
+) {
+    VkImageViewCreateInfo viewCreateInfo;
+    clearMemory(&viewCreateInfo);
+    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+
+    bool isCubemap = imageData.type == Texture::Type::cubemap;
+
+    viewCreateInfo.image = imageHandle;
+    viewCreateInfo.viewType =
+      isCubemap ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
+    viewCreateInfo.format = toVk(imageData.format, imageData.channels);
+    viewCreateInfo.subresourceRange.aspectMask     = toVk(imageData.aspect);
+    viewCreateInfo.subresourceRange.levelCount     = 1;
+    viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+    viewCreateInfo.subresourceRange.layerCount     = isCubemap ? 6 : 1;
+    viewCreateInfo.flags                           = 0;
+
+    return viewCreateInfo;
+}
+
+void VKTextureBase::createView() {
+    auto viewCreateInfo = createViewCreateInfo(m_imageData, m_image);
+    VK_ASSERT(vkCreateImageView(
+      m_device.logical.handle, &viewCreateInfo, m_device.allocator, &m_view
+    ))
 }
 
 VKTextureBase::VKTextureBase(
-  VkDevice device, Allocator* allocator, const ImageData& imageData,
-  const SamplerProperties& sampler
+  VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
 ) :
-    Texture(imageData, sampler), m_device(device), m_allocator(allocator),
-    m_image(VK_NULL_HANDLE), m_sampler(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE) {}
+    Texture(imageData, sampler), m_device(device), m_image(VK_NULL_HANDLE),
+    m_sampler(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE) {}
 
 VkImageView VKTextureBase::getView() const { return m_view; }
 
@@ -82,50 +146,110 @@ VkSampler VKTextureBase::getSampler() const { return m_sampler; }
 */
 
 VKTexture::VKTexture(
-  VkDevice device, Allocator* allocator, const ImageData& imageData,
-  const SamplerProperties& sampler
-) : VKTextureBase(device, allocator, imageData, sampler) {
+  VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
+) : VKTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE) {
+    create();
     LOG_TRACE("Texture created");
-    createSampler();
 }
 
 VKTexture::~VKTexture() {
-    vkDestroySampler(m_device, m_sampler, m_allocator);
+    destroy();
     LOG_TRACE("Texture destroyed");
 }
 
 void VKTexture::resize(u32 width, u32 height) {
-    // m_imageData.width  = width;
-    // m_imageData.height = height;
-    // m_image.recreate(m_imageData);
+    m_imageData.width  = width;
+    m_imageData.height = height;
+    recreate(m_imageData);
 }
 
 void VKTexture::write(std::span<u8> pixels) {
     // m_image.write(pixels);
 }
 
+void VKTexture::create() {
+    createImage();
+    allocateAndBindMemory();
+    if (m_imageData.pixels.size() > 0) write(m_imageData.pixels);
+    createView();
+    createSampler();
+}
+
+void VKTexture::destroy() {
+    auto device    = m_device.logical.handle;
+    auto allocator = m_device.allocator;
+
+    if (m_sampler) vkDestroySampler(device, m_sampler, allocator);
+    if (m_view) vkDestroyImageView(device, m_view, allocator);
+    if (m_memory) vkFreeMemory(device, m_memory, allocator);
+    if (m_image) vkDestroyImage(device, m_image, allocator);
+    LOG_TRACE("VKImage destroyed");
+}
+
+void VKTexture::allocateAndBindMemory() {
+    VkMemoryRequirements memoryRequirements;
+    vkGetImageMemoryRequirements(
+      m_device.logical.handle, m_image, &memoryRequirements
+    );
+}
+
+void VKTexture::recreate(const Texture::ImageData& imageData) {
+    destroy();
+    m_imageData = imageData;
+    create();
+}
+
+void VKTexture::createImage() {
+    bool isCubemap = m_imageData.type == Texture::Type::cubemap;
+
+    VkImageCreateInfo imageCreateInfo;
+    clearMemory(&imageCreateInfo);
+    imageCreateInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageCreateInfo.imageType     = VK_IMAGE_TYPE_2D;
+    imageCreateInfo.extent.width  = m_imageData.width;
+    imageCreateInfo.extent.height = m_imageData.height;
+    imageCreateInfo.extent.depth  = 1;
+    imageCreateInfo.mipLevels     = 4;
+    imageCreateInfo.arrayLayers   = isCubemap ? 6 : 1;
+    imageCreateInfo.format        = toVk(m_imageData.format, m_imageData.channels);
+    imageCreateInfo.tiling        = toVk(m_imageData.tiling);
+    imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageCreateInfo.usage         = toVk(m_imageData.usage);
+    imageCreateInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+    if (isCubemap) imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+    VK_ASSERT(vkCreateImage(
+      m_device.logical.handle, &imageCreateInfo, m_device.allocator, &m_image
+    ));
+}
+
 /*
 
-    VKSwapchainTexture
+    VulkanSwapchainTexture
 
 */
 
-VKSwapchainTexture::VKSwapchainTexture(
-  VkDevice device, Allocator* allocator, VkImage handle, const ImageData& imageData,
+VulkanSwapchainTexture::VulkanSwapchainTexture(
+  VulkanDevice& device, VkImage handle, const ImageData& imageData,
   const SamplerProperties& sampler
-) : VKTextureBase(device, allocator, imageData, sampler) {
+) : VKTextureBase(device, imageData, sampler) {
     m_image = handle;
+    createView();
     createSampler();
     LOG_TRACE("Swapchain texture created");
 }
 
-VKSwapchainTexture::~VKSwapchainTexture() {}
+VulkanSwapchainTexture::~VulkanSwapchainTexture() {
+    if (m_sampler)
+        vkDestroySampler(m_device.logical.handle, m_sampler, m_device.allocator);
+}
 
-void VKSwapchainTexture::resize(u32 width, u32 height) {
+void VulkanSwapchainTexture::resize(u32 width, u32 height) {
     LOG_ERROR("Cannot resize swapchain texture");
 }
 
-void VKSwapchainTexture::write(std::span<u8> pixels) {
+void VulkanSwapchainTexture::write(std::span<u8> pixels) {
     LOG_ERROR("Cannot write to swapchain texture");
 }
 

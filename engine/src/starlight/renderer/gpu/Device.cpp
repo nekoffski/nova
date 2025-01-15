@@ -1,14 +1,16 @@
 #include "Device.hh"
 
 #ifdef SL_USE_VK
-#include "starlight/renderer/gpu/vulkan/VKDevice.hh"
+#include "starlight/renderer/gpu/vulkan/VulkanDevice.hh"
 #endif
 
 namespace sl {
 
 OwningPtr<Device> Device::create(Context& context) {
 #ifdef SL_USE_VK
-    return createOwningPtr<vk::VKDevice>(context.getWindow(), context.getConfig());
+    return createOwningPtr<vk::VulkanDevice>(
+      context.getWindow(), context.getConfig()
+    );
 #endif
     return nullptr;
 }

@@ -12,16 +12,17 @@
 
 #include "Vulkan.hh"
 #include "VKImage.hh"
-#include "VKBuffer.hh"
+#include "VulkanBuffer.hh"
+#include "fwd.hh"
 
-#include "VKCommandBuffer.hh"
+#include "VulkanCommandBuffer.hh"
 
 namespace sl::vk {
 
 class VKTextureBase : public Texture {
 public:
     VKTextureBase(
-      VkDevice device, Allocator* allocator, const ImageData& imageData,
+      VulkanDevice& device, const ImageData& imageData,
       const SamplerProperties& sampler
     );
 
@@ -30,9 +31,9 @@ public:
 
 protected:
     void createSampler();
+    void createView();
 
-    VkDevice m_device;
-    Allocator* m_allocator;
+    VulkanDevice& m_device;
     VkImage m_image;
     VkSampler m_sampler;
     VkImageView m_view;
@@ -41,7 +42,7 @@ protected:
 class VKTexture : public VKTextureBase {
 public:
     explicit VKTexture(
-      VkDevice device, Allocator* allocator, const ImageData& imageData,
+      VulkanDevice& device, const ImageData& imageData,
       const SamplerProperties& sampler
     );
 
@@ -49,16 +50,25 @@ public:
 
     void resize(u32 width, u32 height) override;
     void write(std::span<u8> pixels) override;
+
+private:
+    VkDeviceMemory m_memory;
+
+    void create();
+    void destroy();
+    void recreate(const Texture::ImageData& imageData);
+    void createImage();
+    void allocateAndBindMemory();
 };
 
-class VKSwapchainTexture : public VKTextureBase {
+class VulkanSwapchainTexture : public VKTextureBase {
 public:
-    explicit VKSwapchainTexture(
-      VkDevice device, Allocator* allocator, VkImage handle,
-      const ImageData& imageData, const SamplerProperties& sampler
+    explicit VulkanSwapchainTexture(
+      VulkanDevice& device, VkImage handle, const ImageData& imageData,
+      const SamplerProperties& sampler
     );
 
-    ~VKSwapchainTexture() override;
+    ~VulkanSwapchainTexture() override;
 
     void resize(u32 width, u32 height) override;
     void write(std::span<u8> pixels) override;

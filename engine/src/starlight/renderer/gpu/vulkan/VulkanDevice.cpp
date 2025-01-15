@@ -1,68 +1,83 @@
-#include "VKDevice.hh"
+#include "VulkanDevice.hh"
 
 #include <optional>
 
 #include <kc/core/Utils.hpp>
 
-#include "VKQueue.hh"
+#include "VulkanQueue.hh"
 
 #include "starlight/core/Log.hh"
 #include "starlight/core/window/glfw/Vulkan.hh"
 
-#include "VKFence.hh"
-#include "VKSemaphore.hh"
+#include "VulkanFence.hh"
+#include "VulkanSemaphore.hh"
+#include "VulkanSwapchain.hh"
+#include "VulkanCommandBuffer.hh"
+#include "VKTexture.hh"
 
 namespace sl::vk {
 
-VKDevice::VKDevice(Window& window, const Config& config) :
-    m_allocator(nullptr), m_instance(config, m_allocator),
+VulkanDevice::VulkanDevice(Window& window, const Config& config) :
+    window(window), allocator(nullptr), instance(config, allocator),
 #ifdef SL_VK_DEBUG
-    m_debugMessenger(m_instance.handle, m_allocator),
+    m_debugMessenger(instance.handle, allocator),
 #endif
-    m_surface(m_instance.handle, window, m_allocator),
-    m_physicalDevice(m_instance.handle, m_surface.handle),
-    m_logicalDevice(
-      m_physicalDevice.handle, m_allocator, m_physicalDevice.info.queueIndices
-    ) {
+    surface(instance.handle, window, allocator),
+    physical(instance.handle, surface.handle),
+    logical(physical.handle, allocator, physical.info.queueIndices) {
 }
 
-VkSurfaceKHR VKDevice::getSurface() { return VkSurfaceKHR(); }
-
-OwningPtr<Texture> VKDevice::
-  createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&) {
-    return OwningPtr<Texture>();
+OwningPtr<Texture> VulkanDevice::createTexture(
+  const Texture::ImageData& image, const Texture::SamplerProperties& sampler
+) {
+    return createOwningPtr<VKTexture>(*this, image, sampler);
 }
 
-OwningPtr<Fence> VKDevice::createFence(Fence::State state) {
-    return createOwningPtr<VKFence>(m_logicalDevice.handle, m_allocator, state);
+OwningPtr<Fence> VulkanDevice::createFence(Fence::State state) {
+    return createOwningPtr<VulkanFence>(*this, state);
 }
 
-OwningPtr<Swapchain> VKDevice::createSwapchain(const Vec2<u32>& size) {
-    return OwningPtr<Swapchain>();
+OwningPtr<Swapchain> VulkanDevice::createSwapchain(const Vec2<u32>& size) {
+    return createOwningPtr<VulkanSwapchain>(*this, window.getFramebufferSize());
 }
 
-OwningPtr<sl::v2::RenderPass::Impl> VKDevice::createRenderPass(
+OwningPtr<sl::v2::RenderPass::Impl> VulkanDevice::createRenderPass(
   const sl::v2::RenderPass::Properties& props
 ) {
     return OwningPtr<sl::v2::RenderPass::Impl>();
 }
 
-OwningPtr<Semaphore> VKDevice::createSemaphore() {
-    return createOwningPtr<VKSemaphore>(m_logicalDevice.handle, m_allocator);
+OwningPtr<Semaphore> VulkanDevice::createSemaphore() {
+    return createOwningPtr<VulkanSemaphore>(*this);
 }
 
-VkInstance VKDevice::getInstance() { return VkInstance(); }
+OwningPtr<CommandBuffer> VulkanDevice::createCommandBuffer(
+  CommandBuffer::Severity severity
+) {
+    return createOwningPtr<VulkanCommandBuffer>(*this, severity);
+}
 
-VkAllocationCallbacks* VKDevice::getAllocator() { return m_allocator; }
+void VulkanDevice::waitIdle() { vkDeviceWaitIdle(logical.handle); }
 
-void VKDevice::waitIdle() { vkDeviceWaitIdle(m_logicalDevice.handle); }
+Queue& VulkanDevice::getQueue(Queue::Type type) { return logical.queues.at(type); }
 
-Queue& VKDevice::getQueue(Queue::Type type) {
-    return m_logicalDevice.queues.at(type);
+std::optional<i32> VulkanDevice::findMemoryIndex(u32 typeFilter, u32 propertyFlags)
+  const {
+    const auto& props = physical.info.memoryProperties;
+    for (uint32_t i = 0; i < props.memoryTypeCount; ++i) {
+        bool isSuitable =
+          (typeFilter & (1 << i))
+          && (props.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags;
+        if (isSuitable) return i;
+    }
+    LOG_WARN(
+      "Unable to find suitable memory type: {}/{}", typeFilter, propertyFlags
+    );
+    return {};
 }
 
 /*
-    VKInstance
+    Instance
 */
 
 static VkApplicationInfo createApplicationInfo(const Config& config) {
@@ -145,7 +160,7 @@ static VkInstanceCreateInfo createInstanceCreateInfo(
     return instanceCreateInfo;
 }
 
-VKDevice::VKInstance::VKInstance(const Config& config, Allocator* allocator) :
+VulkanDevice::Instance::Instance(const Config& config, Allocator* allocator) :
     handle(VK_NULL_HANDLE), m_allocator(allocator) {
     auto applicationInfo = createApplicationInfo(config);
     auto layers          = getLayers();
@@ -162,7 +177,7 @@ VKDevice::VKInstance::VKInstance(const Config& config, Allocator* allocator) :
     LOG_TRACE("Vulkan Instance initialized");
 }
 
-VKDevice::VKInstance::~VKInstance() {
+VulkanDevice::Instance::~Instance() {
     if (handle) {
         LOG_TRACE("Destroying vulkan instance");
         vkDestroyInstance(handle, m_allocator);
@@ -170,7 +185,7 @@ VKDevice::VKInstance::~VKInstance() {
 }
 
 /*
-    VKDebugMessenger
+    DebugMessenger
 */
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
@@ -212,7 +227,7 @@ static VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo() {
     return debugCreateInfo;
 }
 
-VKDevice::VKDebugMessenger::VKDebugMessenger(
+VulkanDevice::DebugMessenger::DebugMessenger(
   VkInstance instance, Allocator* allocator
 ) : m_instance(instance), m_allocator(allocator) {
     static const auto debugFactoryFunctionName = "vkCreateDebugUtilsMessengerEXT";
@@ -228,7 +243,7 @@ VKDevice::VKDebugMessenger::VKDebugMessenger(
     LOG_TRACE("Created Vulkan Debug Messenger");
 }
 
-VKDevice::VKDebugMessenger::~VKDebugMessenger() {
+VulkanDevice::DebugMessenger::~DebugMessenger() {
     if (m_handle) {
         static const auto debugDestructorFunctionName =
           "vkDestroyDebugUtilsMessengerEXT";
@@ -242,10 +257,10 @@ VKDevice::VKDebugMessenger::~VKDebugMessenger() {
 }
 
 /*
-    VKSurface
+    Surface
 */
 
-VKDevice::VKSurface::VKSurface(
+VulkanDevice::Surface::Surface(
   VkInstance instance, Window& window, Allocator* allocator
 ) :
     handle(glfw::createVulkanSurface(instance, window.getHandle(), allocator)),
@@ -253,7 +268,7 @@ VKDevice::VKSurface::VKSurface(
     LOG_TRACE("Vulkan surface created");
 }
 
-VKDevice::VKSurface::~VKSurface() {
+VulkanDevice::Surface::~Surface() {
     if (handle) {
         LOG_TRACE("Vulkan surface destroyed");
         vkDestroySurfaceKHR(m_instance, handle, m_allocator);
@@ -280,7 +295,7 @@ static std::vector<VkPhysicalDevice> getPhysicalDevices(VkInstance instance) {
 
 static bool assignQueues(
   VkPhysicalDevice device, VkSurfaceKHR surface, Queue::Type requiredQueues,
-  VKDevice::Physical::Info& info
+  VulkanDevice::Physical::Info& info
 ) {
     u32 queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, 0);
@@ -314,10 +329,10 @@ static bool assignQueues(
 }
 
 static bool queryDeviceSwapchainSupport(
-  VkPhysicalDevice device, VkSurfaceKHR surface, VKDevice::Physical::Info& info
+  VkPhysicalDevice device, VkSurfaceKHR surface, VulkanDevice::Physical::Info& info
 ) {
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-      device, surface, &info.swapchain.surfaceCapabilities
+      device, surface, &info.surfaceCapabilities
     ));
 
     u32 count = 0;
@@ -328,9 +343,9 @@ static bool queryDeviceSwapchainSupport(
         return false;
     }
 
-    info.swapchain.surfaceFormats.resize(count);
+    info.surfaceFormats.resize(count);
     VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(
-      device, surface, &count, info.swapchain.surfaceFormats.data()
+      device, surface, &count, info.surfaceFormats.data()
     ));
 
     count = 0;
@@ -341,9 +356,9 @@ static bool queryDeviceSwapchainSupport(
         return false;
     }
 
-    info.swapchain.presentModes.resize(count);
+    info.presentModes.resize(count);
     VK_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(
-      device, surface, &count, info.swapchain.presentModes.data()
+      device, surface, &count, info.presentModes.data()
     ));
 
     return true;
@@ -385,7 +400,7 @@ static bool validateExtensions(
 }
 
 static bool detectDepthFormat(
-  VkPhysicalDevice device, VKDevice::Physical::Info& info
+  VkPhysicalDevice device, VulkanDevice::Physical::Info& info
 ) {
     static std::vector<std::pair<VkFormat, u8>> candidates = {
         { VK_FORMAT_D32_SFLOAT,         4 },
@@ -411,11 +426,11 @@ static bool detectDepthFormat(
     return false;
 }
 
-static std::optional<VKDevice::Physical::Info> getPhysicalDeviceInfo(
+static std::optional<VulkanDevice::Physical::Info> getPhysicalDeviceInfo(
   VkPhysicalDevice device, VkSurfaceKHR surface,
-  const VKDevice::Physical::Requirements& requirements
+  const VulkanDevice::Physical::Requirements& requirements
 ) {
-    VKDevice::Physical::Info info;
+    VulkanDevice::Physical::Info info;
 
     vkGetPhysicalDeviceProperties(device, &info.coreProperties);
     vkGetPhysicalDeviceMemoryProperties(device, &info.memoryProperties);
@@ -476,7 +491,7 @@ static void showDeviceType(const VkPhysicalDeviceType& type) {
     }
 }
 
-static void showDeviceInfo(const VKDevice::Physical::Info& info) {
+static void showDeviceInfo(const VulkanDevice::Physical::Info& info) {
     LOG_INFO("Selected device: '{}'.", info.coreProperties.deviceName);
     showDeviceType(info.coreProperties.deviceType);
 
@@ -507,7 +522,7 @@ static void showDeviceInfo(const VKDevice::Physical::Info& info) {
     }
 }
 
-VKDevice::Physical::Physical(VkInstance instance, VkSurfaceKHR surface) :
+VulkanDevice::Physical::Physical(VkInstance instance, VkSurfaceKHR surface) :
     handle(VK_NULL_HANDLE) {
     Requirements requirements{
         .supportedQueues =
@@ -534,12 +549,12 @@ VKDevice::Physical::Physical(VkInstance instance, VkSurfaceKHR surface) :
     Logical Device
 */
 
-VKDevice::Logical::Logical(
+VulkanDevice::Logical::Logical(
   VkPhysicalDevice device, Allocator* allocator,
   const Physical::QueueIndices& queueIndices
 ) :
-    handle(VK_NULL_HANDLE), m_physicalDevice(device), m_allocator(allocator),
-    m_graphicsCommandPool(VK_NULL_HANDLE) {
+    handle(VK_NULL_HANDLE), graphicsCommandPool(VK_NULL_HANDLE),
+    m_physicalDevice(device), m_allocator(allocator) {
     createDevice(queueIndices);
     assignQueues(queueIndices);
     createCommandPool(queueIndices);
@@ -547,14 +562,15 @@ VKDevice::Logical::Logical(
     LOG_TRACE("Vulkan logical device created");
 }
 
-VKDevice::Logical::~Logical() {
+VulkanDevice::Logical::~Logical() {
     LOG_TRACE("Destroying vulkan logical device");
-    if (m_graphicsCommandPool)
-        vkDestroyCommandPool(handle, m_graphicsCommandPool, m_allocator);
+    if (graphicsCommandPool)
+        vkDestroyCommandPool(handle, graphicsCommandPool, m_allocator);
     if (handle) vkDestroyDevice(handle, m_allocator);
 }
 
-void VKDevice::Logical::createDevice(const Physical::QueueIndices& queueIndices) {
+void VulkanDevice::Logical::createDevice(const Physical::QueueIndices& queueIndices
+) {
     static constexpr u64 maximumExpectedQueuesCount = 3;
 
     std::vector<u32> indices;
@@ -610,7 +626,8 @@ void VKDevice::Logical::createDevice(const Physical::QueueIndices& queueIndices)
     );
 }
 
-void VKDevice::Logical::createCommandPool(const Physical::QueueIndices& queueIndices
+void VulkanDevice::Logical::createCommandPool(
+  const Physical::QueueIndices& queueIndices
 ) {
     VkCommandPoolCreateInfo poolCreateInfo;
     clearMemory(&poolCreateInfo);
@@ -619,12 +636,13 @@ void VKDevice::Logical::createCommandPool(const Physical::QueueIndices& queueInd
     poolCreateInfo.queueFamilyIndex = queueIndices.at(Queue::Type::graphics);
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    VK_ASSERT(vkCreateCommandPool(
-      handle, &poolCreateInfo, m_allocator, &m_graphicsCommandPool
-    ));
+    VK_ASSERT(
+      vkCreateCommandPool(handle, &poolCreateInfo, m_allocator, &graphicsCommandPool)
+    );
 }
 
-void VKDevice::Logical::assignQueues(const Physical::QueueIndices& queueIndices) {
+void VulkanDevice::Logical::assignQueues(const Physical::QueueIndices& queueIndices
+) {
     const auto types = {
         Queue::Type::graphics, Queue::Type::present, Queue::Type::transfer
     };

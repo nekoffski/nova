@@ -6,10 +6,11 @@
 
 namespace sl::vk {
 
-class VKQueue : public Queue {
+class VulkanQueue : public Queue {
 public:
-    explicit VKQueue(VkQueue handle);
+    explicit VulkanQueue(VkQueue handle);
 
+    void wait() override;
     bool submit(const SubmitInfo& submitInfo) override;
     bool present(const PresentInfo& presentInfo) override;
 

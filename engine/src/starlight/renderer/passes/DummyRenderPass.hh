@@ -20,9 +20,8 @@ private:
         );
     }
 
-    void render(
-      RenderPacket& packet, v2::CommandBuffer& commandBuffer, u32 imageIndex
-    ) override {}
+    void render(RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex)
+      override {}
 };
 
 }  // namespace sl
