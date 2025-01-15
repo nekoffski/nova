@@ -9,6 +9,7 @@
 #include "Swapchain.hh"
 #include "RenderPass.hh"
 #include "Texture.hh"
+#include "CommandBuffer.hh"
 
 namespace sl {
 
@@ -23,6 +24,10 @@ public:
 
     Queue& getGraphicsQueue();
     Queue& getPresentQueue();
+
+    virtual OwningPtr<CommandBuffer> createCommandBuffer(
+      CommandBuffer::Severity severity = CommandBuffer::Severity::primary
+    ) = 0;
 
     virtual OwningPtr<Texture>
       createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&) = 0;

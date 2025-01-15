@@ -1,56 +1,56 @@
-#pragma once
+// #pragma once
 
-#include "starlight/core/math/Core.hh"
+// #include "starlight/core/math/Core.hh"
 
-#include "starlight/renderer/gpu/RenderPass.hh"
+// #include "starlight/renderer/gpu/RenderPass.hh"
 
-#include "VKPhysicalDevice.hh"
-#include "VKContext.hh"
+// #include "VKPhysicalDevice.hh"
+// #include "VKContext.hh"
 
-#include "Vulkan.hh"
-#include "fwd.hh"
+// #include "Vulkan.hh"
+// #include "fwd.hh"
 
-namespace sl::vk {
+// namespace sl::vk {
 
-class VKRenderPass : public RenderPass {
-public:
-    explicit VKRenderPass(
-      VKContext& context, VKLogicalDevice& device, const VKSwapchain& swapchain,
-      const Properties& properties, ChainFlags chainFlags
-    );
+// class VKRenderPass : public RenderPass {
+// public:
+//     explicit VKRenderPass(
+//       VKContext& context, VKLogicalDevice& device, const VulkanSwapchain&
+//       swapchain, const Properties& properties, ChainFlags chainFlags
+//     );
 
-    ~VKRenderPass();
+//     ~VKRenderPass();
 
-    void begin(CommandBuffer& commandBuffer, u8 attachmentIndex) override;
-    void end(CommandBuffer& commandBuffer) override;
+//     void begin(CommandBuffer& commandBuffer, u8 attachmentIndex) override;
+//     void end(CommandBuffer& commandBuffer) override;
 
-    void regenerateRenderTargets(const Vec2<u32>& viewportSize) override;
+//     void regenerateRenderTargets(const Vec2<u32>& viewportSize) override;
 
-    VkRenderPass getHandle();
+//     VkRenderPass getHandle();
 
-private:
-    void generateRenderTargets();
+// private:
+//     void generateRenderTargets();
 
-    std::vector<VkClearValue> createClearValues(ClearFlags flags) const;
+//     std::vector<VkClearValue> createClearValues(ClearFlags flags) const;
 
-    VkRenderPassBeginInfo createRenderPassBeginInfo(
-      const std::vector<VkClearValue>& clearValues, VkFramebuffer framebuffer
-    ) const;
+//     VkRenderPassBeginInfo createRenderPassBeginInfo(
+//       const std::vector<VkClearValue>& clearValues, VkFramebuffer framebuffer
+//     ) const;
 
-    VKContext& m_context;
-    VKLogicalDevice& m_device;
+//     VKContext& m_context;
+//     VKLogicalDevice& m_device;
 
-    VkRenderPass m_handle;
-    float m_depth      = 1.0f;
-    uint32_t m_stencil = 0;
+//     VkRenderPass m_handle;
+//     float m_depth      = 1.0f;
+//     uint32_t m_stencil = 0;
 
-    State m_state;
+//     State m_state;
 
-    bool m_hasColorAttachment;
-    bool m_hasDepthAttachment;
+//     bool m_hasColorAttachment;
+//     bool m_hasDepthAttachment;
 
-    // TODO: use local mem pool or static array or something
-    std::vector<OwningPtr<VKFramebuffer>> m_framebuffers;
-};
+//     // TODO: use local mem pool or static array or something
+//     std::vector<OwningPtr<VKFramebuffer>> m_framebuffers;
+// };
 
-}  // namespace sl::vk
+// }  // namespace sl::vk

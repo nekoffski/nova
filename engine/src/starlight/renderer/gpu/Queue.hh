@@ -19,7 +19,7 @@ struct Queue : NonCopyable, NonMovable {
     };
 
     struct SubmitInfo {
-        v2::CommandBuffer& commandBuffer;
+        CommandBuffer& commandBuffer;
         Semaphore* waitSemaphore   = nullptr;
         Semaphore* signalSemaphore = nullptr;
         Fence* fence               = nullptr;
@@ -33,6 +33,7 @@ struct Queue : NonCopyable, NonMovable {
 
     virtual ~Queue() = default;
 
+    virtual void wait()                                  = 0;
     virtual bool submit(const SubmitInfo& submitInfo)    = 0;
     virtual bool present(const PresentInfo& presentInfo) = 0;
 };

@@ -11,7 +11,7 @@ namespace v2 {
 RenderGraph::RenderGraph(Renderer& renderer) : m_renderer(renderer) {}
 
 void RenderGraph::render(RenderPacket& renderPacket) {
-    m_renderer.renderFrame([&](v2::CommandBuffer& commandBuffer, u32 imageIndex) {
+    m_renderer.renderFrame([&](CommandBuffer& commandBuffer, u32 imageIndex) {
         for (auto& renderPass : m_activeRenderPasses)
             renderPass->run(renderPacket, commandBuffer, imageIndex);
     });

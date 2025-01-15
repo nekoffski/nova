@@ -8,18 +8,18 @@
 #include "starlight/renderer/gpu/Device.hh"
 #include "starlight/renderer/gpu/Sync.hh"
 
-#include "VKSwapchain.hh"
-#include "VKQueue.hh"
-#include "VKTexture.hh"
+#include "fwd.hh"
+
+#include "VulkanQueue.hh"
 #include "Vulkan.hh"
 
 namespace sl::vk {
 
-class VKDevice : public Device {
-    class VKInstance : public NonCopyable, public NonMovable {
+class VulkanDevice : public Device {
+    class Instance : public NonCopyable, public NonMovable {
     public:
-        explicit VKInstance(const Config& config, Allocator* allocator);
-        ~VKInstance();
+        explicit Instance(const Config& config, Allocator* allocator);
+        ~Instance();
 
         VkInstance handle;
 
@@ -27,10 +27,10 @@ class VKDevice : public Device {
         Allocator* m_allocator;
     };
 
-    class VKDebugMessenger : public NonCopyable, public NonMovable {
+    class DebugMessenger : public NonCopyable, public NonMovable {
     public:
-        explicit VKDebugMessenger(VkInstance instance, Allocator* allocator);
-        ~VKDebugMessenger();
+        explicit DebugMessenger(VkInstance instance, Allocator* allocator);
+        ~DebugMessenger();
 
     private:
         VkInstance m_instance;
@@ -38,12 +38,10 @@ class VKDevice : public Device {
         VkDebugUtilsMessengerEXT m_handle;
     };
 
-    class VKSurface : public NonCopyable, public NonMovable {
+    class Surface : public NonCopyable, public NonMovable {
     public:
-        explicit VKSurface(
-          VkInstance instance, Window& window, Allocator* allocator
-        );
-        ~VKSurface();
+        explicit Surface(VkInstance instance, Window& window, Allocator* allocator);
+        ~Surface();
 
         VkSurfaceKHR handle;
 
@@ -53,7 +51,7 @@ class VKDevice : public Device {
     };
 
 public:
-    using Queues = std::unordered_map<Queue::Type, VKQueue>;
+    using Queues = std::unordered_map<Queue::Type, VulkanQueue>;
 
     class Physical : public NonCopyable, public NonMovable {
     public:
@@ -71,7 +69,9 @@ public:
             VkPhysicalDeviceMemoryProperties memoryProperties;
             VkPhysicalDeviceFeatures features;
             QueueIndices queueIndices;
-            VKSwapchain::SupportInfo swapchain;
+            VkSurfaceCapabilitiesKHR surfaceCapabilities;
+            std::vector<VkSurfaceFormatKHR> surfaceFormats;
+            std::vector<VkPresentModeKHR> presentModes;
             VkFormat depthFormat;
             u8 depthChannelCount;
         };
@@ -93,6 +93,7 @@ public:
         ~Logical();
 
         VkDevice handle;
+        VkCommandPool graphicsCommandPool;
         Queues queues;
 
     private:
@@ -102,17 +103,18 @@ public:
 
         VkPhysicalDevice m_physicalDevice;
         Allocator* m_allocator;
-        VkCommandPool m_graphicsCommandPool;
     };
 
-    explicit VKDevice(Window& window, const Config& config);
+    explicit VulkanDevice(Window& window, const Config& config);
 
     void waitIdle() override;
     Queue& getQueue(Queue::Type type) override;
 
-    Allocator* getAllocator();
-    VkInstance getInstance();
-    VkSurfaceKHR getSurface();
+    std::optional<i32> findMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
+
+    OwningPtr<CommandBuffer> createCommandBuffer(
+      CommandBuffer::Severity severity = CommandBuffer::Severity::primary
+    ) override;
 
     OwningPtr<Texture>
       createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&)
@@ -128,17 +130,19 @@ public:
 
     OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) override;
 
-private:
-    Allocator* m_allocator;
-    VKInstance m_instance;
+    Window& window;
+    Allocator* allocator;
+    Instance instance;
 
+private:
 #ifdef SL_VK_DEBUG
-    VKDebugMessenger m_debugMessenger;
+    DebugMessenger m_debugMessenger;
 #endif
 
-    VKSurface m_surface;
-    Physical m_physicalDevice;
-    Logical m_logicalDevice;
+public:
+    Surface surface;
+    Physical physical;
+    Logical logical;
 };
 
 }  // namespace sl::vk

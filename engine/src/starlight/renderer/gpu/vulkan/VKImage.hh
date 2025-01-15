@@ -1,64 +1,64 @@
-#pragma once
+// #pragma once
 
-#include <optional>
-#include <span>
+// #include <optional>
+// #include <span>
 
-#include "Vulkan.hh"
-#include "fwd.hh"
+// #include "Vulkan.hh"
+// #include "fwd.hh"
 
-#include "starlight/renderer/gpu/Texture.hh"
+// #include "starlight/renderer/gpu/Texture.hh"
 
-#include "VKPhysicalDevice.hh"
-#include "VKContext.hh"
-#include "VKBuffer.hh"
-#include "VKCommandBuffer.hh"
+// #include "VKPhysicalDevice.hh"
+// #include "VKContext.hh"
+// #include "VulkanBuffer.hh"
+// #include "VulkanCommandBuffer.hh"
 
-namespace sl::vk {
+// namespace sl::vk {
 
-class VKImage {
-public:
-    explicit VKImage(
-      VKContext& context, VKLogicalDevice&, const Texture::ImageData& imageData
-    );
+// class VKImage {
+// public:
+//     explicit VKImage(
+//       VKContext& context, VKLogicalDevice&, const Texture::ImageData& imageData
+//     );
 
-    explicit VKImage(
-      VKContext& context, VKLogicalDevice&, const Texture::ImageData& imageData,
-      VkImage handle
-    );
+//     explicit VKImage(
+//       VKContext& context, VKLogicalDevice&, const Texture::ImageData& imageData,
+//       VkImage handle
+//     );
 
-    ~VKImage();
+//     ~VKImage();
 
-    void recreate(const Texture::ImageData& imageData, VkImage handle);
-    void recreate(const Texture::ImageData& imageData);
+//     void recreate(const Texture::ImageData& imageData, VkImage handle);
+//     void recreate(const Texture::ImageData& imageData);
 
-    void write(std::span<const u8> pixels);
+//     void write(std::span<const u8> pixels);
 
-    VkImageView getView() const;
+//     VkImageView getView() const;
 
-private:
-    void copyFromBuffer(VKBuffer& buffer, VKCommandBuffer& commandBuffer);
+// private:
+//     void copyFromBuffer(VulkanBuffer& buffer, VulkanCommandBuffer& commandBuffer);
 
-    void transitionLayout(
-      VKCommandBuffer& commandBuffer, VkFormat format, VkImageLayout oldLayout,
-      VkImageLayout newLayout
-    );
+//     void transitionLayout(
+//       VulkanCommandBuffer& commandBuffer, VkFormat format, VkImageLayout
+//       oldLayout, VkImageLayout newLayout
+//     );
 
-    void create();
-    void destroy();
+//     void create();
+//     void destroy();
 
-    void createImage();
-    void allocateAndBindMemory();
-    void createView();
+//     void createImage();
+//     void allocateAndBindMemory();
+//     void createView();
 
-    VKContext& m_context;
-    VKLogicalDevice& m_device;
-    Texture::ImageData m_imageData;
-    VkImage m_handle;
-    VkDeviceMemory m_memory;
-    VkImageView m_view;
+//     VKContext& m_context;
+//     VKLogicalDevice& m_device;
+//     Texture::ImageData m_imageData;
+//     VkImage m_handle;
+//     VkDeviceMemory m_memory;
+//     VkImageView m_view;
 
-    // sometimes we want to just wrap an image owned by the swapchain
-    bool m_destroyImage;
-};
+//     // sometimes we want to just wrap an image owned by the swapchain
+//     bool m_destroyImage;
+// };
 
-}  // namespace sl::vk
+// }  // namespace sl::vk

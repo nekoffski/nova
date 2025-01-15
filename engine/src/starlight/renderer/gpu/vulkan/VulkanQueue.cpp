@@ -1,15 +1,17 @@
-#include "VKQueue.hh"
+#include "VulkanQueue.hh"
 
-#include "VKSwapchain.hh"
-#include "VKSemaphore.hh"
+#include "VulkanSwapchain.hh"
+#include "VulkanSemaphore.hh"
 
 namespace sl::vk {
 
-VKQueue::VKQueue(VkQueue handle) : m_handle(handle) {}
+VulkanQueue::VulkanQueue(VkQueue handle) : m_handle(handle) {}
 
-bool VKQueue::submit(const SubmitInfo& submitInfo) { return true; }
+bool VulkanQueue::submit(const SubmitInfo& submitInfo) { return true; }
 
-bool VKQueue::present(const PresentInfo& presentInfo) {
+void VulkanQueue::wait() { vkQueueWaitIdle(m_handle); }
+
+bool VulkanQueue::present(const PresentInfo& presentInfo) {
     VkPresentInfoKHR vkPresentInfo;
     clearMemory(&vkPresentInfo);
     vkPresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

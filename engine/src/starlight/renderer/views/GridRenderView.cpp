@@ -2,7 +2,7 @@
 
 #include "starlight/core/window/Window.hh"
 
-#include "starlight/renderer/gpu/vulkan/VKCommandBuffer.hh"
+#include "starlight/renderer/gpu/vulkan/VulkanCommandBuffer.hh"
 
 namespace sl {
 
@@ -40,7 +40,7 @@ void GridRenderView::render(
 
     // JUST TEMP: waiting for renderer refactor
     vkCmdDraw(
-      static_cast<vk::VKCommandBuffer&>(commandBuffer).getHandle(), 6, 1, 0, 0
+      static_cast<vk::VulkanCommandBuffer&>(commandBuffer).getHandle(), 6, 1, 0, 0
     );
 }
 

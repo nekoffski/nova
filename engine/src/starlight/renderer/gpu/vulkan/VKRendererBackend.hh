@@ -23,7 +23,7 @@
 // #include "VKPhysicalDevice.hh"
 // #include "VKLogicalDevice.hh"
 // #include "VKTexture.hh"
-// #include "VKBuffer.hh"
+// #include "VulkanBuffer.hh"
 // #include "VKUIRenderer.hh"
 
 // namespace sl::vk {
@@ -42,17 +42,17 @@
 //     u64 getRenderedVertexCount() const override;
 //     void setViewport(const Rect2<u32>& viewport);
 
-//     VKBuffer& getIndexBuffer();
-//     VKBuffer& getVertexBuffer();
-//     VKSwapchain& getSwapchain();
+//     VulkanBuffer& getIndexBuffer();
+//     VulkanBuffer& getVertexBuffer();
+//     VulkanSwapchain& getSwapchain();
 //     VKContext& getContext();
 //     VKLogicalDevice& getLogicalDevice();
 //     VKPhysicalDevice& getPhysicalDevice();
 
-//     void setViewport(VKCommandBuffer& commandBuffer, const Rect2<u32>& viewport);
-//     void setScissors(VKCommandBuffer& commandBuffer);
+//     void setViewport(VulkanCommandBuffer& commandBuffer, const Rect2<u32>&
+//     viewport); void setScissors(VulkanCommandBuffer& commandBuffer);
 
-//     VKCommandBuffer& getCommandBuffer() override;
+//     VulkanCommandBuffer& getCommandBuffer() override;
 //     u32 getImageIndex() const override;
 //     u32 getSwapchainImageCount() const override;
 
@@ -67,7 +67,7 @@
 //     void createCoreComponents(sl::Window& window);
 //     void createCommandBuffers();
 //     void createSemaphoresAndFences();
-//     void freeDataRange(VKBuffer& buffer, uint64_t offset, uint64_t size);
+//     void freeDataRange(VulkanBuffer& buffer, uint64_t offset, uint64_t size);
 //     void createBuffers();
 //     void recreateSwapchain();
 
@@ -81,13 +81,13 @@
 //     VKPhysicalDevice m_physicalDevice;
 //     VKLogicalDevice m_logicalDevice;
 
-//     UniqPtr<VKSwapchain> m_swapchain;
+//     UniqPtr<VulkanSwapchain> m_swapchain;
 
 //     // vulkan
 
 //     // TODO: consider creating as ptrs to allow mocking
-//     UniqPtr<VKBuffer> m_objectVertexBuffer;
-//     UniqPtr<VKBuffer> m_objectIndexBuffer;
+//     UniqPtr<VulkanBuffer> m_objectVertexBuffer;
+//     UniqPtr<VulkanBuffer> m_objectIndexBuffer;
 
 //     VkDescriptorPool m_uiPool;
 
@@ -100,7 +100,7 @@
 //     u32 m_framebufferWidth;
 //     u32 m_framebufferHeight;
 
-//     std::vector<LocalPtr<VKCommandBuffer>> m_commandBuffers;
+//     std::vector<LocalPtr<VulkanCommandBuffer>> m_commandBuffers;
 //     std::vector<LocalPtr<VKSemaphore>> m_imageAvailableSemaphores;
 //     std::vector<LocalPtr<VKSemaphore>> m_queueCompleteSemaphores;
 //     std::vector<LocalPtr<VKFence>> m_inFlightFences;

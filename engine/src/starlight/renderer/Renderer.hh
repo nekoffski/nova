@@ -10,6 +10,7 @@
 #include "gpu/Swapchain.hh"
 #include "gpu/Sync.hh"
 #include "gpu/CommandBuffer.hh"
+#include "gpu/Buffer.hh"
 
 namespace sl {
 
@@ -23,7 +24,7 @@ public:
     Swapchain& getSwapchain();
 
     template <typename Callback>
-    requires Callable<Callback, void, v2::CommandBuffer&, u8>
+    requires Callable<Callback, void, CommandBuffer&, u8>
     void renderFrame(Callback&& callback) {
         if (auto imageIndex = beginFrame(); imageIndex) [[likely]] {
             callback(*m_commandBuffers[*imageIndex], *imageIndex);
@@ -46,10 +47,13 @@ private:
     u8 m_currentFrame;
     u8 m_maxFramesInFlight;
 
-    std::vector<OwningPtr<v2::CommandBuffer>> m_commandBuffers;
+    std::vector<OwningPtr<CommandBuffer>> m_commandBuffers;
     std::vector<OwningPtr<Semaphore>> m_imageAvailableSemaphores;
     std::vector<OwningPtr<Semaphore>> m_queueCompleteSemaphores;
     std::vector<OwningPtr<Fence>> m_frameFences;
+
+    OwningPtr<Buffer> m_vertexBuffer;
+    OwningPtr<Buffer> m_indexBuffer;
 };
 
 }  // namespace sl

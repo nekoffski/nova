@@ -8,20 +8,19 @@
 
 namespace sl::vk {
 
-class VKSemaphore : public Semaphore {
+class VulkanSemaphore : public Semaphore {
 public:
-    explicit VKSemaphore(VkDevice device, Allocator* allocator);
-    ~VKSemaphore();
+    explicit VulkanSemaphore(VulkanDevice& device);
+    ~VulkanSemaphore();
 
     VkSemaphore getHandle();
     VkSemaphore* getHandlePointer();
 
 private:
     VkSemaphore m_handle;
-    VkDevice m_device;
-    Allocator* m_allocator;
+    VulkanDevice& m_device;
 };
 
-VKSemaphore& toVk(Semaphore& semaphore);
+VulkanSemaphore& toVk(Semaphore& semaphore);
 
 }  // namespace sl::vk
