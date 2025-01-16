@@ -19,10 +19,14 @@ public:
     void end() override;
     void execute(const Command& command) override;
 
-    VkCommandBuffer getHandle() const;
+    VkCommandBuffer* getHandlePtr();
+    VkCommandBuffer getHandle();
 
 private:
     VulkanDevice& m_device;
     VkCommandBuffer m_handle;
 };
+
+VulkanCommandBuffer& toVk(CommandBuffer&);
+
 }  // namespace sl::vk

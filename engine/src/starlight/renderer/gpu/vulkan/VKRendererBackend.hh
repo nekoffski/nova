@@ -18,11 +18,11 @@
 // #include "starlight/renderer/gpu/Shader.hh"
 
 // #include "VKMesh.hh"
-// #include "VKPipeline.hh"
+// #include "VulkanPipeline.hh"
 // #include "VKSemaphore.hh"
 // #include "VKPhysicalDevice.hh"
 // #include "VKLogicalDevice.hh"
-// #include "VKTexture.hh"
+// #include "VulkanTexture.hh"
 // #include "VulkanBuffer.hh"
 // #include "VKUIRenderer.hh"
 
@@ -56,8 +56,8 @@
 //     u32 getImageIndex() const override;
 //     u32 getSwapchainImageCount() const override;
 
-//     VKTexture* getSwapchainTexture(u32 index) override;
-//     VKTexture* getDepthTexture() override;
+//     VulkanTexture* getSwapchainTexture(u32 index) override;
+//     VulkanTexture* getDepthTexture() override;
 
 //     Window& getWindow();
 

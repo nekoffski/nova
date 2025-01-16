@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     auto& eventProxy = sl::EventProxy::get();
 
     sl::Renderer renderer{ context };
-    sl::v2::RenderGraph renderGraph{ renderer };
+    sl::RenderGraph renderGraph{ renderer };
 
     renderGraph.addRenderPass<sl::DummyRenderPass>();
 
@@ -56,12 +56,15 @@ int main(int argc, char** argv) {
 
     sl::Scene scene{ window, &camera };
 
+    int frames = 2;
+
     while (isRunning) {
         context.beginFrame([&](float deltaTime) {
             auto renderPacket = scene.getRenderPacket();
             renderGraph.render(renderPacket);
         });
-        isRunning = false;
+
+        if (--frames <= 0) break;
     }
 
     return 0;

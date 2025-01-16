@@ -1,4 +1,4 @@
-#include "VKTexture.hh"
+#include "VulkanTexture.hh"
 
 #include <string>
 #include <vector>
@@ -9,9 +9,7 @@
 #include <kc/core/Scope.hpp>
 
 #include "Vulkan.hh"
-#include "VKImage.hh"
 #include "VulkanBuffer.hh"
-#include "VKContext.hh"
 #include "VulkanDevice.hh"
 #include "VulkanCommandBuffer.hh"
 
@@ -56,7 +54,7 @@ static VkSamplerCreateInfo createSamplerCreateInfo(
 
 /*
 
-    VKTextureBase
+    VulkanTextureBase
 
 */
 
@@ -93,7 +91,7 @@ static VkFormat toVk(Format format, u8 channels) {
              : channelsToFormat(channels);
 }
 
-void VKTextureBase::createSampler() {
+void VulkanTextureBase::createSampler() {
     const auto samplerInfo = createSamplerCreateInfo(m_samplerProperties);
     VK_ASSERT(vkCreateSampler(
       m_device.logical.handle, &samplerInfo, m_device.allocator, &m_sampler
@@ -122,52 +120,163 @@ static VkImageViewCreateInfo createViewCreateInfo(
     return viewCreateInfo;
 }
 
-void VKTextureBase::createView() {
+void VulkanTextureBase::createView() {
     auto viewCreateInfo = createViewCreateInfo(m_imageData, m_image);
     VK_ASSERT(vkCreateImageView(
       m_device.logical.handle, &viewCreateInfo, m_device.allocator, &m_view
     ))
 }
 
-VKTextureBase::VKTextureBase(
+VulkanTextureBase::VulkanTextureBase(
   VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
 ) :
     Texture(imageData, sampler), m_device(device), m_image(VK_NULL_HANDLE),
     m_sampler(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE) {}
 
-VkImageView VKTextureBase::getView() const { return m_view; }
+VkImageView VulkanTextureBase::getView() const { return m_view; }
 
-VkSampler VKTextureBase::getSampler() const { return m_sampler; }
+VkSampler VulkanTextureBase::getSampler() const { return m_sampler; }
 
 /*
 
-    VKTexture
+    VulkanTexture
 
 */
 
-VKTexture::VKTexture(
+VulkanTexture::VulkanTexture(
   VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
-) : VKTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE) {
+) : VulkanTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE) {
     create();
     LOG_TRACE("Texture created");
 }
 
-VKTexture::~VKTexture() {
+VulkanTexture::~VulkanTexture() {
     destroy();
-    LOG_TRACE("Texture destroyed");
+    LOG_TRACE("Vulkan texture destroyed");
 }
 
-void VKTexture::resize(u32 width, u32 height) {
+void VulkanTexture::resize(u32 width, u32 height) {
     m_imageData.width  = width;
     m_imageData.height = height;
     recreate(m_imageData);
 }
 
-void VKTexture::write(std::span<u8> pixels) {
-    // m_image.write(pixels);
+void VulkanTexture::copyFromBuffer(
+  VulkanBuffer& buffer, VulkanCommandBuffer& commandBuffer
+) {
+    VkBufferImageCopy region;
+    std::memset(&region, 0, sizeof(VkBufferImageCopy));
+
+    region.bufferOffset      = 0;
+    region.bufferRowLength   = 0;
+    region.bufferImageHeight = 0;
+
+    region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel       = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount =
+      m_imageData.type == Texture::Type::cubemap ? 6 : 1;
+
+    region.imageExtent.width  = m_imageData.width;
+    region.imageExtent.height = m_imageData.height;
+    region.imageExtent.depth  = 1;
+
+    vkCmdCopyBufferToImage(
+      commandBuffer.getHandle(), buffer.getHandle(), m_image,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region
+    );
 }
 
-void VKTexture::create() {
+void VulkanTexture::transitionLayout(
+  VulkanCommandBuffer& commandBuffer, VkImageLayout oldLayout,
+  VkImageLayout newLayout
+) {
+    auto queueFamilyIndex =
+      m_device.physical.info.queueIndices.at(Queue::Type::graphics);
+
+    VkImageMemoryBarrier barrier;
+    clearMemory(&barrier);
+    barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout                       = oldLayout;
+    barrier.newLayout                       = newLayout;
+    barrier.srcQueueFamilyIndex             = queueFamilyIndex;
+    barrier.dstQueueFamilyIndex             = queueFamilyIndex;
+    barrier.image                           = m_image;
+    barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel   = 0;
+    barrier.subresourceRange.levelCount     = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount =
+      m_imageData.type == Texture::Type::cubemap ? 6 : 1;
+
+    VkPipelineStageFlags source;
+    VkPipelineStageFlags destination;
+
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED
+        && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        source                = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destination           = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+               && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        source                = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destination           = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } else {
+        LOG_ERROR("Unsupported layout transition");
+        return;
+    }
+    vkCmdPipelineBarrier(
+      commandBuffer.getHandle(), source, destination, 0, 0, 0, 0, 0, 1, &barrier
+    );
+}
+
+void VulkanTexture::write(std::span<u8> pixels, CommandBuffer* commandBuffer) {
+    const auto imageSize = pixels.size();
+
+    const auto memoryProps =
+      MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT
+      | MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    Buffer::Properties stagingBufferProperties{
+        .size           = imageSize,
+        .memoryProperty = memoryProps,
+        .usage          = BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT,
+        .bindOnCreate   = true
+    };
+
+    VulkanBuffer stagingBuffer(m_device, stagingBufferProperties);
+    stagingBuffer.loadData(0, imageSize, MemoryProperty::undefined, pixels.data());
+
+    const auto execute = [&](CommandBuffer& commandBuffer) {
+        auto& vkCommandBuffer = static_cast<VulkanCommandBuffer&>(commandBuffer);
+
+        transitionLayout(
+          vkCommandBuffer, VK_IMAGE_LAYOUT_UNDEFINED,
+          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+        );
+
+        copyFromBuffer(stagingBuffer, vkCommandBuffer);
+
+        transitionLayout(
+          vkCommandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        );
+    };
+
+    if (commandBuffer != nullptr) {
+        execute(*commandBuffer);
+    } else {
+        ImmediateCommandBuffer commandBuffer{
+            m_device.createCommandBuffer(), m_device.getGraphicsQueue()
+        };
+        execute(commandBuffer.get());
+    }
+}
+
+void VulkanTexture::create() {
     createImage();
     allocateAndBindMemory();
     if (m_imageData.pixels.size() > 0) write(m_imageData.pixels);
@@ -175,7 +284,7 @@ void VKTexture::create() {
     createSampler();
 }
 
-void VKTexture::destroy() {
+void VulkanTexture::destroy() {
     auto device    = m_device.logical.handle;
     auto allocator = m_device.allocator;
 
@@ -186,20 +295,38 @@ void VKTexture::destroy() {
     LOG_TRACE("VKImage destroyed");
 }
 
-void VKTexture::allocateAndBindMemory() {
+void VulkanTexture::allocateAndBindMemory() {
     VkMemoryRequirements memoryRequirements;
     vkGetImageMemoryRequirements(
       m_device.logical.handle, m_image, &memoryRequirements
     );
+
+    auto memoryType = m_device.findMemoryIndex(
+      memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+
+    if (not memoryType)
+        LOG_ERROR("Required memory type not found. VKImage not valid.");
+
+    VkMemoryAllocateInfo memoryAllocateInfo;
+    clearMemory(&memoryAllocateInfo);
+    memoryAllocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memoryAllocateInfo.allocationSize  = memoryRequirements.size;
+    memoryAllocateInfo.memoryTypeIndex = memoryType.value_or(-1);
+
+    VK_ASSERT(vkAllocateMemory(
+      m_device.logical.handle, &memoryAllocateInfo, m_device.allocator, &m_memory
+    ));
+    VK_ASSERT(vkBindImageMemory(m_device.logical.handle, m_image, m_memory, 0));
 }
 
-void VKTexture::recreate(const Texture::ImageData& imageData) {
+void VulkanTexture::recreate(const Texture::ImageData& imageData) {
     destroy();
     m_imageData = imageData;
     create();
 }
 
-void VKTexture::createImage() {
+void VulkanTexture::createImage() {
     bool isCubemap = m_imageData.type == Texture::Type::cubemap;
 
     VkImageCreateInfo imageCreateInfo;
@@ -233,7 +360,7 @@ void VKTexture::createImage() {
 VulkanSwapchainTexture::VulkanSwapchainTexture(
   VulkanDevice& device, VkImage handle, const ImageData& imageData,
   const SamplerProperties& sampler
-) : VKTextureBase(device, imageData, sampler) {
+) : VulkanTextureBase(device, imageData, sampler) {
     m_image = handle;
     createView();
     createSampler();
@@ -243,13 +370,19 @@ VulkanSwapchainTexture::VulkanSwapchainTexture(
 VulkanSwapchainTexture::~VulkanSwapchainTexture() {
     if (m_sampler)
         vkDestroySampler(m_device.logical.handle, m_sampler, m_device.allocator);
+    if (m_view)
+        vkDestroyImageView(m_device.logical.handle, m_view, m_device.allocator);
 }
 
-void VulkanSwapchainTexture::resize(u32 width, u32 height) {
+void VulkanSwapchainTexture::resize(
+  [[maybe_unused]] u32 width, [[maybe_unused]] u32 height
+) {
     LOG_ERROR("Cannot resize swapchain texture");
 }
 
-void VulkanSwapchainTexture::write(std::span<u8> pixels) {
+void VulkanSwapchainTexture::write(
+  [[maybe_unused]] std::span<u8> pixels, [[maybe_unused]] CommandBuffer* buffer
+) {
     LOG_ERROR("Cannot write to swapchain texture");
 }
 

@@ -10,6 +10,7 @@
 #include "starlight/core/memory/Memory.hh"
 
 #include "fwd.hh"
+#include "starlight/renderer/gpu/Shader.hh"
 #include "gpu/Shader.hh"
 #include "gpu/Texture.hh"
 

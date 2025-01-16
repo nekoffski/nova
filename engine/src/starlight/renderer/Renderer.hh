@@ -34,6 +34,9 @@ public:
 
 private:
     void createSyncPrimitives();
+    void createBuffers();
+
+    Fence* getImageFence(u32 imageIndex);
 
     std::optional<u8> beginFrame();
     void endFrame(u32 imageIndex);
@@ -51,6 +54,7 @@ private:
     std::vector<OwningPtr<Semaphore>> m_imageAvailableSemaphores;
     std::vector<OwningPtr<Semaphore>> m_queueCompleteSemaphores;
     std::vector<OwningPtr<Fence>> m_frameFences;
+    std::vector<Fence*> m_imageFences;
 
     OwningPtr<Buffer> m_vertexBuffer;
     OwningPtr<Buffer> m_indexBuffer;

@@ -1,126 +1,127 @@
-#include "WorldRenderView.hh"
+// #include "WorldRenderView.hh"
 
-#include "starlight/core/window/Window.hh"
-#include "starlight/core/Algorithms.hh"
+// #include "starlight/core/window/Window.hh"
+// #include "starlight/core/Algorithms.hh"
 
-namespace sl {
+// namespace sl {
 
-WorldRenderView::WorldRenderView(
-  const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
-) : RenderView("WorldRenderView", viewportOffset), m_shader(shader) {}
+// WorldRenderView::WorldRenderView(
+//   const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
+// ) : RenderView("WorldRenderView", viewportOffset), m_shader(shader) {}
 
-RenderPass::Properties WorldRenderView::generateRenderPassProperties(
-  RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-) {
-    auto clearFlags =
-      RenderPass::ClearFlags::depth | RenderPass::ClearFlags::stencil;
-    if (not isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious))
-        clearFlags |= RenderPass::ClearFlags::color;
-    return generateDefaultRenderPassProperties(
-      renderer, Attachment::swapchainColor | Attachment::depth, clearFlags
-    );
-}
+// RenderPass::Properties WorldRenderView::generateRenderPassProperties(
+//   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
+// ) {
+//     auto clearFlags =
+//       RenderPass::ClearFlags::depth | RenderPass::ClearFlags::stencil;
+//     if (not isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious))
+//         clearFlags |= RenderPass::ClearFlags::color;
+//     return generateDefaultRenderPassProperties(
+//       renderer, Attachment::swapchainColor | Attachment::depth, clearFlags
+//     );
+// }
 
-void WorldRenderView::init(
-  [[maybe_unused]] RendererBackend&, RenderPass& renderPass
-) {
-    m_shader->createPipeline(renderPass);
-}
+// void WorldRenderView::init(
+//   [[maybe_unused]] RendererBackend&, RenderPass& renderPass
+// ) {
+//     m_shader->createPipeline(renderPass);
+// }
 
-struct MeshRenderData {
-    Mesh* mesh;
-    Material* material;
-    Mat4<f32> modelMatrix;
-    float cameraDistance;
-};
+// struct MeshRenderData {
+//     Mesh* mesh;
+//     Material* material;
+//     Mat4<f32> modelMatrix;
+//     float cameraDistance;
+// };
 
-void WorldRenderView::render(
-  RendererBackend& renderer, RenderPacket& packet,
-  const RenderProperties& properties, [[maybe_unused]] float deltaTime,
-  CommandBuffer& commandBuffer, u32 imageIndex
-) {
-    Vec4<f32> ambientColor(0.05f, 0.05f, 0.05f, 1.0f);
-    auto camera               = packet.camera;
-    const auto cameraPosition = camera->getPosition();
+// void WorldRenderView::render(
+//   RendererBackend& renderer, RenderPacket& packet,
+//   const RenderProperties& properties, [[maybe_unused]] float deltaTime,
+//   CommandBuffer& commandBuffer, u32 imageIndex
+// ) {
+//     Vec4<f32> ambientColor(0.05f, 0.05f, 0.05f, 1.0f);
+//     auto camera               = packet.camera;
+//     const auto cameraPosition = camera->getPosition();
 
-    m_shader->use(commandBuffer);
-    m_shader->setGlobalUniforms(
-      commandBuffer, imageIndex,
-      [&](Shader::UniformProxy& proxy) {
-          auto depthMVP =
-            math::ortho<float>(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 20.0f)
-            * math::lookAt(
-              -packet.directionalLights[0].direction, Vec3<f32>(0.0f, 0.0f, 0.0f),
-              Vec3<f32>(0.0f, 1.0f, 0.0f)
-            );
+//     m_shader->use(commandBuffer);
+//     m_shader->setGlobalUniforms(
+//       commandBuffer, imageIndex,
+//       [&](Shader::UniformProxy& proxy) {
+//           auto depthMVP =
+//             math::ortho<float>(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 20.0f)
+//             * math::lookAt(
+//               -packet.directionalLights[0].direction, Vec3<f32>(0.0f, 0.0f, 0.0f),
+//               Vec3<f32>(0.0f, 1.0f, 0.0f)
+//             );
 
-          proxy.set("view", camera->getViewMatrix());
-          proxy.set("projection", camera->getProjectionMatrix());
-          proxy.set("depthMVP", depthMVP);
-          proxy.set("viewPosition", cameraPosition);
-          proxy.set("ambientColor", ambientColor);
-          proxy.set("renderMode", static_cast<int>(properties.renderMode));
-          proxy.set("shadowMap", packet.shadowMaps[0]);
+//           proxy.set("view", camera->getViewMatrix());
+//           proxy.set("projection", camera->getProjectionMatrix());
+//           proxy.set("depthMVP", depthMVP);
+//           proxy.set("viewPosition", cameraPosition);
+//           proxy.set("ambientColor", ambientColor);
+//           proxy.set("renderMode", static_cast<int>(properties.renderMode));
+//           proxy.set("shadowMap", packet.shadowMaps[0]);
 
-          const auto pointLightCount = packet.pointLights.size();
+//           const auto pointLightCount = packet.pointLights.size();
 
-          if (pointLightCount > 0) {
-              const auto shaderBulk = transform<PointLight::ShaderData>(
-                packet.pointLights,
-                [](const auto& light) { return light.getShaderData(); }
-              );
-              proxy.set("pointLights", shaderBulk);
-          }
+//           if (pointLightCount > 0) {
+//               const auto shaderBulk = transform<PointLight::ShaderData>(
+//                 packet.pointLights,
+//                 [](const auto& light) { return light.getShaderData(); }
+//               );
+//               proxy.set("pointLights", shaderBulk);
+//           }
 
-          const auto directionalLightCount = packet.directionalLights.size();
+//           const auto directionalLightCount = packet.directionalLights.size();
 
-          if (directionalLightCount > 0)
-              proxy.set("directionalLights", packet.directionalLights);
+//           if (directionalLightCount > 0)
+//               proxy.set("directionalLights", packet.directionalLights);
 
-          proxy.set("pointLightCount", &pointLightCount);
-          proxy.set("directionalLightCount", &directionalLightCount);
-      }
-    );
+//           proxy.set("pointLightCount", &pointLightCount);
+//           proxy.set("directionalLightCount", &directionalLightCount);
+//       }
+//     );
 
-    std::vector<MeshRenderData> meshes;
-    std::vector<MeshRenderData> transparentGeometries;
-    meshes.reserve(256);
-    transparentGeometries.reserve(128);
+//     std::vector<MeshRenderData> meshes;
+//     std::vector<MeshRenderData> transparentGeometries;
+//     meshes.reserve(256);
+//     transparentGeometries.reserve(128);
 
-    for (auto& [worldTransform, mesh, material] : packet.entities) {
-        if (material->isTransparent()) {
-            auto center         = worldTransform * mesh->getExtent().center;
-            auto cameraDistance = glm::distance2(cameraPosition, center);
-            transparentGeometries.emplace_back(
-              mesh, material, worldTransform, cameraDistance
-            );
-        } else {
-            meshes.emplace_back(mesh, material, worldTransform);
-        }
-    }
+//     for (auto& [worldTransform, mesh, material] : packet.entities) {
+//         if (material->isTransparent()) {
+//             auto center         = worldTransform * mesh->getExtent().center;
+//             auto cameraDistance = glm::distance2(cameraPosition, center);
+//             transparentGeometries.emplace_back(
+//               mesh, material, worldTransform, cameraDistance
+//             );
+//         } else {
+//             meshes.emplace_back(mesh, material, worldTransform);
+//         }
+//     }
 
-    std::sort(
-      transparentGeometries.begin(), transparentGeometries.end(),
-      [](auto& lhs, auto& rhs) -> bool {
-          return lhs.cameraDistance < rhs.cameraDistance;
-      }
-    );
-    std::move(
-      transparentGeometries.begin(), transparentGeometries.end(),
-      std::back_inserter(meshes)
-    );
-    transparentGeometries.clear();
+//     std::sort(
+//       transparentGeometries.begin(), transparentGeometries.end(),
+//       [](auto& lhs, auto& rhs) -> bool {
+//           return lhs.cameraDistance < rhs.cameraDistance;
+//       }
+//     );
+//     std::move(
+//       transparentGeometries.begin(), transparentGeometries.end(),
+//       std::back_inserter(meshes)
+//     );
+//     transparentGeometries.clear();
 
-    for (auto& [mesh, material, model, _] : meshes) {
-        m_shader->setLocalUniforms(commandBuffer, [&](Shader::UniformProxy& proxy) {
-            proxy.set("model", model);
-        });
+//     for (auto& [mesh, material, model, _] : meshes) {
+//         m_shader->setLocalUniforms(commandBuffer, [&](Shader::UniformProxy& proxy)
+//         {
+//             proxy.set("model", model);
+//         });
 
-        material->applyUniforms(
-          m_shader, commandBuffer, imageIndex, properties.frameNumber
-        );
-        renderer.drawMesh(*mesh);
-    }
-}
+//         material->applyUniforms(
+//           m_shader, commandBuffer, imageIndex, properties.frameNumber
+//         );
+//         renderer.drawMesh(*mesh);
+//     }
+// }
 
-}  // namespace sl
+// }  // namespace sl

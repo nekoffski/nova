@@ -1,7 +1,7 @@
 #include "Image.hh"
 
 #include "backends/imgui_impl_vulkan.h"
-#include "starlight/renderer/gpu/vulkan/VKTexture.hh"
+#include "starlight/renderer/gpu/vulkan/VulkanTexture.hh"
 
 namespace sl::ui {
 
@@ -34,9 +34,9 @@ void VulkanImageHandle::show(
 }
 
 VkDescriptorSet VulkanImageHandle::createDescriptorSet(Texture* texture) {
-    auto vkTexture = static_cast<vk::VKTexture*>(texture);
-    auto sampler   = vkTexture->getSampler();
-    auto view      = vkTexture->getImage()->getView();
+    auto VulkanTexture = static_cast<vk::VulkanTexture*>(texture);
+    auto sampler       = VulkanTexture->getSampler();
+    auto view          = VulkanTexture->getImage()->getView();
 
     return ImGui_ImplVulkan_AddTexture(
       sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL

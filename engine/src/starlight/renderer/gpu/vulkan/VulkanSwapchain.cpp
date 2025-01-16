@@ -3,7 +3,6 @@
 #include <kc/core/Log.h>
 #include <kc/core/Utils.hpp>
 
-#include "VKFramebuffer.hh"
 #include "VulkanSemaphore.hh"
 #include "VulkanDevice.hh"
 #include "VulkanFence.hh"
@@ -13,28 +12,6 @@ namespace sl::vk {
 VulkanSwapchain::VulkanSwapchain(VulkanDevice& device, const Vec2<u32>& size) :
     m_handle(VK_NULL_HANDLE), m_device(device), m_size(size) {
     create();
-}
-
-VkSurfaceFormatKHR pickSurfaceFormat(const VulkanDevice::Physical::Info& deviceInfo
-) {
-    static const auto demandedFormat     = VK_FORMAT_R8G8B8A8_UNORM;
-    static const auto demandedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-
-    for (const auto& format : deviceInfo.surfaceFormats)
-        if (format.format == demandedFormat
-            && format.colorSpace == demandedColorSpace) {
-            return format;
-        }
-    return deviceInfo.surfaceFormats[0];
-}
-
-VkPresentModeKHR pickPresentMode(const VulkanDevice::Physical::Info& deviceInfo) {
-    static const auto defaultPresentMode  = VK_PRESENT_MODE_FIFO_KHR;
-    static const auto demandedPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-
-    if (kc::core::contains(deviceInfo.presentModes, demandedPresentMode))
-        return demandedPresentMode;
-    return defaultPresentMode;
 }
 
 VkExtent2D createSwapchainExtent(
@@ -73,10 +50,6 @@ static u8 getDeviceImageCount(const VulkanDevice::Physical::Info& deviceInfo) {
     }
 
     return imageCount;
-}
-
-VkSurfaceFormatKHR VulkanSwapchain::getSurfaceFormat() const {
-    return m_imageFormat;
 }
 
 VkSwapchainKHR* VulkanSwapchain::getHandlePtr() { return &m_handle; }
@@ -145,9 +118,6 @@ VkImageViewCreateInfo createImageViewCreateInfo(VkImage image, VkFormat format) 
 }
 
 void VulkanSwapchain::createSwapchain() {
-    m_imageFormat    = pickSurfaceFormat(m_device.physical.info);
-    auto presentMode = pickPresentMode(m_device.physical.info);
-
     m_swapchainExtent =
       createSwapchainExtent(m_size.w, m_size.h, m_device.physical.info);
     auto deviceImageCount = getDeviceImageCount(m_device.physical.info);
@@ -157,8 +127,9 @@ void VulkanSwapchain::createSwapchain() {
     );
 
     auto swapchainCreateInfo = createSwapchainCreateInfo(
-      m_device.surface.handle, deviceImageCount, m_imageFormat, m_swapchainExtent,
-      presentMode, m_device.physical.info
+      m_device.surface.handle, deviceImageCount,
+      m_device.physical.info.surfaceFormat, m_swapchainExtent,
+      m_device.physical.info.presentMode, m_device.physical.info
     );
 
     VK_ASSERT(vkCreateSwapchainKHR(
@@ -179,42 +150,35 @@ void VulkanSwapchain::createImages() {
     ));
 
     auto samplerProperties = Texture::SamplerProperties::createDefault();
+    m_textures.resize(m_imageCount);
 
-    if (m_textures.size() != m_imageCount) {
-        m_textures.clear();
-        m_textures.resize(m_imageCount);
+    auto imageData = Texture::ImageData::createDefault();
 
-        auto imageData = Texture::ImageData::createDefault();
-
-        imageData.width    = m_swapchainExtent.width;
-        imageData.height   = m_swapchainExtent.height;
-        imageData.channels = 4;
-        imageData.flags    = Texture::Flags::writable;
-        imageData.format   = static_cast<Format>(m_imageFormat.format);
-
-        for (u32 i = 0; i < m_imageCount; ++i) {
-            auto& swapchainImageHandle = swapchainImages[i];
-
-            m_textures[i].emplace(
-              m_device, swapchainImageHandle, imageData, samplerProperties
-            );
-        }
-    } else {
-        for (u32 i = 0; i < m_imageCount; ++i) {
-            auto& texture = m_textures[i];
-            texture->resize(m_swapchainExtent.width, m_swapchainExtent.height);
-        }
-    }
-
-    auto imageData     = Texture::ImageData::createDefault();
     imageData.width    = m_swapchainExtent.width;
     imageData.height   = m_swapchainExtent.height;
-    imageData.usage    = Texture::Usage::depthStencilAttachment;
-    imageData.aspect   = Texture::Aspect::depth;
-    imageData.format   = static_cast<Format>(m_device.physical.info.depthFormat);
-    imageData.channels = m_device.physical.info.depthChannelCount;
+    imageData.channels = 4;
+    imageData.flags    = Texture::Flags::writable;
+    imageData.format =
+      static_cast<Format>(m_device.physical.info.surfaceFormat.format);
 
-    m_depthTexture.emplace(m_device, imageData, samplerProperties);
+    for (u32 i = 0; i < m_imageCount; ++i) {
+        auto& swapchainImageHandle = swapchainImages[i];
+
+        m_textures[i].emplace(
+          m_device, swapchainImageHandle, imageData, samplerProperties
+        );
+    }
+
+    auto depthImageData   = Texture::ImageData::createDefault();
+    depthImageData.width  = m_swapchainExtent.width;
+    depthImageData.height = m_swapchainExtent.height;
+    depthImageData.usage  = Texture::Usage::depthStencilAttachment;
+    depthImageData.aspect = Texture::Aspect::depth;
+
+    depthImageData.format = static_cast<Format>(m_device.physical.info.depthFormat);
+    depthImageData.channels = m_device.physical.info.depthChannelCount;
+
+    m_depthTexture.emplace(m_device, depthImageData, samplerProperties);
 }
 
 void VulkanSwapchain::create() {

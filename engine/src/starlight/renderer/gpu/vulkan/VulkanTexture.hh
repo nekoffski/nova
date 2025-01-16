@@ -11,7 +11,6 @@
 #include "starlight/renderer/gpu/Texture.hh"
 
 #include "Vulkan.hh"
-#include "VKImage.hh"
 #include "VulkanBuffer.hh"
 #include "fwd.hh"
 
@@ -19,9 +18,9 @@
 
 namespace sl::vk {
 
-class VKTextureBase : public Texture {
+class VulkanTextureBase : public Texture {
 public:
-    VKTextureBase(
+    VulkanTextureBase(
       VulkanDevice& device, const ImageData& imageData,
       const SamplerProperties& sampler
     );
@@ -39,29 +38,36 @@ protected:
     VkImageView m_view;
 };
 
-class VKTexture : public VKTextureBase {
+class VulkanTexture : public VulkanTextureBase {
 public:
-    explicit VKTexture(
+    explicit VulkanTexture(
       VulkanDevice& device, const ImageData& imageData,
       const SamplerProperties& sampler
     );
 
-    ~VKTexture() override;
+    ~VulkanTexture() override;
 
     void resize(u32 width, u32 height) override;
-    void write(std::span<u8> pixels) override;
+    void write(std::span<u8> pixels, CommandBuffer* buffer = nullptr) override;
 
 private:
-    VkDeviceMemory m_memory;
-
     void create();
     void destroy();
     void recreate(const Texture::ImageData& imageData);
     void createImage();
     void allocateAndBindMemory();
+
+    void copyFromBuffer(VulkanBuffer& buffer, VulkanCommandBuffer& commandBuffer);
+
+    void transitionLayout(
+      VulkanCommandBuffer& commandBuffer, VkImageLayout oldLayout,
+      VkImageLayout newLayout
+    );
+
+    VkDeviceMemory m_memory;
 };
 
-class VulkanSwapchainTexture : public VKTextureBase {
+class VulkanSwapchainTexture : public VulkanTextureBase {
 public:
     explicit VulkanSwapchainTexture(
       VulkanDevice& device, VkImage handle, const ImageData& imageData,
@@ -71,7 +77,7 @@ public:
     ~VulkanSwapchainTexture() override;
 
     void resize(u32 width, u32 height) override;
-    void write(std::span<u8> pixels) override;
+    void write(std::span<u8> pixels, CommandBuffer* buffer = nullptr) override;
 };
 
 }  // namespace sl::vk

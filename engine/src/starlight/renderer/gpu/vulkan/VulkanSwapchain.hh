@@ -6,7 +6,7 @@
 #include "starlight/renderer/gpu/Swapchain.hh"
 
 #include "Vulkan.hh"
-#include "VKTexture.hh"
+#include "VulkanTexture.hh"
 
 #include "fwd.hh"
 
@@ -27,8 +27,6 @@ public:
     Texture* getImage(u32 index) override;
     Texture* getDepthBuffer() override;
 
-    VkSurfaceFormatKHR getSurfaceFormat() const;
-
     VkSwapchainKHR* getHandlePtr();
 
 private:
@@ -43,10 +41,9 @@ private:
 
     Vec2<u32> m_size;
 
-    VkSurfaceFormatKHR m_imageFormat;
     VkExtent2D m_swapchainExtent;
 
-    LocalPtr<VKTexture> m_depthTexture;
+    LocalPtr<VulkanTexture> m_depthTexture;
     std::vector<LocalPtr<VulkanSwapchainTexture>> m_textures;
 
     u32 m_imageCount;

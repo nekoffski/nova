@@ -4,7 +4,7 @@
 
 namespace sl {
 
-class DummyRenderPass : public v2::RenderPass {
+class DummyRenderPass : public RenderPass {
 public:
     explicit DummyRenderPass(Renderer& renderer) : RenderPass(renderer) {}
 

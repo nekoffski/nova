@@ -6,9 +6,9 @@
 // #include "VKFence.hh"
 // #include "VKFramebuffer.hh"
 // #include "VKImage.hh"
-// #include "VKRenderPass.hh"
+// #include "VulkanRenderPass.hh"
 // #include "VulkanSwapchain.hh"
-// #include "VKShader.hh"
+// #include "VulkanShader.hh"
 
 // namespace sl::vk {
 
@@ -121,11 +121,11 @@
 //     return m_swapchain->getImageCount();
 // }
 
-// VKTexture* VKRendererBackend::getSwapchainTexture(u32 index) {
+// VulkanTexture* VKRendererBackend::getSwapchainTexture(u32 index) {
 //     return m_swapchain->getFramebuffer(index);
 // }
 
-// VKTexture* VKRendererBackend::getDepthTexture() {
+// VulkanTexture* VKRendererBackend::getDepthTexture() {
 //     return m_swapchain->getDepthBuffer();
 // }
 

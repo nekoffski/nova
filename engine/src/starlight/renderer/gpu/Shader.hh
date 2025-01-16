@@ -15,13 +15,11 @@
 #include "starlight/core/utils/Id.hh"
 #include "starlight/core/FileSystem.hh"
 #include "starlight/core/Core.hh"
-#include "starlight/core/utils/Resource.hh"
 #include "starlight/core/Log.hh"
+#include "starlight/core/utils/Resource.hh"
 
 #include "starlight/renderer/CullMode.hh"
 #include "starlight/renderer/PolygonMode.hh"
-#include "starlight/renderer/gpu/RendererBackend.hh"
-
 #include "Texture.hh"
 
 namespace sl {
@@ -77,12 +75,21 @@ public:
     };
 
     struct Uniform {
-        // clang-format off
         enum class Type : u8 {
-            float32, float32_2, float32_3, float32_4, int8,
-            uint8, int16, uint16, int32, uint32, mat4, sampler, custom
+            float32,
+            float32_2,
+            float32_3,
+            float32_4,
+            int8,
+            uint8,
+            int16,
+            uint16,
+            int32,
+            uint32,
+            mat4,
+            sampler,
+            custom
         };
-        // clang-format on
 
         struct Properties {
             std::string name;
@@ -179,8 +186,6 @@ public:
 
     virtual void use(CommandBuffer&) = 0;
 
-    virtual void createPipeline(RenderPass& renderPass) = 0;
-
     void setGlobalUniforms(
       CommandBuffer& commandBuffer, u32 imageIndex, UniformCallback&& callback
     );
@@ -214,21 +219,6 @@ protected:
 
     CullMode m_cullMode;
     PolygonMode m_polygonMode;
-};
-
-class ShaderFactory
-    : public ResourceFactory<Shader>,
-      public kc::core::Singleton<ShaderFactory> {
-public:
-    explicit ShaderFactory(const std::string& path, RendererBackend& renderer);
-
-    ResourceRef<Shader> load(
-      const std::string& name, const FileSystem& fs = fileSystem
-    );
-
-private:
-    const std::string m_shadersPath;
-    RendererBackend& m_renderer;
 };
 
 }  // namespace sl
