@@ -5,8 +5,9 @@
 
 namespace sl {
 
-class RendererFrontend;
 class Material;
 class Renderer;
+class Pipeline;
+class RenderPassBackend;
 
 }  // namespace sl

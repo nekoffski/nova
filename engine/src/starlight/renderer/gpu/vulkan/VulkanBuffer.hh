@@ -11,7 +11,7 @@
 
 namespace sl::vk {
 
-class VulkanBuffer : Buffer {
+class VulkanBuffer : public Buffer {
 public:
     explicit VulkanBuffer(VulkanDevice& device, const Properties& props);
     ~VulkanBuffer();

@@ -5,7 +5,6 @@
 #include "starlight/core/Core.hh"
 #include "starlight/renderer/Core.hh"
 
-#include "CommandBuffer.hh"
 #include "Sync.hh"
 
 namespace sl {
@@ -23,6 +22,8 @@ struct Buffer : public NonCopyable, public NonMovable {
         u64 dest;
         u64 size;
     };
+
+    virtual ~Buffer() = default;
 
     virtual void bind(u64 offset = 0) = 0;
 

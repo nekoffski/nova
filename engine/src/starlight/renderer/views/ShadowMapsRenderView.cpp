@@ -10,7 +10,7 @@
 //     RenderView("ShadowMapsRenderView", viewportOffset),
 //     m_shader(ShaderFactory::get().load("Builtin.Shader.ShadowMaps")) {}
 
-// RenderPass::Properties ShadowMapsRenderView::generateRenderPassProperties(
+// RenderPassBackend::Properties ShadowMapsRenderView::generateRenderPassProperties(
 //   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
 // ) {
 //     auto depthProperties   = renderer.getDepthTexture()->getImageData();
@@ -23,7 +23,7 @@
 //     // for (u32 i = 0; i < swapchainImageCount; ++i)
 //     //     m_shadowMaps.push_back(Texture::create(renderer, depthProperties));
 
-//     RenderPass::Properties props;
+//     RenderPassBackend::Properties props;
 
 //     props.clearFlags = RenderPass::ClearFlags::depth;
 //     props.rect       = Rect2<u32>{

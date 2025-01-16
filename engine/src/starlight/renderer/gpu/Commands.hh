@@ -4,8 +4,26 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/math/Core.hh"
+#include "starlight/renderer/gpu/Buffer.hh"
 
 namespace sl {
+
+struct BindVertexBufferCommand {
+    Buffer* buffer;
+    u64 offset;
+};
+
+struct BindIndexBufferCommand {
+    Buffer* buffer;
+    u64 offset;
+};
+
+struct DrawCommand {
+    u32 vertexCount;
+    u32 instanceCount;
+    u32 firstVertex   = 0u;
+    u32 firstInstance = 0u;
+};
 
 struct SetViewportCommand {
     Vec2<u32> offset;
@@ -17,6 +35,8 @@ struct SetScissorsCommand {
     Vec2<u32> size;
 };
 
-using Command = std::variant<SetViewportCommand, SetScissorsCommand>;
+using Command = std::variant<
+  BindVertexBufferCommand, BindIndexBufferCommand, DrawCommand, SetViewportCommand,
+  SetScissorsCommand>;
 
 }  // namespace sl

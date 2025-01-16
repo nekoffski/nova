@@ -1,6 +1,7 @@
 #include "VulkanCommandBuffer.hh"
 
 #include "VulkanDevice.hh"
+#include "VulkanBuffer.hh"
 
 namespace sl::vk {
 
@@ -66,6 +67,24 @@ VkCommandBuffer VulkanCommandBuffer::getHandle() { return m_handle; }
 
 void VulkanCommandBuffer::execute(const Command& command) {
     auto visitor = Overload{
+        [&](const BindVertexBufferCommand& cmd) {
+            vkCmdBindVertexBuffers(
+              m_handle, 0, 1,
+              static_cast<VulkanBuffer*>(cmd.buffer)->getHandlePointer(), &cmd.offset
+            );
+        },
+        [&](const BindIndexBufferCommand& cmd) {
+            vkCmdBindIndexBuffer(
+              m_handle, static_cast<VulkanBuffer*>(cmd.buffer)->getHandle(),
+              cmd.offset, VK_INDEX_TYPE_UINT32
+            );
+        },
+        [&](const DrawCommand& cmd) {
+            vkCmdDraw(
+              m_handle, cmd.vertexCount, cmd.instanceCount, cmd.firstVertex,
+              cmd.firstInstance
+            );
+        },
         [&](const SetViewportCommand& cmd) {
             VkViewport viewport;
             viewport.x        = static_cast<float>(cmd.offset.x);

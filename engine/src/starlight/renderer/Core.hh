@@ -5,6 +5,12 @@
 
 namespace sl {
 
+enum class ClearFlags : u8 { none = 0x0, color = 0x1, depth = 0x2, stencil = 0x4 };
+constexpr void enableBitOperations(ClearFlags);
+
+enum class Attachment : u8 { none = 0x0, swapchainColor = 0x1, depth = 0x2 };
+constexpr void enableBitOperations(Attachment);
+
 enum class MemoryProperty : u64 {
     undefined                               = 0x0,
     MEMORY_PROPERTY_DEVICE_LOCAL_BIT        = 0x00000001,
@@ -18,7 +24,6 @@ enum class MemoryProperty : u64 {
     MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV     = 0x00000100,
     MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM      = 0x7FFFFFFF
 };
-
 constexpr void enableBitOperations(MemoryProperty);
 
 enum class BufferUsage : u64 {
@@ -49,7 +54,6 @@ enum class BufferUsage : u64 {
     BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT                   = 0x01000000,
     BUFFER_USAGE_FLAG_BITS_MAX_ENUM                         = 0x7FFFFFFF
 };
-
 constexpr void enableBitOperations(BufferUsage);
 
 enum class Format : u64 {

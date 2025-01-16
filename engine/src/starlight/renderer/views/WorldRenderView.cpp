@@ -9,7 +9,7 @@
 //   const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
 // ) : RenderView("WorldRenderView", viewportOffset), m_shader(shader) {}
 
-// RenderPass::Properties WorldRenderView::generateRenderPassProperties(
+// RenderPassBackend::Properties WorldRenderView::generateRenderPassProperties(
 //   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
 // ) {
 //     auto clearFlags =

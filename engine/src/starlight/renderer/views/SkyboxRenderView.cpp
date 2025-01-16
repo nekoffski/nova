@@ -8,7 +8,7 @@
 //   const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
 // ) : RenderView("SkyboxRenderView", viewportOffset), m_shader(shader) {}
 
-// RenderPass::Properties SkyboxRenderView::generateRenderPassProperties(
+// RenderPassBackend::Properties SkyboxRenderView::generateRenderPassProperties(
 //   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
 // ) {
 //     return generateDefaultRenderPassProperties(

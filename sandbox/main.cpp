@@ -19,9 +19,10 @@
 #include "starlight/renderer/light/PointLight.hh"
 #include "starlight/scene/Scene.hh"
 #include "starlight/renderer/MeshComposite.hh"
-#include "starlight/ui/UI.hh"
+// #include "starlight/ui/UI.hh"
 #include "starlight/ui/fonts/FontAwesome.hh"
-#include "starlight/renderer/passes/DummyRenderPass.hh"
+#include "starlight/renderer/passes/SkyboxRenderPass.hh"
+#include "starlight/renderer/passes/GridRenderPass.hh"
 
 static std::atomic_bool isRunning = true;
 
@@ -41,7 +42,8 @@ int main(int argc, char** argv) {
     sl::Renderer renderer{ context };
     sl::RenderGraph renderGraph{ renderer };
 
-    renderGraph.addRenderPass<sl::DummyRenderPass>();
+    renderGraph.addRenderPass<sl::SkyboxRenderPass>();
+    renderGraph.addRenderPass<sl::GridRenderPass>();
 
     const auto viewportSize = window.getFramebufferSize();
 
@@ -56,15 +58,17 @@ int main(int argc, char** argv) {
 
     sl::Scene scene{ window, &camera };
 
-    int frames = 2;
+    int frames = 10;
 
     while (isRunning) {
         context.beginFrame([&](float deltaTime) {
             auto renderPacket = scene.getRenderPacket();
             renderGraph.render(renderPacket);
+
+            camera.update(deltaTime);
         });
 
-        if (--frames <= 0) break;
+        // if (--frames <= 0) break;
     }
 
     return 0;

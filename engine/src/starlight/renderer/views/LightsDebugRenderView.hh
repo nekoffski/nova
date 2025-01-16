@@ -1,7 +1,7 @@
 // #pragma once
 
 // #include "RenderView.hh"
-// #include "starlight/renderer/gpu/RenderPass.hh"
+// #include "starlight/renderer/RenderPass.hh"
 // #include "starlight/renderer/gpu/Shader.hh"
 
 // namespace sl {
@@ -10,7 +10,7 @@
 // public:
 //     explicit LightsDebugRenderView(const Vec2<f32>& viewportOffset);
 
-//     RenderPass::Properties generateRenderPassProperties(
+//     RenderPassBackend::Properties generateRenderPassProperties(
 //       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
 //     ) override;
 

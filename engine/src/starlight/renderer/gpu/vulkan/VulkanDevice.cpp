@@ -15,7 +15,9 @@
 #include "VulkanCommandBuffer.hh"
 #include "VulkanTexture.hh"
 #include "VulkanShader.hh"
-#include "VulkanRenderPass.hh"
+#include "VulkanRenderPassBackend.hh"
+#include "VulkanPipeline.hh"
+#include "VulkanBuffer.hh"
 
 namespace sl::vk {
 
@@ -27,6 +29,10 @@ VulkanDevice::VulkanDevice(Window& window, const Config& config) :
     surface(instance.handle, window, allocator),
     physical(instance.handle, surface.handle),
     logical(physical.handle, allocator, physical.info.queueIndices) {
+}
+
+OwningPtr<Buffer> VulkanDevice::createBuffer(const Buffer::Properties& props) {
+    return createOwningPtr<VulkanBuffer>(*this, props);
 }
 
 OwningPtr<Texture> VulkanDevice::createTexture(
@@ -43,10 +49,10 @@ OwningPtr<Swapchain> VulkanDevice::createSwapchain(const Vec2<u32>& size) {
     return createOwningPtr<VulkanSwapchain>(*this, size);
 }
 
-OwningPtr<sl::RenderPass::Impl> VulkanDevice::createRenderPass(
-  const sl::RenderPass::Properties& props, bool hasPreviousPass, bool hasNextPass
+OwningPtr<RenderPassBackend> VulkanDevice::createRenderPassBackend(
+  const RenderPassBackend::Properties& props, bool hasPreviousPass, bool hasNextPass
 ) {
-    return createOwningPtr<VulkanRenderPass>(
+    return createOwningPtr<VulkanRenderPassBackend>(
       *this, props, hasPreviousPass, hasNextPass
     );
 }
@@ -63,6 +69,15 @@ OwningPtr<CommandBuffer> VulkanDevice::createCommandBuffer(
 
 OwningPtr<Shader> VulkanDevice::createShader(const Shader::Properties& props) {
     return createOwningPtr<VulkanShader>(*this, props);
+}
+
+OwningPtr<Pipeline> VulkanDevice::createPipeline(
+  Shader& shader, RenderPassBackend& renderPass
+) {
+    return createOwningPtr<VulkanPipeline>(
+      logical.handle, allocator, shader,
+      static_cast<VulkanRenderPassBackend&>(renderPass)
+    );
 }
 
 void VulkanDevice::waitIdle() { vkDeviceWaitIdle(logical.handle); }

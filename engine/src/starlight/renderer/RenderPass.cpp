@@ -2,16 +2,15 @@
 
 #include <fmt/core.h>
 
-#include "RenderTarget.hh"
 #include "starlight/renderer/Renderer.hh"
 
 namespace sl {
 
 RenderPass::RenderPass(
-  Renderer& renderer, const Vec2<f32>& viewportOffset,
+  Renderer& renderer, ResourceRef<Shader> shader, const Vec2<f32>& viewportOffset,
   std::optional<std::string> name
 ) :
-    m_renderer(renderer), m_viewportOffset(viewportOffset),
+    m_renderer(renderer), m_shader(shader), m_viewportOffset(viewportOffset),
     name(name.value_or(fmt::format("RenderPass_{}", getId()))) {}
 
 void RenderPass::run(
@@ -23,19 +22,24 @@ void RenderPass::run(
       .size   = viewport.size,
     });
 
-    m_renderPassImpl->run(
+    m_renderPassBackend->run(
       commandBuffer, imageIndex,
       [&](CommandBuffer& commandBuffer, u32 imageIndex) {
+          m_shader->bindPipeline(*m_pipeline);
+          m_pipeline->bind(commandBuffer);
           render(packet, commandBuffer, imageIndex);
       }
     );
 }
 
 void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
-    m_renderPassImpl.clear();
+    m_renderPassBackend.clear();
     const auto props = createProperties(hasPreviousPass, hasNextPass);
-    m_renderPassImpl =
-      m_renderer.getDevice().createRenderPass(props, hasPreviousPass, hasNextPass);
+    auto& device     = m_renderer.getDevice();
+
+    m_renderPassBackend =
+      device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
+    m_pipeline = device.createPipeline(*m_shader, *m_renderPassBackend);
 }
 
 Rect2<u32> RenderPass::getViewport() {
@@ -54,10 +58,10 @@ Rect2<u32> RenderPass::getViewport() {
     };
 }
 
-RenderPass::Properties RenderPass::createDefaultProperties(
-  RenderPass::Attachment attachments, RenderPass::ClearFlags clearFlags
+RenderPassBackend::Properties RenderPass::createDefaultProperties(
+  Attachment attachments, ClearFlags clearFlags
 ) {
-    RenderPass::Properties props;
+    RenderPassBackend::Properties props;
 
     props.clearColor = Vec4<f32>{ 0.0f };
     props.clearFlags = clearFlags;

@@ -14,7 +14,7 @@
 //     RenderView("UIRenderView", { 0.0f, 0.0f }),
 //     m_fontsProperties(fontsProperties), m_uiCallback(callback) {}
 
-// RenderPass::Properties UIRenderView::generateRenderPassProperties(
+// RenderPassBackend::Properties UIRenderView::generateRenderPassProperties(
 //   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
 // ) {
 //     const auto clearFlags =
