@@ -20,6 +20,7 @@
 
 #include "starlight/renderer/CullMode.hh"
 #include "starlight/renderer/PolygonMode.hh"
+#include "starlight/renderer/fwd.hh"
 #include "Texture.hh"
 
 namespace sl {
@@ -183,6 +184,9 @@ public:
     using UniformCallback = std::function<void(UniformProxy&)>;
 
     virtual ~Shader() = default;
+
+    // FIXME: temporary till shader/pipeline refactor
+    virtual void bindPipeline(Pipeline& pipeline) = 0;
 
     virtual void use(CommandBuffer&) = 0;
 

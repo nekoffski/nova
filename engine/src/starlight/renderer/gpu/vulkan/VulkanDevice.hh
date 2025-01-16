@@ -115,6 +115,11 @@ public:
 
     std::optional<i32> findMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
 
+    OwningPtr<Buffer> createBuffer(const Buffer::Properties& props) override;
+
+    OwningPtr<Pipeline> createPipeline(Shader& shader, RenderPassBackend& renderPass)
+      override;
+
     OwningPtr<Shader> createShader(const Shader::Properties& props) override;
 
     OwningPtr<CommandBuffer> createCommandBuffer(
@@ -125,8 +130,9 @@ public:
       createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&)
         override;
 
-    OwningPtr<sl::RenderPass::Impl> createRenderPass(
-      const sl::RenderPass::Properties& props, bool hasPreviousPass, bool hasNextPass
+    OwningPtr<RenderPassBackend> createRenderPassBackend(
+      const RenderPassBackend::Properties& props, bool hasPreviousPass,
+      bool hasNextPass
     ) override;
 
     OwningPtr<Semaphore> createSemaphore() override;

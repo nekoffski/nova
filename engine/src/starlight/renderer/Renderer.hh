@@ -12,6 +12,9 @@
 #include "gpu/CommandBuffer.hh"
 #include "gpu/Buffer.hh"
 
+#include "factories/ShaderFactory.hh"
+#include "factories/TextureFactory.hh"
+
 namespace sl {
 
 class Renderer {
@@ -43,6 +46,7 @@ private:
 
     Context& m_context;
     Window& m_window;
+    Config m_config;
 
     OwningPtr<Device> m_device;
     OwningPtr<Swapchain> m_swapchain;
@@ -58,6 +62,13 @@ private:
 
     OwningPtr<Buffer> m_vertexBuffer;
     OwningPtr<Buffer> m_indexBuffer;
+
+    // factories
+    ShaderFactory m_shaderFactory;
+    TextureFactory m_textureFactory;
+    //     MaterialFactory m_materialFactory;
+    //     MeshFactory m_meshFactory;
+    //     SkyboxFactory m_skyboxFactory;
 };
 
 }  // namespace sl

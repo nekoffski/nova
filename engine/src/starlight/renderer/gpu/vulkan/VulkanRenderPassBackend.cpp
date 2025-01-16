@@ -1,4 +1,4 @@
-#include "VulkanRenderPass.hh"
+#include "VulkanRenderPassBackend.hh"
 
 #include "VulkanCommandBuffer.hh"
 #include "VulkanSwapchain.hh"
@@ -11,7 +11,7 @@ namespace sl::vk {
     Framebuffer
 */
 
-VulkanRenderPass::Framebuffer::Framebuffer(
+VulkanRenderPassBackend::Framebuffer::Framebuffer(
   VulkanDevice& device, VkRenderPass renderPass, const Vec2<u32>& size,
   const std::vector<VkImageView>& attachments
 ) : handle(VK_NULL_HANDLE), m_device(device) {
@@ -31,20 +31,20 @@ VulkanRenderPass::Framebuffer::Framebuffer(
     ));
 }
 
-VulkanRenderPass::Framebuffer::~Framebuffer() {
+VulkanRenderPassBackend::Framebuffer::~Framebuffer() {
     if (handle)
         vkDestroyFramebuffer(m_device.logical.handle, handle, m_device.allocator);
 }
 
 /*
-    VulkanRenderPass
+    VulkanRenderPassBackend
 */
 
-class VulkanRenderPassCreateInfo {
+class VulkanRenderPassBackendCreateInfo {
 public:
-    explicit VulkanRenderPassCreateInfo(
+    explicit VulkanRenderPassBackendCreateInfo(
       VkFormat depthFormat, VkSurfaceFormatKHR surfaceFormat,
-      RenderPass::Properties props, bool hasPreviousPass, bool hasNextPass,
+      RenderPassBackend::Properties props, bool hasPreviousPass, bool hasNextPass,
       bool hasColorAttachment, bool hasDepthAttachment
     );
 
@@ -52,10 +52,12 @@ public:
 
 private:
     void createColorAttachment(
-      VkSurfaceFormatKHR format, RenderPass::Properties props, bool hasPreviousPass,
-      bool hasNextPass
+      VkSurfaceFormatKHR format, RenderPassBackend::Properties props,
+      bool hasPreviousPass, bool hasNextPass
     );
-    void createDepthAttachment(VkFormat depthFormat, RenderPass::Properties props);
+    void createDepthAttachment(
+      VkFormat depthFormat, RenderPassBackend::Properties props
+    );
     void createSubpass();
     void createRenderPassDependencies();
     void createRenderPassCreateInfo();
@@ -73,20 +75,20 @@ private:
     VkSubpassDependency m_dependency;
 };
 
-VulkanRenderPass::VulkanRenderPass(
-  VulkanDevice& device, const RenderPass::Properties& properties,
+VulkanRenderPassBackend::VulkanRenderPassBackend(
+  VulkanDevice& device, const RenderPassBackend::Properties& properties,
   bool hasPreviousPass, bool hasNextPass
 ) :
     m_device(device), m_handle(VK_NULL_HANDLE), m_props(properties),
     m_hasColorAttachment(false), m_hasDepthAttachment(false) {
-    LOG_TRACE("Creating VulkanRenderPass instance");
+    LOG_TRACE("Creating VulkanRenderPassBackend instance");
 
     for (auto& target : properties.renderTargets) {
         if (target.colorAttachment != nullptr) m_hasColorAttachment = true;
         if (target.depthAttachment != nullptr) m_hasDepthAttachment = true;
     }
 
-    VulkanRenderPassCreateInfo createInfo(
+    VulkanRenderPassBackendCreateInfo createInfo(
       m_device.physical.info.depthFormat, m_device.physical.info.surfaceFormat,
       properties, hasPreviousPass, hasNextPass, m_hasColorAttachment,
       m_hasDepthAttachment
@@ -101,20 +103,19 @@ VulkanRenderPass::VulkanRenderPass(
         LOG_WARN("Render pass with no render targets created");
 
     generateRenderTargets();
-    LOG_TRACE("VulkanRenderPass instance created");
+    LOG_TRACE("VulkanRenderPassBackend instance created");
 }
 
-VulkanRenderPass::~VulkanRenderPass() {
+VulkanRenderPassBackend::~VulkanRenderPassBackend() {
     if (m_handle) {
         m_device.waitIdle();
         vkDestroyRenderPass(m_device.logical.handle, m_handle, m_device.allocator);
     }
 }
 
-VkRenderPass VulkanRenderPass::getHandle() { return m_handle; }
+VkRenderPass VulkanRenderPassBackend::getHandle() { return m_handle; }
 
-std::vector<VkClearValue> VulkanRenderPass::createClearValues(
-  RenderPass::ClearFlags flags
+std::vector<VkClearValue> VulkanRenderPassBackend::createClearValues(ClearFlags flags
 ) const {
     std::vector<VkClearValue> clearValues;
     clearValues.reserve(2);
@@ -130,12 +131,11 @@ std::vector<VkClearValue> VulkanRenderPass::createClearValues(
         clearValues.push_back(clearValue);
     }
 
-    if (m_hasDepthAttachment
-        && isFlagEnabled(flags, RenderPass::ClearFlags::depth)) {
+    if (m_hasDepthAttachment && isFlagEnabled(flags, ClearFlags::depth)) {
         VkClearValue clearValue;
         clearValue.depthStencil.depth = m_props.depth;
 
-        if (isFlagEnabled(flags, RenderPass::ClearFlags::stencil))
+        if (isFlagEnabled(flags, ClearFlags::stencil))
             clearValue.depthStencil.stencil = m_props.stencil;
 
         clearValues.push_back(clearValue);
@@ -144,7 +144,9 @@ std::vector<VkClearValue> VulkanRenderPass::createClearValues(
     return clearValues;
 }
 
-void VulkanRenderPass::begin(CommandBuffer& commandBuffer, u32 attachmentIndex) {
+void VulkanRenderPassBackend::begin(
+  CommandBuffer& commandBuffer, u32 attachmentIndex
+) {
     auto clearValues = createClearValues(m_props.clearFlags);
 
     VkRenderPassBeginInfo beginInfo;
@@ -167,7 +169,7 @@ void VulkanRenderPass::begin(CommandBuffer& commandBuffer, u32 attachmentIndex) 
     );
 }
 
-void VulkanRenderPass::end(CommandBuffer& commandBuffer) {
+void VulkanRenderPassBackend::end(CommandBuffer& commandBuffer) {
     auto vkBuffer = static_cast<VulkanCommandBuffer*>(&commandBuffer);
     vkCmdEndRenderPass(vkBuffer->getHandle());
 }
@@ -178,7 +180,7 @@ static void addAttachment(
     attachmentViews.push_back(static_cast<VulkanTexture*>(attachment)->getView());
 }
 
-void VulkanRenderPass::generateRenderTargets() {
+void VulkanRenderPassBackend::generateRenderTargets() {
     auto& renderTargets = m_props.renderTargets;
     LOG_TRACE("Generating render targets for render pass");
     for (const auto& renderTarget : renderTargets) {
@@ -200,9 +202,9 @@ void VulkanRenderPass::generateRenderTargets() {
     }
 }
 
-VulkanRenderPassCreateInfo::VulkanRenderPassCreateInfo(
+VulkanRenderPassBackendCreateInfo::VulkanRenderPassBackendCreateInfo(
   VkFormat depthFormat, VkSurfaceFormatKHR surfaceFormat,
-  RenderPass::Properties props, bool hasPreviousPass, bool hasNextPass,
+  RenderPassBackend::Properties props, bool hasPreviousPass, bool hasNextPass,
   bool hasColorAttachment, bool hasDepthAttachment
 ) {
     m_attachmentDescriptions.reserve(2);
@@ -231,14 +233,14 @@ VulkanRenderPassCreateInfo::VulkanRenderPassCreateInfo(
     createRenderPassCreateInfo();
 }
 
-void VulkanRenderPassCreateInfo::createColorAttachment(
-  VkSurfaceFormatKHR surfaceFormat, RenderPass::Properties props,
+void VulkanRenderPassBackendCreateInfo::createColorAttachment(
+  VkSurfaceFormatKHR surfaceFormat, RenderPassBackend::Properties props,
   bool hasPreviousPass, bool hasNextPass
 ) {
     m_colorAttachment.format  = surfaceFormat.format;  // TODO: configurable
     m_colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     m_colorAttachment.loadOp =
-      isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::color)
+      isFlagEnabled(props.clearFlags, ClearFlags::color)
         ? VK_ATTACHMENT_LOAD_OP_CLEAR
         : VK_ATTACHMENT_LOAD_OP_LOAD;
     m_colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
@@ -258,10 +260,10 @@ void VulkanRenderPassCreateInfo::createColorAttachment(
     m_attachmentDescriptions.push_back(m_colorAttachment);
 }
 
-void VulkanRenderPassCreateInfo::createDepthAttachment(
-  VkFormat depthFormat, RenderPass::Properties props
+void VulkanRenderPassBackendCreateInfo::createDepthAttachment(
+  VkFormat depthFormat, RenderPassBackend::Properties props
 ) {
-    bool clearDepth = isFlagEnabled(props.clearFlags, RenderPass::ClearFlags::depth);
+    bool clearDepth = isFlagEnabled(props.clearFlags, ClearFlags::depth);
 
     m_depthAttachment.format  = depthFormat;
     m_depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -278,7 +280,7 @@ void VulkanRenderPassCreateInfo::createDepthAttachment(
     m_attachmentDescriptions.push_back(m_depthAttachment);
 }
 
-void VulkanRenderPassCreateInfo::createSubpass() {
+void VulkanRenderPassBackendCreateInfo::createSubpass() {
     m_subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
     m_subpass.inputAttachmentCount    = 0;
     m_subpass.pInputAttachments       = 0;
@@ -288,7 +290,7 @@ void VulkanRenderPassCreateInfo::createSubpass() {
     m_subpass.flags                   = 0;
 }
 
-void VulkanRenderPassCreateInfo::createRenderPassDependencies() {
+void VulkanRenderPassBackendCreateInfo::createRenderPassDependencies() {
     m_dependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
     m_dependency.dstSubpass    = 0;
     m_dependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -299,7 +301,7 @@ void VulkanRenderPassCreateInfo::createRenderPassDependencies() {
     m_dependency.dependencyFlags = 0;
 }
 
-void VulkanRenderPassCreateInfo::createRenderPassCreateInfo() {
+void VulkanRenderPassBackendCreateInfo::createRenderPassCreateInfo() {
     handle.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     handle.attachmentCount = m_attachmentDescriptions.size();
     handle.pAttachments    = m_attachmentDescriptions.data();

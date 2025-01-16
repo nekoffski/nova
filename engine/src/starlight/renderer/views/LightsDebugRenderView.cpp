@@ -11,7 +11,7 @@
 //     m_shader(ShaderFactory::get().load(shaderName)),
 //     m_mesh(MeshFactory::get().getUnitSphere()) {}
 
-// RenderPass::Properties LightsDebugRenderView::generateRenderPassProperties(
+// RenderPassBackend::Properties LightsDebugRenderView::generateRenderPassProperties(
 //   RendererBackend& renderer, [[maybe_unused]] RenderPass::ChainFlags chainFlags
 // ) {
 //     return generateDefaultRenderPassProperties(

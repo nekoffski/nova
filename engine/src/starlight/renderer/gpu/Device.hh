@@ -10,7 +10,9 @@
 #include "Shader.hh"
 #include "CommandBuffer.hh"
 #include "Texture.hh"
-#include "RenderPass.hh"
+#include "RenderPassBackend.hh"
+#include "Buffer.hh"
+#include "Pipeline.hh"
 
 namespace sl {
 
@@ -26,6 +28,12 @@ public:
     Queue& getGraphicsQueue();
     Queue& getPresentQueue();
 
+    virtual OwningPtr<Buffer> createBuffer(const Buffer::Properties& props) = 0;
+
+    virtual OwningPtr<Pipeline> createPipeline(
+      Shader& shader, RenderPassBackend& renderPass
+    ) = 0;
+
     virtual OwningPtr<Shader> createShader(const Shader::Properties& props) = 0;
 
     virtual OwningPtr<CommandBuffer> createCommandBuffer(
@@ -35,8 +43,9 @@ public:
     virtual OwningPtr<Texture>
       createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&) = 0;
 
-    virtual OwningPtr<RenderPass::Impl> createRenderPass(
-      const RenderPass::Properties& props, bool hasPreviousPass, bool hasNextPass
+    virtual OwningPtr<RenderPassBackend> createRenderPassBackend(
+      const RenderPassBackend::Properties& props, bool hasPreviousPass,
+      bool hasNextPass
     ) = 0;
 
     virtual OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) = 0;

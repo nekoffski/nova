@@ -8,7 +8,7 @@ class VKPhysicalDevice;
 class VKLogicalDevice;
 class VKImage;
 class VKFramebuffer;
-class VulkanRenderPass;
+class VulkanRenderPassBackend;
 class VulkanSwapchain;
 class VulkanShaderStage;
 class VulkanShader;

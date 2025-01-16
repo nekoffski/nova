@@ -138,6 +138,8 @@ ResourceRef<Shader> ShaderFactory::load(
         LOG_WARN("Could not load properties from '{}/{}'", m_shadersPath, name);
         return nullptr;
     }
+
+    return store(name, m_device.createShader(*properties));
 }
 
 }  // namespace sl

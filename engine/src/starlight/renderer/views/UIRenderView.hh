@@ -6,7 +6,7 @@
 
 // #include "RenderView.hh"
 
-// #include "starlight/renderer/gpu/RenderPass.hh"
+// #include "starlight/renderer/RenderPass.hh"
 // #include "starlight/renderer/gpu/UIRenderer.hh"
 
 // namespace sl {
@@ -18,7 +18,7 @@
 
 //     explicit UIRenderView(const FontsProperties& fonts, UICallback&& callback);
 
-//     RenderPass::Properties generateRenderPassProperties(
+//     RenderPassBackend::Properties generateRenderPassProperties(
 //       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
 //     ) override;
 

@@ -4,7 +4,7 @@ namespace sl {
 
 class CommandBuffer;
 class Mesh;
-class RenderPass;
+class RenderPassBackend;
 class RenderTarget;
 class Shader;
 class Texture;

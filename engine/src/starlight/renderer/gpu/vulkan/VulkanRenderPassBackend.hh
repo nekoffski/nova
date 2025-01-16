@@ -2,14 +2,14 @@
 
 #include "starlight/core/math/Core.hh"
 
-#include "starlight/renderer/gpu/RenderPass.hh"
+#include "starlight/renderer/gpu/RenderPassBackend.hh"
 
 #include "Vulkan.hh"
 #include "fwd.hh"
 
 namespace sl::vk {
 
-class VulkanRenderPass : public RenderPass::Impl {
+class VulkanRenderPassBackend : public RenderPassBackend {
     class Framebuffer : public NonMovable, public NonCopyable {
     public:
         explicit Framebuffer(
@@ -26,12 +26,12 @@ class VulkanRenderPass : public RenderPass::Impl {
     };
 
 public:
-    explicit VulkanRenderPass(
-      VulkanDevice& device, const RenderPass::Properties& properties,
-      bool hasPreviousPass, bool hasNextPass
+    explicit VulkanRenderPassBackend(
+      VulkanDevice& device, const Properties& properties, bool hasPreviousPass,
+      bool hasNextPass
     );
 
-    ~VulkanRenderPass();
+    ~VulkanRenderPassBackend();
 
     void begin(CommandBuffer& commandBuffer, u32 imageIndex) override;
     void end(CommandBuffer& commandBuffer) override;
@@ -41,12 +41,12 @@ public:
 private:
     void generateRenderTargets();
 
-    std::vector<VkClearValue> createClearValues(RenderPass::ClearFlags flags) const;
+    std::vector<VkClearValue> createClearValues(ClearFlags flags) const;
 
     VulkanDevice& m_device;
     VkRenderPass m_handle;
 
-    RenderPass::Properties m_props;
+    Properties m_props;
 
     bool m_hasColorAttachment;
     bool m_hasDepthAttachment;

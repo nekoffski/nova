@@ -6,8 +6,7 @@
 #include "starlight/core/event/EventProxy.hh"
 #include "starlight/core/math/Core.hh"
 #include "gpu/RendererBackend.hh"
-#include "views/RenderView.hh"
-#include "gpu/RenderPass.hh"
+#include "RenderPass.hh"
 #include "Renderer.hh"
 #include "RenderPacket.hh"
 

@@ -79,6 +79,8 @@ public:
     void releaseInstanceResources(u32 instanceId) override;
     // clang-format on
 
+    void bindPipeline(Pipeline& pipeline) override;
+
     VulkanPipeline::Properties getPipelineProperties();
 
 private:
@@ -118,7 +120,7 @@ private:
     std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
     std::array<VkDescriptorSet, 3> m_globalDescriptorSets;
 
-    LocalPtr<VulkanPipeline> m_pipeline;
+    VulkanPipeline* m_pipeline;
     LocalPtr<VulkanBuffer> m_uniformBuffer;
 
     std::vector<InstanceState> m_instanceStates;

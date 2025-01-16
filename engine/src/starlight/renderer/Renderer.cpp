@@ -1,12 +1,16 @@
 #include "Renderer.hh"
 
+#include "starlight/core/math/Vertex.hh"
+
 namespace sl {
 
 Renderer::Renderer(Context& context) :
-    m_context(context), m_window(context.getWindow()),
+    m_context(context), m_window(context.getWindow()), m_config(context.getConfig()),
     m_device(Device::create(m_context)),
     m_swapchain(m_device->createSwapchain(m_window.getFramebufferSize())),
-    m_currentFrame(0u), m_maxFramesInFlight(m_swapchain->getImageCount()) {
+    m_currentFrame(0u), m_maxFramesInFlight(m_swapchain->getImageCount()),
+    m_shaderFactory(m_config.paths.shaders, *m_device),
+    m_textureFactory(m_config.paths.textures, *m_device) {
     createSyncPrimitives();
     createBuffers();
 }
@@ -31,6 +35,28 @@ void Renderer::createSyncPrimitives() {
 void Renderer::createBuffers() {
     for (u8 i = 0; i < m_maxFramesInFlight; ++i)
         m_commandBuffers.push_back(m_device->createCommandBuffer());
+
+    static constexpr u64 size = 1024 * 1024;
+
+    m_vertexBuffer = m_device->createBuffer(Buffer::Properties{
+      .size           = size * sizeof(Vertex3),
+      .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      .usage =
+        BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT
+        | BufferUsage::BUFFER_USAGE_TRANSFER_DST_BIT
+        | BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT,
+      .bindOnCreate = true,
+    });
+
+    m_indexBuffer = m_device->createBuffer(Buffer::Properties{
+      .size           = size * sizeof(u32),
+      .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      .usage =
+        BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT
+        | BufferUsage::BUFFER_USAGE_TRANSFER_DST_BIT
+        | BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT,
+      .bindOnCreate = true,
+    });
 }
 
 std::optional<u8> Renderer::beginFrame() {
@@ -54,6 +80,16 @@ std::optional<u8> Renderer::beginFrame() {
     commandBuffer.execute(SetScissorsCommand{
       .offset = Vec2<u32>{ 0u, 0u },
       .size   = framebufferSize,
+    });
+
+    commandBuffer.execute(BindVertexBufferCommand{
+      .buffer = m_vertexBuffer.get(),
+      .offset = 0u,
+    });
+
+    commandBuffer.execute(BindIndexBufferCommand{
+      .buffer = m_indexBuffer.get(),
+      .offset = 0u,
     });
 
     return imageIndex;

@@ -9,6 +9,7 @@ EulerCamera::EulerCamera(const Properties& props, sl::EventProxy& eventProxy) :
     Camera(props.viewportSize, eventProxy), m_target(props.target),
     m_radius(props.radius), m_yaw(90.0f), m_pitch(90.0f) {
     recalculateVectors();
+    updateViewMatrix();
 
     m_eventSentinel.add<sl::ScrollEvent>([&](auto& event) { onScroll(event.offset); }
     );

@@ -10,7 +10,6 @@
 
 #include "VulkanTexture.hh"
 #include "VulkanPipeline.hh"
-#include "VulkanRenderPass.hh"
 #include "VulkanDevice.hh"
 
 namespace sl::vk {
@@ -362,10 +361,10 @@ void VulkanShader::addUniform(
 }
 
 void VulkanShader::use(CommandBuffer& commandBuffer) {
-    m_pipeline->bind(
-      static_cast<VulkanCommandBuffer&>(commandBuffer),
-      VK_PIPELINE_BIND_POINT_GRAPHICS
-    );
+    // m_pipeline->bind(
+    //   static_cast<VulkanCommandBuffer&>(commandBuffer),
+    //   VK_PIPELINE_BIND_POINT_GRAPHICS
+    // );
 }
 
 void VulkanShader::bindGlobals() {
@@ -701,6 +700,10 @@ static std::unordered_map<PolygonMode, VkPolygonMode> vkPolygonModes = {
     { PolygonMode::line,  VK_POLYGON_MODE_LINE  },
     { PolygonMode::point, VK_POLYGON_MODE_POINT },
 };
+
+void VulkanShader::bindPipeline(Pipeline& pipeline) {
+    m_pipeline = dynamic_cast<VulkanPipeline*>(&pipeline);
+}
 
 VulkanPipeline::Properties VulkanShader::getPipelineProperties() {
     const auto size = Window::get().getSize();
