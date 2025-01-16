@@ -8,6 +8,7 @@ Renderer::Renderer(Context& context) :
     m_swapchain(m_device->createSwapchain(m_window.getFramebufferSize())),
     m_currentFrame(0u), m_maxFramesInFlight(m_swapchain->getImageCount()) {
     createSyncPrimitives();
+    createBuffers();
 }
 
 Context& Renderer::getContext() { return m_context; }
@@ -21,9 +22,15 @@ Swapchain& Renderer::getSwapchain() { return *m_swapchain; }
 void Renderer::createSyncPrimitives() {
     for (u8 i = 0; i < m_maxFramesInFlight; ++i) {
         m_frameFences.push_back(m_device->createFence(Fence::State::signaled));
+        m_imageFences.push_back(nullptr);
         m_imageAvailableSemaphores.push_back(m_device->createSemaphore());
         m_queueCompleteSemaphores.push_back(m_device->createSemaphore());
     }
+}
+
+void Renderer::createBuffers() {
+    for (u8 i = 0; i < m_maxFramesInFlight; ++i)
+        m_commandBuffers.push_back(m_device->createCommandBuffer());
 }
 
 std::optional<u8> Renderer::beginFrame() {
@@ -52,6 +59,16 @@ std::optional<u8> Renderer::beginFrame() {
     return imageIndex;
 }
 
+Fence* Renderer::getImageFence(u32 imageIndex) {
+    if (auto& fence = m_imageFences[imageIndex]; fence) fence->wait();
+
+    auto frameFence = m_frameFences[m_currentFrame].get();
+    frameFence->reset();
+    m_imageFences[imageIndex] = frameFence;
+
+    return frameFence;
+}
+
 void Renderer::endFrame(u32 imageIndex) {
     auto& commandBuffer = *m_commandBuffers[imageIndex];
     commandBuffer.end();
@@ -59,7 +76,8 @@ void Renderer::endFrame(u32 imageIndex) {
     Queue::SubmitInfo submitInfo{
         .commandBuffer   = commandBuffer,
         .waitSemaphore   = m_imageAvailableSemaphores[imageIndex].get(),
-        .signalSemaphore = m_queueCompleteSemaphores[imageIndex].get()
+        .signalSemaphore = m_queueCompleteSemaphores[imageIndex].get(),
+        .fence           = getImageFence(imageIndex)
     };
 
     if (not m_device->getGraphicsQueue().submit(submitInfo)) {
@@ -68,7 +86,7 @@ void Renderer::endFrame(u32 imageIndex) {
     Queue::PresentInfo presentInfo{
         .swapchain     = *m_swapchain,
         .imageIndex    = imageIndex,
-        .waitSemaphore = m_queueCompleteSemaphores[m_currentFrame].get()
+        .waitSemaphore = m_queueCompleteSemaphores[m_currentFrame].get(),
     };
 
     if (not m_device->getPresentQueue().present(presentInfo)) {

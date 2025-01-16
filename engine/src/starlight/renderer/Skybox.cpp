@@ -1,6 +1,7 @@
 #include "Skybox.hh"
 
 #include "starlight/renderer/gpu/Texture.hh"
+#include "starlight/renderer/factories/ShaderFactory.hh"
 #include "starlight/renderer/factories/TextureFactory.hh"
 
 namespace sl {

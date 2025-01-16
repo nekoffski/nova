@@ -5,7 +5,7 @@
 
 #include "gpu/Texture.hh"
 #include "gpu/Mesh.hh"
-#include "gpu/Shader.hh"
+#include "starlight/renderer/gpu/Shader.hh"
 
 namespace sl {
 

@@ -7,6 +7,7 @@
 #include "starlight/core/memory/Memory.hh"
 
 #include "starlight/renderer/Core.hh"
+#include "CommandBuffer.hh"
 
 namespace sl {
 
@@ -77,8 +78,8 @@ public:
 
     virtual ~Texture() = default;
 
-    virtual void resize(u32 width, u32 height) = 0;
-    virtual void write(std::span<u8> pixels)   = 0;
+    virtual void resize(u32 width, u32 height)                                = 0;
+    virtual void write(std::span<u8> pixels, CommandBuffer* buffer = nullptr) = 0;
 
     const SamplerProperties& getSamplerProperties() const;
     const ImageData& getImageData() const;

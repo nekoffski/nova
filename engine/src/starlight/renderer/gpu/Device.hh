@@ -4,12 +4,13 @@
 #include "starlight/core/Context.hh"
 #include "starlight/core/memory/Memory.hh"
 
+#include "fwd.hh"
+
 #include "Queue.hh"
-#include "Sync.hh"
-#include "Swapchain.hh"
-#include "RenderPass.hh"
-#include "Texture.hh"
+#include "Shader.hh"
 #include "CommandBuffer.hh"
+#include "Texture.hh"
+#include "RenderPass.hh"
 
 namespace sl {
 
@@ -25,6 +26,8 @@ public:
     Queue& getGraphicsQueue();
     Queue& getPresentQueue();
 
+    virtual OwningPtr<Shader> createShader(const Shader::Properties& props) = 0;
+
     virtual OwningPtr<CommandBuffer> createCommandBuffer(
       CommandBuffer::Severity severity = CommandBuffer::Severity::primary
     ) = 0;
@@ -32,8 +35,8 @@ public:
     virtual OwningPtr<Texture>
       createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&) = 0;
 
-    virtual OwningPtr<v2::RenderPass::Impl> createRenderPass(
-      const v2::RenderPass::Properties& props
+    virtual OwningPtr<RenderPass::Impl> createRenderPass(
+      const RenderPass::Properties& props, bool hasPreviousPass, bool hasNextPass
     ) = 0;
 
     virtual OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) = 0;

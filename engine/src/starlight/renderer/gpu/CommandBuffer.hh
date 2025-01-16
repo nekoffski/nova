@@ -1,7 +1,10 @@
 #pragma once
 
 #include "starlight/core/Core.hh"
+#include "starlight/core/memory/Memory.hh"
 #include "starlight/core/utils/Enum.hh"
+
+#include "fwd.hh"
 
 #include "Commands.hh"
 
@@ -20,6 +23,18 @@ struct CommandBuffer : public NonCopyable, public NonMovable {
     virtual void begin(BeginFlags beginFlags = BeginFlags::none) = 0;
     virtual void end()                                           = 0;
     virtual void execute(const Command& command)                 = 0;
+};
+
+class ImmediateCommandBuffer : public NonCopyable, public NonMovable {
+public:
+    ImmediateCommandBuffer(OwningPtr<CommandBuffer> commandBuffer, Queue& queue);
+    ~ImmediateCommandBuffer();
+
+    CommandBuffer& get();
+
+private:
+    OwningPtr<CommandBuffer> m_commandBuffer;
+    Queue& m_queue;
 };
 
 constexpr void enableBitOperations(CommandBuffer::BeginFlags);

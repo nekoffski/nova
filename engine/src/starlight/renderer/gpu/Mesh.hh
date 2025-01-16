@@ -133,37 +133,37 @@ protected:
     Extent3 m_extent;
 };
 
-class MeshFactory
-    : public ResourceFactory<Mesh>,
-      public kc::core::Singleton<MeshFactory> {
-public:
-    explicit MeshFactory(RendererBackend& renderer);
+// class MeshFactory
+//     : public ResourceFactory<Mesh>,
+//       public kc::core::Singleton<MeshFactory> {
+// public:
+//     explicit MeshFactory(RendererBackend& renderer);
 
-    template <typename T>
-    requires std::is_constructible_v<Mesh::Properties3D, const T&>
-    ResourceRef<Mesh> create(const std::string& name, const T& properties) {
-        return create(name, Mesh::Properties3D{ properties });
-    }
+//     template <typename T>
+//     requires std::is_constructible_v<Mesh::Properties3D, const T&>
+//     ResourceRef<Mesh> create(const std::string& name, const T& properties) {
+//         return create(name, Mesh::Properties3D{ properties });
+//     }
 
-    ResourceRef<Mesh> create(
-      const std::string& name, const Mesh::Properties2D& config
-    );
-    ResourceRef<Mesh> create(
-      const std::string& name, const Mesh::Properties3D& config
-    );
+//     ResourceRef<Mesh> create(
+//       const std::string& name, const Mesh::Properties2D& config
+//     );
+//     ResourceRef<Mesh> create(
+//       const std::string& name, const Mesh::Properties3D& config
+//     );
 
-    ResourceRef<Mesh> getCube();
-    ResourceRef<Mesh> getUnitSphere();
-    ResourceRef<Mesh> getPlane();
+//     ResourceRef<Mesh> getCube();
+//     ResourceRef<Mesh> getUnitSphere();
+//     ResourceRef<Mesh> getPlane();
 
-private:
-    void createDefaults();
+// private:
+//     void createDefaults();
 
-    ResourceRef<Mesh> m_cube;
-    ResourceRef<Mesh> m_unitSphere;
-    ResourceRef<Mesh> m_plane;
+//     ResourceRef<Mesh> m_cube;
+//     ResourceRef<Mesh> m_unitSphere;
+//     ResourceRef<Mesh> m_plane;
 
-    RendererBackend& m_renderer;
-};
+//     RendererBackend& m_renderer;
+// };
 
 }  // namespace sl

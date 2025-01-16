@@ -9,7 +9,7 @@
 
 // #include "Vulkan.hh"
 // #include "VKContext.hh"
-// #include "VKRenderPass.hh"
+// #include "VulkanRenderPass.hh"
 
 // namespace sl::vk {
 
@@ -58,7 +58,8 @@
 //     true);
 
 //     auto graphicsQueue    = m_device.getQueues().graphics;
-//     auto renderPassHandle = static_cast<VKRenderPass&>(renderPass).getHandle();
+//     auto renderPassHandle =
+//     static_cast<VulkanRenderPass&>(renderPass).getHandle();
 
 //     ImGui_ImplVulkan_InitInfo initInfo = {};
 //     clearMemory(&initInfo);

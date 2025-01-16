@@ -13,7 +13,9 @@
 #include "VulkanSemaphore.hh"
 #include "VulkanSwapchain.hh"
 #include "VulkanCommandBuffer.hh"
-#include "VKTexture.hh"
+#include "VulkanTexture.hh"
+#include "VulkanShader.hh"
+#include "VulkanRenderPass.hh"
 
 namespace sl::vk {
 
@@ -30,7 +32,7 @@ VulkanDevice::VulkanDevice(Window& window, const Config& config) :
 OwningPtr<Texture> VulkanDevice::createTexture(
   const Texture::ImageData& image, const Texture::SamplerProperties& sampler
 ) {
-    return createOwningPtr<VKTexture>(*this, image, sampler);
+    return createOwningPtr<VulkanTexture>(*this, image, sampler);
 }
 
 OwningPtr<Fence> VulkanDevice::createFence(Fence::State state) {
@@ -38,13 +40,15 @@ OwningPtr<Fence> VulkanDevice::createFence(Fence::State state) {
 }
 
 OwningPtr<Swapchain> VulkanDevice::createSwapchain(const Vec2<u32>& size) {
-    return createOwningPtr<VulkanSwapchain>(*this, window.getFramebufferSize());
+    return createOwningPtr<VulkanSwapchain>(*this, size);
 }
 
-OwningPtr<sl::v2::RenderPass::Impl> VulkanDevice::createRenderPass(
-  const sl::v2::RenderPass::Properties& props
+OwningPtr<sl::RenderPass::Impl> VulkanDevice::createRenderPass(
+  const sl::RenderPass::Properties& props, bool hasPreviousPass, bool hasNextPass
 ) {
-    return OwningPtr<sl::v2::RenderPass::Impl>();
+    return createOwningPtr<VulkanRenderPass>(
+      *this, props, hasPreviousPass, hasNextPass
+    );
 }
 
 OwningPtr<Semaphore> VulkanDevice::createSemaphore() {
@@ -57,6 +61,10 @@ OwningPtr<CommandBuffer> VulkanDevice::createCommandBuffer(
     return createOwningPtr<VulkanCommandBuffer>(*this, severity);
 }
 
+OwningPtr<Shader> VulkanDevice::createShader(const Shader::Properties& props) {
+    return createOwningPtr<VulkanShader>(*this, props);
+}
+
 void VulkanDevice::waitIdle() { vkDeviceWaitIdle(logical.handle); }
 
 Queue& VulkanDevice::getQueue(Queue::Type type) { return logical.queues.at(type); }
@@ -64,7 +72,7 @@ Queue& VulkanDevice::getQueue(Queue::Type type) { return logical.queues.at(type)
 std::optional<i32> VulkanDevice::findMemoryIndex(u32 typeFilter, u32 propertyFlags)
   const {
     const auto& props = physical.info.memoryProperties;
-    for (uint32_t i = 0; i < props.memoryTypeCount; ++i) {
+    for (u32 i = 0; i < props.memoryTypeCount; ++i) {
         bool isSuitable =
           (typeFilter & (1 << i))
           && (props.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags;
@@ -209,7 +217,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
 }
 
 static VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo() {
-    uint32_t logSeverity =
+    u32 logSeverity =
       VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
       | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
       | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
@@ -399,6 +407,30 @@ static bool validateExtensions(
     return true;
 }
 
+static void pickSurfaceFormat(VulkanDevice::Physical::Info& deviceInfo) {
+    static const auto demandedFormat     = VK_FORMAT_R8G8B8A8_UNORM;
+    static const auto demandedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    deviceInfo.surfaceFormat             = deviceInfo.surfaceFormats[0];
+
+    for (const auto& format : deviceInfo.surfaceFormats) {
+        if (format.format == demandedFormat
+            && format.colorSpace == demandedColorSpace) {
+            deviceInfo.surfaceFormat = format;
+            break;
+        }
+    }
+}
+
+static void pickPresentMode(VulkanDevice::Physical::Info& deviceInfo) {
+    static const auto defaultPresentMode  = VK_PRESENT_MODE_FIFO_KHR;
+    static const auto demandedPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+
+    deviceInfo.presentMode =
+      kc::core::contains(deviceInfo.presentModes, demandedPresentMode)
+        ? demandedPresentMode
+        : defaultPresentMode;
+}
+
 static bool detectDepthFormat(
   VkPhysicalDevice device, VulkanDevice::Physical::Info& info
 ) {
@@ -408,7 +440,7 @@ static bool detectDepthFormat(
         { VK_FORMAT_D24_UNORM_S8_UINT,  3 },
     };
 
-    uint32_t flags   = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    u32 flags        = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
     info.depthFormat = VK_FORMAT_UNDEFINED;
 
     for (const auto& [format, channelCount] : candidates) {
@@ -417,7 +449,7 @@ static bool detectDepthFormat(
 
         if (((properties.linearTilingFeatures & flags) == flags)
             || ((properties.optimalTilingFeatures & flags) == flags)) {
-            info.depthChannelCount = format;
+            info.depthFormat       = format;
             info.depthChannelCount = channelCount;
             return true;
         }
@@ -467,6 +499,18 @@ static std::optional<VulkanDevice::Physical::Info> getPhysicalDeviceInfo(
         return {};
     }
 
+    for (u32 i = 0; i < info.memoryProperties.memoryTypeCount; ++i) {
+        if ((info.memoryProperties.memoryTypes[i].propertyFlags
+             & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+            && (info.memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+            info.supportsDeviceLocalHostVisibleMemory = true;
+            break;
+        }
+    }
+
+    pickSurfaceFormat(info);
+    pickPresentMode(info);
+
     return info;
 }
 
@@ -509,7 +553,7 @@ static void showDeviceInfo(const VulkanDevice::Physical::Info& info) {
       VK_VERSION_PATCH(info.coreProperties.apiVersion)
     );
 
-    for (uint32_t j = 0; j < info.memoryProperties.memoryHeapCount; ++j) {
+    for (u32 j = 0; j < info.memoryProperties.memoryHeapCount; ++j) {
         const float memorySize =
           (static_cast<float>(info.memoryProperties.memoryHeaps[j].size) / 1024.0f
            / 1024.0f / 1024.0f);

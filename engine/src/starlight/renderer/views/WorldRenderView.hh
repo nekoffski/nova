@@ -1,33 +1,33 @@
-#pragma once
+// #pragma once
 
-#include <functional>
+// #include <functional>
 
-#include "RenderView.hh"
+// #include "RenderView.hh"
 
-#include "starlight/renderer/gpu/RenderPass.hh"
-#include "starlight/renderer/gpu/Shader.hh"
+// #include "starlight/renderer/gpu/RenderPass.hh"
+// #include "starlight/renderer/gpu/Shader.hh"
 
-namespace sl {
+// namespace sl {
 
-class WorldRenderView : public RenderView {
-public:
-    explicit WorldRenderView(
-      const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
-    );
+// class WorldRenderView : public RenderView {
+// public:
+//     explicit WorldRenderView(
+//       const Vec2<f32>& viewportOffset, ResourceRef<Shader> shader
+//     );
 
-    RenderPass::Properties generateRenderPassProperties(
-      RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-    ) override;
+//     RenderPass::Properties generateRenderPassProperties(
+//       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
+//     ) override;
 
-    void init(RendererBackend& renderer, RenderPass& renderPass) override;
+//     void init(RendererBackend& renderer, RenderPass& renderPass) override;
 
-    void render(
-      RendererBackend& renderer, RenderPacket& packet, const RenderProperties& props,
-      float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
-    ) override;
+//     void render(
+//       RendererBackend& renderer, RenderPacket& packet, const RenderProperties&
+//       props, float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
+//     ) override;
 
-private:
-    ResourceRef<Shader> m_shader;
-};
+// private:
+//     ResourceRef<Shader> m_shader;
+// };
 
-}  // namespace sl
+// }  // namespace sl

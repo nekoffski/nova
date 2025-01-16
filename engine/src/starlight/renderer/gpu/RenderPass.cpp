@@ -4,16 +4,8 @@
 
 #include "RenderTarget.hh"
 #include "starlight/renderer/Renderer.hh"
-#include "starlight/core/utils/Enum.hh"
-
-#ifdef SL_USE_VK
-#include "starlight/renderer/gpu/vulkan/VKRenderPass.hh"
-#include "starlight/renderer/gpu/vulkan/VKRendererBackend.hh"
-#endif
 
 namespace sl {
-
-namespace v2 {
 
 RenderPass::RenderPass(
   Renderer& renderer, const Vec2<f32>& viewportOffset,
@@ -25,15 +17,15 @@ RenderPass::RenderPass(
 void RenderPass::run(
   RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
 ) {
+    const auto viewport = getViewport();
+    commandBuffer.execute(SetViewportCommand{
+      .offset = viewport.offset,
+      .size   = viewport.size,
+    });
+
     m_renderPassImpl->run(
       commandBuffer, imageIndex,
       [&](CommandBuffer& commandBuffer, u32 imageIndex) {
-          const auto viewport = getViewport();
-          commandBuffer.execute(SetViewportCommand{
-            .offset = viewport.offset,
-            .size   = viewport.size,
-          });
-
           render(packet, commandBuffer, imageIndex);
       }
     );
@@ -42,7 +34,8 @@ void RenderPass::run(
 void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     m_renderPassImpl.clear();
     const auto props = createProperties(hasPreviousPass, hasNextPass);
-    m_renderPassImpl = m_renderer.getDevice().createRenderPass(props);
+    m_renderPassImpl =
+      m_renderer.getDevice().createRenderPass(props, hasPreviousPass, hasNextPass);
 }
 
 Rect2<u32> RenderPass::getViewport() {
@@ -92,36 +85,5 @@ RenderPass::Properties RenderPass::createDefaultProperties(
 
     return props;
 }
-
-}  // namespace v2
-
-OwningPtr<RenderPass> RenderPass::create(
-  RendererBackend& renderer, const Properties& props, ChainFlags chainFlags
-) {
-#ifdef SL_USE_VK
-    // auto& vkRenderer = static_cast<vk::VKRendererBackend&>(renderer);
-
-    // LOG_TRACE("Creating instance of vulkan render pass");
-
-    // return createOwningPtr<vk::VKRenderPass>(
-    //   vkRenderer.getContext(), vkRenderer.getLogicalDevice(),
-    //   vkRenderer.getSwapchain(), props, chainFlags
-    // );
-#else
-    FATAL_ERROR("Could not find renderer backend implementation");
-#endif
-}
-
-RenderPass::RenderPass(const Properties& props) : m_props(props) {}
-
-void RenderPass::setClearColor(const Vec4<f32>& color) {
-    m_props.clearColor = color;
-}
-
-void RenderPass::setRect(const Rect2<u32>& extent) { m_props.rect = extent; }
-
-void RenderPass::setRectSize(const Vec2<u32>& size) { m_props.rect.size = size; }
-
-const RenderPass::Properties& RenderPass::getProperties() const { return m_props; }
 
 }  // namespace sl

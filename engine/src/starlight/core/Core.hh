@@ -14,6 +14,10 @@ namespace sl {
 
 DEFINE_ERROR(Error);
 
+template <class... Ts> struct Overload : Ts... {
+    using Ts::operator()...;
+};
+
 struct NonCopyable {
     NonCopyable()                         = default;
     NonCopyable(NonCopyable&&)            = default;

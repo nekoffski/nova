@@ -1,35 +1,35 @@
-#pragma once
+// #pragma once
 
-#include "starlight/core/memory/Memory.hh"
+// #include "starlight/core/memory/Memory.hh"
 
-#include "RenderView.hh"
+// #include "RenderView.hh"
 
-#include "starlight/renderer/gpu/RenderPass.hh"
-#include "starlight/renderer/gpu/Shader.hh"
-#include "starlight/renderer/Skybox.hh"
+// #include "starlight/renderer/gpu/RenderPass.hh"
+// #include "starlight/renderer/gpu/Shader.hh"
+// #include "starlight/renderer/Skybox.hh"
 
-namespace sl {
+// namespace sl {
 
-class SkyboxRenderView : public RenderView {
-public:
-    explicit SkyboxRenderView(
-      const Vec2<f32>& viewportOffset,
-      ResourceRef<Shader> shader = SkyboxFactory::get().getDefaultShader()
-    );
+// class SkyboxRenderView : public RenderView {
+// public:
+//     explicit SkyboxRenderView(
+//       const Vec2<f32>& viewportOffset,
+//       ResourceRef<Shader> shader = SkyboxFactory::get().getDefaultShader()
+//     );
 
-    RenderPass::Properties generateRenderPassProperties(
-      RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-    ) override;
+//     RenderPass::Properties generateRenderPassProperties(
+//       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
+//     ) override;
 
-    void init(RendererBackend& renderer, RenderPass& renderPass) override;
+//     void init(RendererBackend& renderer, RenderPass& renderPass) override;
 
-    void render(
-      RendererBackend& renderer, RenderPacket& packet, const RenderProperties& props,
-      float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
-    ) override;
+//     void render(
+//       RendererBackend& renderer, RenderPacket& packet, const RenderProperties&
+//       props, float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
+//     ) override;
 
-private:
-    ResourceRef<Shader> m_shader;
-};
+// private:
+//     ResourceRef<Shader> m_shader;
+// };
 
-}  // namespace sl
+// }  // namespace sl

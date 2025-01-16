@@ -74,6 +74,9 @@ public:
             std::vector<VkPresentModeKHR> presentModes;
             VkFormat depthFormat;
             u8 depthChannelCount;
+            VkSurfaceFormatKHR surfaceFormat;
+            VkPresentModeKHR presentMode;
+            bool supportsDeviceLocalHostVisibleMemory;
         };
 
         explicit Physical(VkInstance instance, VkSurfaceKHR surface);
@@ -112,6 +115,8 @@ public:
 
     std::optional<i32> findMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
 
+    OwningPtr<Shader> createShader(const Shader::Properties& props) override;
+
     OwningPtr<CommandBuffer> createCommandBuffer(
       CommandBuffer::Severity severity = CommandBuffer::Severity::primary
     ) override;
@@ -120,8 +125,8 @@ public:
       createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&)
         override;
 
-    OwningPtr<sl::v2::RenderPass::Impl> createRenderPass(
-      const sl::v2::RenderPass::Properties& props
+    OwningPtr<sl::RenderPass::Impl> createRenderPass(
+      const sl::RenderPass::Properties& props, bool hasPreviousPass, bool hasNextPass
     ) override;
 
     OwningPtr<Semaphore> createSemaphore() override;
