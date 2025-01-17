@@ -18,4 +18,6 @@ ImmediateCommandBuffer::~ImmediateCommandBuffer() {
 
 CommandBuffer& ImmediateCommandBuffer::get() { return *m_commandBuffer; }
 
+ImmediateCommandBuffer::operator CommandBuffer&() { return get(); }
+
 }  // namespace sl

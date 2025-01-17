@@ -15,29 +15,30 @@ struct Buffer : public NonCopyable, public NonMovable {
         MemoryProperty memoryProperty;
         BufferUsage usage;
         bool bindOnCreate;
-    };
 
-    struct Region {
-        u64 src;
-        u64 dest;
-        u64 size;
+        static Properties staging(u64 size) {
+            return Buffer::Properties{
+                .size = size,
+                .memoryProperty =
+                  MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                  | MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                .usage        = BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT,
+                .bindOnCreate = true
+            };
+        }
     };
 
     virtual ~Buffer() = default;
 
     virtual void bind(u64 offset = 0) = 0;
 
-    virtual void* lockMemory(
-      u64 offset, u64 size, MemoryProperty memoryProperty
-    )                           = 0;
-    virtual void unlockMemory() = 0;
+    virtual void* lockMemory(const Range& range = Range{ 0u, u64Max }) = 0;
+    virtual void unlockMemory()                                        = 0;
 
-    virtual std::optional<u64> allocate(u64 size) = 0;
-    virtual void free(u64 size, u64 offset)       = 0;
+    virtual std::optional<Range> allocate(u64 size, const void* data = nullptr) = 0;
+    virtual void free(const Range& range)                                       = 0;
 
-    virtual void loadData(
-      u64 offset, u64 size, MemoryProperty memoryProperty, const void* data
-    ) = 0;
+    virtual void copy(const Range& range, const void* data) = 0;
 };
 
 }  // namespace sl

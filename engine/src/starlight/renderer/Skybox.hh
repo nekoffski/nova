@@ -4,7 +4,7 @@
 #include "starlight/core/memory/Memory.hh"
 
 #include "gpu/Texture.hh"
-#include "gpu/Mesh.hh"
+#include "Mesh.hh"
 #include "starlight/renderer/gpu/Shader.hh"
 
 namespace sl {
@@ -23,19 +23,6 @@ public:
 private:
     ResourceRef<Texture> m_cubeMap;
     LocalPtr<Shader::Instance> m_instance;
-};
-
-class SkyboxFactory
-    : public ResourceFactory<Skybox>,
-      public kc::core::Singleton<SkyboxFactory> {
-public:
-    explicit SkyboxFactory();
-
-    ResourceRef<Skybox> load(const std::string& name);
-    ResourceRef<Shader> getDefaultShader();
-
-private:
-    ResourceRef<Shader> m_defaultSkyboxShader;
 };
 
 }  // namespace sl

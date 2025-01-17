@@ -14,6 +14,9 @@
 
 #include "factories/ShaderFactory.hh"
 #include "factories/TextureFactory.hh"
+#include "factories/SkyboxFactory.hh"
+#include "factories/MeshFactory.hh"
+#include "factories/MaterialFactory.hh"
 
 namespace sl {
 
@@ -51,6 +54,9 @@ private:
     OwningPtr<Device> m_device;
     OwningPtr<Swapchain> m_swapchain;
 
+    OwningPtr<Buffer> m_vertexBuffer;
+    OwningPtr<Buffer> m_indexBuffer;
+
     u8 m_currentFrame;
     u8 m_maxFramesInFlight;
 
@@ -60,15 +66,12 @@ private:
     std::vector<OwningPtr<Fence>> m_frameFences;
     std::vector<Fence*> m_imageFences;
 
-    OwningPtr<Buffer> m_vertexBuffer;
-    OwningPtr<Buffer> m_indexBuffer;
-
     // factories
     ShaderFactory m_shaderFactory;
     TextureFactory m_textureFactory;
-    //     MaterialFactory m_materialFactory;
-    //     MeshFactory m_meshFactory;
-    //     SkyboxFactory m_skyboxFactory;
+    MaterialFactory m_materialFactory;
+    MeshFactory m_meshFactory;
+    SkyboxFactory m_skyboxFactory;
 };
 
 }  // namespace sl

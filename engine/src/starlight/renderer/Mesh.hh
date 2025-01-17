@@ -12,6 +12,9 @@
 #include "starlight/core/math/Vertex.hh"
 #include "starlight/core/utils/Resource.hh"
 
+#include "gpu/Device.hh"
+#include "gpu/Buffer.hh"
+
 namespace sl {
 namespace detail {
 
@@ -73,16 +76,20 @@ struct SphereProperties {
 class Mesh : public NonMovable, public Identificable<Mesh> {
 public:
     struct Data {
-        u64 vertexSize;
-        u64 vertexCount;
+        u64 vertexDataSize;
+        u64 indexDataSize;
+
         const void* vertexData;
-        std::span<const u32> indices;
+        const void* indexData;
+
         Extent3 extent;
     };
 
     template <detail::VertexType Vertex, detail::ExtentType Extent>
     struct Properties {
-        std::vector<u32> indices;
+        using IndexType = u32;
+
+        std::vector<IndexType> indices;
         std::vector<Vertex> vertices;
 
         Extent calculateExtent() const {
@@ -90,10 +97,13 @@ public:
         }
 
         Data toMeshData() const& {
-            return Data(
-              sizeof(Vertex), vertices.size(), vertices.data(), indices,
-              calculateExtent()
-            );
+            return Data{
+                .vertexDataSize = sizeof(Vertex) * vertices.size(),
+                .indexDataSize  = sizeof(IndexType) * indices.size(),
+                .vertexData     = vertices.data(),
+                .indexData      = indices.data(),
+                .extent         = calculateExtent(),
+            };
         }
     };
 
@@ -109,61 +119,18 @@ public:
 
     struct Properties2D final : public Properties<Vertex2, Extent2> {};
 
-    struct BufferDescription {
-        u64 vertexCount;
-        u64 vertexElementSize;
-        u64 vertexBufferOffset;
-        u64 indexCount;
-        u64 indexElementSize;
-        u64 indexBufferOffset;
+    explicit Mesh(const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer);
+    ~Mesh();
 
-        u64 indicesTotalSize() const { return indexCount * indexElementSize; }
-        u64 verticesTotalSize() const { return vertexCount * vertexElementSize; }
-    };
-
-    virtual ~Mesh() = default;
-
-    const BufferDescription& getDataDescription() const;
     const Extent3& getExtent() const;
 
 protected:
-    explicit Mesh(const Data& data);
-
-    BufferDescription m_dataDescription;
     Extent3 m_extent;
-};
+    Buffer& m_vertexBuffer;
+    Buffer& m_indexBuffer;
 
-class MeshFactory
-    : public ResourceFactory<Mesh>,
-      public kc::core::Singleton<MeshFactory> {
-public:
-    // explicit MeshFactory(RendererBackend& renderer);
-
-    template <typename T>
-    requires std::is_constructible_v<Mesh::Properties3D, const T&>
-    ResourceRef<Mesh> create(const std::string& name, const T& properties) {
-        return create(name, Mesh::Properties3D{ properties });
-    }
-
-    ResourceRef<Mesh> create(
-      const std::string& name, const Mesh::Properties2D& config
-    );
-    ResourceRef<Mesh> create(
-      const std::string& name, const Mesh::Properties3D& config
-    );
-
-    ResourceRef<Mesh> getCube();
-    ResourceRef<Mesh> getUnitSphere();
-    ResourceRef<Mesh> getPlane();
-
-private:
-    void createDefaults();
-
-    ResourceRef<Mesh> m_cube;
-    ResourceRef<Mesh> m_unitSphere;
-    ResourceRef<Mesh> m_plane;
-
-    // RendererBackend& m_renderer;
+    Range m_vertexBufferRange;
+    Range m_indexBufferRange;
 };
 
 }  // namespace sl

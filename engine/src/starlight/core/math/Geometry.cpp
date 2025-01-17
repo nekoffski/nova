@@ -37,13 +37,14 @@ void generateTangents(std::span<Vertex3> vertices, const std::span<u32> indices)
         auto& v1 = vertices[indices[i + 1]];
         auto& v2 = vertices[indices[i + 2]];
 
-        LOG_TRACE(
-          "Input vertices positions: {} {} {}", v0.position, v1.position, v2.position
-        );
-        LOG_TRACE(
-          "Input vertices tex coords: {} {} {}", v0.textureCoordinates,
-          v1.textureCoordinates, v2.textureCoordinates
-        );
+        // LOG_TRACE(
+        //   "Input vertices positions: {} {} {}", v0.position, v1.position,
+        //   v2.position
+        // );
+        // LOG_TRACE(
+        //   "Input vertices tex coords: {} {} {}", v0.textureCoordinates,
+        //   v1.textureCoordinates, v2.textureCoordinates
+        // );
 
         auto edge1 = v1.position - v0.position;
         auto edge2 = v2.position - v0.position;
@@ -54,7 +55,7 @@ void generateTangents(std::span<Vertex3> vertices, const std::span<u32> indices)
         float dividend = (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
         float fc       = 1.0f / dividend;
 
-        LOG_TRACE("fc={}", fc);
+        // LOG_TRACE("fc={}", fc);
 
         auto tangent = Vec3<f32>(
           deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
@@ -71,7 +72,7 @@ void generateTangents(std::span<Vertex3> vertices, const std::span<u32> indices)
         v1.tangent = hTangent;
         v2.tangent = hTangent;
 
-        LOG_TRACE("Generated tangent: {}", hTangent);
+        // LOG_TRACE("Generated tangent: {}", hTangent);
     }
 }
 

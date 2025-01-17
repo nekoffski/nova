@@ -29,7 +29,7 @@
 //     m_device.waitIdle();
 // }
 
-// u64 VKMesh::uploadDataRange(
+// u64 VKMesh::upcopyRange(
 //   VkCommandPool pool, VkFence fence, VkQueue queue, VulkanBuffer& outBuffer, u64
 //   size, const void* data
 // ) {
@@ -44,7 +44,7 @@
 //       true }
 //     );
 
-//     stagingBuffer.loadData(0, size, 0, data);
+//     stagingBuffer.copy(0, size, 0, data);
 //     stagingBuffer.copyTo(
 //       pool, fence, queue, outBuffer.getHandle(),
 //       VulkanBufferCopy{ .srcOffset = 0, .dstOffset = offset, .size = size }
@@ -59,14 +59,14 @@
 //     auto pool  = m_device.getGraphicsCommandPool();
 //     auto queue = m_device.getQueues().graphics;
 
-//     m_dataDescription.vertexBufferOffset = uploadDataRange(
+//     m_dataDescription.vertexBufferOffset = upcopyRange(
 //       pool, nullptr, queue, vertexBuffer, m_dataDescription.verticesTotalSize(),
 //       data.vertexData
 //     );
 
 //     // TODO: allow for indices to be optional
 //     if (m_dataDescription.indexCount > 0) {
-//         m_dataDescription.indexBufferOffset = uploadDataRange(
+//         m_dataDescription.indexBufferOffset = upcopyRange(
 //           pool, nullptr, queue, indexBuffer, m_dataDescription.indicesTotalSize(),
 //           data.indices.data()
 //         );

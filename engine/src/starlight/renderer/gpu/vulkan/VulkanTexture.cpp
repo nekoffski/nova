@@ -248,7 +248,7 @@ void VulkanTexture::write(std::span<u8> pixels, CommandBuffer* commandBuffer) {
     };
 
     VulkanBuffer stagingBuffer(m_device, stagingBufferProperties);
-    stagingBuffer.loadData(0, imageSize, MemoryProperty::undefined, pixels.data());
+    stagingBuffer.copy(Range{ .offset = 0u, .size = imageSize }, pixels.data());
 
     const auto execute = [&](CommandBuffer& commandBuffer) {
         auto& vkCommandBuffer = static_cast<VulkanCommandBuffer&>(commandBuffer);

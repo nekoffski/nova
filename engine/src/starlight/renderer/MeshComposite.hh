@@ -6,7 +6,7 @@
 #include "starlight/core/math/Transform.hh"
 #include "starlight/core/utils/Resource.hh"
 
-#include "gpu/Mesh.hh"
+#include "Mesh.hh"
 #include "Material.hh"
 
 namespace sl {

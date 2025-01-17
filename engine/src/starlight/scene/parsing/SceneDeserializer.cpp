@@ -1,5 +1,7 @@
 #include "SceneDeserializer.hh"
 
+#include "starlight/renderer/factories/SkyboxFactory.hh"
+
 #include "starlight/core/utils/Json.hh"
 
 namespace sl {
