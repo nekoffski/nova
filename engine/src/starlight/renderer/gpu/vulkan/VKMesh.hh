@@ -23,7 +23,7 @@
 //     void upload(VulkanBuffer& vertexBuffer, VulkanBuffer& indexBuffer, const Data&
 //     data);
 
-//     u64 uploadDataRange(
+//     u64 upcopyRange(
 //       VkCommandPool pool, VkFence fence, VkQueue queue, VulkanBuffer& outBuffer,
 //       u64 size, const void* data
 //     );

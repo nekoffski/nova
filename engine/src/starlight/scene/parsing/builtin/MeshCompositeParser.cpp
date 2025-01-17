@@ -1,5 +1,8 @@
 #include "MeshCompositeParser.hh"
 
+#include "starlight/renderer/factories/MeshFactory.hh"
+#include "starlight/renderer/factories/MaterialFactory.hh"
+
 namespace sl {
 
 std::string MeshCompositeSerializer::getName() const { return "MeshComposite"; }

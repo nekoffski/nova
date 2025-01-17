@@ -31,6 +31,7 @@ public:
     ~ImmediateCommandBuffer();
 
     CommandBuffer& get();
+    operator CommandBuffer&();
 
 private:
     OwningPtr<CommandBuffer> m_commandBuffer;

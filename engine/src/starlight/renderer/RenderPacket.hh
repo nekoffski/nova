@@ -2,8 +2,8 @@
 
 #include "starlight/core/math/Core.hh"
 
-#include "gpu/Mesh.hh"
 #include "gpu/Texture.hh"
+#include "Mesh.hh"
 #include "light/PointLight.hh"
 #include "light/DirectionalLight.hh"
 #include "camera/Camera.hh"

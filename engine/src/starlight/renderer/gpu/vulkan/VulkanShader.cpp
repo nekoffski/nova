@@ -562,7 +562,7 @@ u32 VulkanShader::acquireInstanceResources(const std::vector<Texture*>& textures
 
     // allocate space in the UBO - by the stride, not the size
     if (m_uboStride > 0) {
-        instanceState.offset = *m_uniformBuffer->allocate(m_uboStride);
+        instanceState.offset = m_uniformBuffer->allocate(m_uboStride)->offset;
         LOG_INFO(
           "Shader {} allocated offset={} for instance resources", m_name,
           instanceState.offset.get()
@@ -617,8 +617,12 @@ void VulkanShader::releaseInstanceResources(u32 instanceId) {
     instanceState.descriptorSetState.descriptorStates.resize(maxBindings);
     instanceState.instanceTextures.clear();
 
-    if (instanceState.offset.hasValue())
-        m_uniformBuffer->free(m_uboStride, *instanceState.offset);
+    if (instanceState.offset.hasValue()) {
+        m_uniformBuffer->free(Range{
+          .offset = *instanceState.offset,
+          .size   = m_uboStride,
+        });
+    }
     instanceState.id.invalidate();
     instanceState.offset.invalidate();
 }
@@ -780,9 +784,8 @@ void VulkanShader::createUniformBuffer() {
     m_uniformBuffer.emplace(m_device, bufferProps);
 
     LOG_DEBUG("Allocating {}b of memory", m_globalUboStride);
-    m_globalUboOffset = *m_uniformBuffer->allocate(m_globalUboStride);
-    m_mappedUniformBufferBlock =
-      m_uniformBuffer->lockMemory(0, VK_WHOLE_SIZE, MemoryProperty::undefined);
+    m_globalUboOffset = m_uniformBuffer->allocate(m_globalUboStride)->offset;
+    m_mappedUniformBufferBlock = m_uniformBuffer->lockMemory();
 
     std::array<VkDescriptorSetLayout, 3> globalLayouts = {
         m_descriptorSetLayouts[descSetIndexGlobal],

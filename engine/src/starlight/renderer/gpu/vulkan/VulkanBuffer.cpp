@@ -3,6 +3,7 @@
 #include <kc/core/Log.h>
 
 #include "VulkanDevice.hh"
+#include "VulkanCommandBuffer.hh"
 
 namespace sl::vk {
 
@@ -60,12 +61,6 @@ VulkanBuffer::~VulkanBuffer() {
     if (m_handle) vkDestroyBuffer(device, m_handle, allocator);
 }
 
-std::optional<u64> VulkanBuffer::allocate(u64 size) {
-    return m_freeList.allocateBlock(size);
-}
-
-void VulkanBuffer::free(u64 size, u64 offset) { m_freeList.freeBlock(size, offset); }
-
 VkMemoryRequirements VulkanBuffer::getMemoryRequirements() const {
     VkMemoryRequirements memoryRequirements;
     vkGetBufferMemoryRequirements(
@@ -91,10 +86,11 @@ void VulkanBuffer::bind(u64 offset) {
     );
 }
 
-void* VulkanBuffer::lockMemory(u64 offset, u64 size, MemoryProperty flags) {
+void* VulkanBuffer::lockMemory(const Range& range) {
     void* data;
     VK_ASSERT(vkMapMemory(
-      m_device.logical.handle, m_memory, offset, size, toVk(flags), &data
+      m_device.logical.handle, m_memory, range.offset,
+      range.size == u64Max ? VK_WHOLE_SIZE : range.size, 0, &data
     ));
     return data;
 }
@@ -103,10 +99,51 @@ void VulkanBuffer::unlockMemory() {
     vkUnmapMemory(m_device.logical.handle, m_memory);
 }
 
-void VulkanBuffer::loadData(
-  u64 offset, u64 size, MemoryProperty flags, const void* data
-) {
-    std::memcpy(lockMemory(offset, size, flags), data, size);
+std::optional<Range> VulkanBuffer::allocate(u64 size, const void* data) {
+    auto offset = m_freeList.allocateBlock(size);
+
+    if (not offset) {
+        LOG_WARN("Could not allocate {}b, not space left", size);
+        return {};
+    }
+    Range range{ .offset = *offset, .size = size };
+
+    if (data != nullptr) {
+        const auto isDeviceLocal = isFlagEnabled(
+          m_props.memoryProperty, MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        );
+
+        if (isDeviceLocal) {
+            VulkanBuffer stagingBuffer{
+                m_device, Buffer::Properties::staging(range.size)
+            };
+            stagingBuffer.copy(Range{ .offset = 0u, .size = range.size }, data);
+
+            VkBufferCopy copyRegion{
+                .srcOffset = 0, .dstOffset = range.offset, .size = size
+            };
+            ImmediateCommandBuffer commandBuffer{
+                m_device.createCommandBuffer(), m_device.getGraphicsQueue()
+            };
+            vkCmdCopyBuffer(
+              toVk(commandBuffer).getHandle(), stagingBuffer.getHandle(), m_handle,
+              1, &copyRegion
+            );
+        } else {
+            copy(range, data);
+        }
+    }
+
+    return range;
+}
+
+void VulkanBuffer::free(const Range& range) {
+    m_freeList.freeBlock(range.size, range.offset);
+}
+
+void VulkanBuffer::copy(const Range& range, const void* data) {
+    auto destMemory = lockMemory(range);
+    std::memcpy(destMemory, data, range.size);
     unlockMemory();
 }
 

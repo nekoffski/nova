@@ -21,15 +21,13 @@ public:
 
     void bind(u64 offset = 0) override;
 
-    void* lockMemory(u64 offset, u64 size, MemoryProperty memoryProperty) override;
+    void* lockMemory(const Range& range = Range{ 0u, u64Max }) override;
     void unlockMemory() override;
 
-    std::optional<u64> allocate(u64 size) override;
-    void free(u64 size, u64 offset) override;
+    std::optional<Range> allocate(u64 size, const void* data = nullptr) override;
+    void free(const Range& range) override;
 
-    void loadData(
-      u64 offset, u64 size, MemoryProperty memoryProperty, const void* data
-    ) override;
+    void copy(const Range& range, const void* data) override;
 
 private:
     VkBufferCreateInfo createBufferCreateInfo() const;
