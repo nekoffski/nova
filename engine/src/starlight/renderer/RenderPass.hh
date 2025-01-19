@@ -34,7 +34,8 @@ public:
 
 protected:
     RenderPassBackend::Properties createDefaultProperties(
-      Attachment attachments, ClearFlags clearFlags = ClearFlags::none
+      Attachment attachments, ClearFlags clearFlags = ClearFlags::none,
+      RenderPassBackend::Type type = RenderPassBackend::Type::normal
     );
 
     virtual Rect2<u32> getViewport();
@@ -42,23 +43,22 @@ protected:
       bool hasPreviousPass, bool hasNextPass
     ) = 0;
 
-private:
-    virtual void render(
-      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
-    ) = 0;
+protected:
+    void drawMesh(Mesh& mesh, CommandBuffer& buffer);
 
     Renderer& m_renderer;
-
-protected:
     ResourceRef<Shader> m_shader;
-
-private:
     Vec2<f32> m_viewportOffset;
     OwningPtr<RenderPassBackend> m_renderPassBackend;
     OwningPtr<Pipeline> m_pipeline;
 
 public:
     const std::string name;
+
+private:
+    virtual void render(
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+    ) = 0;
 };
 
 }  // namespace sl

@@ -43,17 +43,17 @@ void Application::init() { initEvents(); }
 void Application::startRenderLoop() {
     auto viewport = m_window.getFramebufferSize();
 
-    sl::Font::SubfontProperties icons{
-        "/home/nek0/kapik/projects/starlight/assets/fonts/fa-solid-900.ttf",
-        ICON_MIN_FA, ICON_MAX_FA
-    };
-    sl::Font::Properties font{
-        .name = "main-font",
-        .path =
-          "/home/nek0/kapik/projects/starlight/assets/fonts/Roboto-Regular.ttf",
-        .size     = 15,
-        .subfonts = { icons }
-    };
+    // sl::Font::SubfontProperties icons{
+    //     "/home/nek0/kapik/projects/starlight/assets/fonts/fa-solid-900.ttf",
+    //     ICON_MIN_FA, ICON_MAX_FA
+    // };
+    // sl::Font::Properties font{
+    //     .name = "main-font",
+    //     .path =
+    //       "/home/nek0/kapik/projects/starlight/assets/fonts/Roboto-Regular.ttf",
+    //     .size     = 15,
+    //     .subfonts = { icons }
+    // };
 
     sl::Vec2<sl::f32> viewportOffset{
         m_userInterface.getConfig().panelWidthRatio,

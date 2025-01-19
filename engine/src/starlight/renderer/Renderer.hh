@@ -28,6 +28,8 @@ public:
     Window& getWindow();
     Device& getDevice();
     Swapchain& getSwapchain();
+    Buffer& getVertexBuffer();
+    Buffer& getIndexBuffer();
 
     template <typename Callback>
     requires Callable<Callback, void, CommandBuffer&, u8>

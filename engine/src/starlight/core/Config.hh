@@ -29,6 +29,7 @@ struct Config {
         std::string textures;
         std::string shaders;
         std::string materials;
+        std::string fonts;
     } paths;
 };
 

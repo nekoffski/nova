@@ -27,7 +27,6 @@ void RenderGraph::rebuildChain() {
     for (u64 i = 0; i < n; ++i) {
         bool hasPreviousPass = (i != 0);
         bool hasNextPass     = (i != (n - 1));
-
         activePasses[i]->init(hasPreviousPass, hasNextPass);
     }
 

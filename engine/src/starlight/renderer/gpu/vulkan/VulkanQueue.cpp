@@ -78,4 +78,6 @@ bool VulkanQueue::present(const PresentInfo& presentInfo) {
     return true;
 }
 
+VkQueue VulkanQueue::getHandle() { return m_handle; }
+
 }  // namespace sl::vk

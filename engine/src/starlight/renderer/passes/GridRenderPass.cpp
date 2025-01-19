@@ -11,7 +11,8 @@ RenderPassBackend::Properties GridRenderPass::createProperties(
   bool hasPreviousPass, bool hasNextPass
 ) {
     return createDefaultProperties(
-      Attachment::swapchainColor | Attachment::depth, ClearFlags::depth
+      Attachment::swapchainColor | Attachment::depth,
+      hasPreviousPass ? ClearFlags::none : ClearFlags::depth
     );
 }
 
@@ -25,10 +26,7 @@ void GridRenderPass::render(
           proxy.set("projection", packet.camera->getProjectionMatrix());
       }
     );
-    commandBuffer.execute(DrawCommand{
-      .vertexCount   = 6u,
-      .instanceCount = 1u,
-    });
+    commandBuffer.execute(DrawCommand{ .vertexCount = 6u });
 }
 
 }  // namespace sl

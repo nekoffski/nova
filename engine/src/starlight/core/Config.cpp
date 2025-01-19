@@ -35,6 +35,7 @@ std::optional<Config> Config::fromJson(
                 .textures = getField<std::string>(paths, "textures"),
                 .shaders = getField<std::string>(paths, "shaders"),
                 .materials = getField<std::string>(paths, "materials"),
+                .fonts = getField<std::string>(paths, "fonts")
             }
         };
     } catch (const kc::json::JsonError& e) {

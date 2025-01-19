@@ -44,8 +44,8 @@ public:
     ~VulkanPipeline() {
         LOG_TRACE("Vulkan pipeline destroyed");
         vkDeviceWaitIdle(m_device);
-        vkDestroyPipelineLayout(m_device, m_layout, m_allocator);
         vkDestroyPipeline(m_device, m_handle, m_allocator);
+        vkDestroyPipelineLayout(m_device, m_layout, m_allocator);
     }
 
     void bind(CommandBuffer& commandBuffer) override {

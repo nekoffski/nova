@@ -2,6 +2,7 @@
 
 #include "starlight/renderer/factories/ShaderFactory.hh"
 #include "starlight/renderer/factories/SkyboxFactory.hh"
+#include "starlight/renderer/factories/MeshFactory.hh"
 
 namespace sl {
 
@@ -17,13 +18,12 @@ RenderPassBackend::Properties SkyboxRenderPass::createProperties(
 void SkyboxRenderPass::render(
   RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
 ) {
+    m_shader->use(commandBuffer);
     auto skybox = packet.skybox;
 
     if (not skybox) return;
 
     auto camera = packet.camera;
-
-    m_shader->use(commandBuffer);
     m_shader->setGlobalUniforms(commandBuffer, imageIndex, [&](auto& proxy) {
         auto viewMatrix  = camera->getViewMatrix();
         viewMatrix[3][0] = 0.0f;
@@ -35,7 +35,7 @@ void SkyboxRenderPass::render(
     });
     skybox->applyUniforms(m_shader, commandBuffer, imageIndex);
 
-    //     renderer.drawMesh(*MeshFactory::get().getCube());
+    drawMesh(*MeshFactory::get().getCube(), commandBuffer);
 }
 
 }  // namespace sl

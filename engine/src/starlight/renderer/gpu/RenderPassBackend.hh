@@ -14,6 +14,8 @@ struct RenderTarget {
 
 class RenderPassBackend : public NonMovable, public NonCopyable {
 public:
+    enum class Type : u8 { normal, ui };
+
     struct Properties {
         Rect2<u32> rect;
         Vec4<f32> clearColor;
@@ -21,6 +23,7 @@ public:
         std::vector<RenderTarget> renderTargets;
         f32 depth   = 1.0f;
         u32 stencil = 0u;
+        Type type   = Type::normal;
     };
 
     virtual ~RenderPassBackend() = default;

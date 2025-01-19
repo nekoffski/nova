@@ -12,6 +12,7 @@
   "paths": {
     "textures": "/home/nek0/kapik/projects/starlight/assets/textures",
     "shaders": "/home/nek0/kapik/projects/starlight/assets/shaders",
-    "materials": "/home/nek0/kapik/projects/starlight/assets/materials"
+    "materials": "/home/nek0/kapik/projects/starlight/assets/materials",
+    "fonts": "/home/nek0/kapik/projects/starlight/assets/fonts"
   }
 }

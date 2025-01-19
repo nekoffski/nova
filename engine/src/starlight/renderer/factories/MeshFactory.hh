@@ -46,9 +46,9 @@ private:
     Buffer& m_vertexBuffer;
     Buffer& m_indexBuffer;
 
-    ResourceRef<Mesh> m_cube;
     ResourceRef<Mesh> m_unitSphere;
     ResourceRef<Mesh> m_plane;
+    ResourceRef<Mesh> m_cube;
 };
 
 }  // namespace sl

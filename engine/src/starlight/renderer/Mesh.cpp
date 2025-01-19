@@ -16,11 +16,17 @@ Mesh::Mesh(const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer) :
     ASSERT(vertexRange, "Could not allocate vertex buffer range for mesh");
     ASSERT(indexRange, "Could not allocate index buffer range for mesh");
 
-    m_vertexBufferRange = *vertexRange;
-    m_indexBufferRange  = *indexRange;
+    m_memoryLayout.vertexBufferRange = *vertexRange;
+    m_memoryLayout.indexBufferRange  = *indexRange;
+    m_memoryLayout.indexCount        = data.indexCount;
 }
 
-Mesh::~Mesh() {}
+Mesh::~Mesh() {
+    // m_vertexBuffer.free(m_memoryLayout.vertexBufferRange);
+    // m_indexBuffer.free(m_memoryLayout.indexBufferRange);
+}
+
+const Mesh::MemoryLayout& Mesh::getMemoryLayout() const { return m_memoryLayout; }
 
 const Extent3& Mesh::getExtent() const { return m_extent; }
 

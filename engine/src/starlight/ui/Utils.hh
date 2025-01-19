@@ -22,9 +22,6 @@ bool checkbox(const std::string& label, bool& value);
 
 void indent(Callback&& callback);
 
-void pushFont(Font*);
-void popFont();
-
 void pushTextColor(const Vec3<f32>& color);
 void popTextColor(int count = 1);
 void withColor(const Vec3<f32>& color, Callback&& callback);

@@ -53,6 +53,10 @@ Device& Renderer::getDevice() { return *m_device; }
 
 Swapchain& Renderer::getSwapchain() { return *m_swapchain; }
 
+Buffer& Renderer::getIndexBuffer() { return *m_indexBuffer; }
+
+Buffer& Renderer::getVertexBuffer() { return *m_vertexBuffer; }
+
 void Renderer::createSyncPrimitives() {
     for (u8 i = 0; i < m_maxFramesInFlight; ++i) {
         m_frameFences.push_back(m_device->createFence(Fence::State::signaled));
@@ -91,12 +95,12 @@ std::optional<u8> Renderer::beginFrame() {
     });
 
     commandBuffer.execute(BindVertexBufferCommand{
-      .buffer = m_vertexBuffer.get(),
+      .buffer = *m_vertexBuffer,
       .offset = 0u,
     });
 
     commandBuffer.execute(BindIndexBufferCommand{
-      .buffer = m_indexBuffer.get(),
+      .buffer = *m_indexBuffer,
       .offset = 0u,
     });
 

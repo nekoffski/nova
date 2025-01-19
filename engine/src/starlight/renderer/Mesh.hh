@@ -76,6 +76,7 @@ struct SphereProperties {
 class Mesh : public NonMovable, public Identificable<Mesh> {
 public:
     struct Data {
+        u64 indexCount;
         u64 vertexDataSize;
         u64 indexDataSize;
 
@@ -83,6 +84,12 @@ public:
         const void* indexData;
 
         Extent3 extent;
+    };
+
+    struct MemoryLayout {
+        Range vertexBufferRange;
+        Range indexBufferRange;
+        u64 indexCount;
     };
 
     template <detail::VertexType Vertex, detail::ExtentType Extent>
@@ -98,6 +105,7 @@ public:
 
         Data toMeshData() const& {
             return Data{
+                .indexCount     = indices.size(),
                 .vertexDataSize = sizeof(Vertex) * vertices.size(),
                 .indexDataSize  = sizeof(IndexType) * indices.size(),
                 .vertexData     = vertices.data(),
@@ -122,15 +130,14 @@ public:
     explicit Mesh(const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer);
     ~Mesh();
 
+    const MemoryLayout& getMemoryLayout() const;
     const Extent3& getExtent() const;
 
 protected:
     Extent3 m_extent;
     Buffer& m_vertexBuffer;
     Buffer& m_indexBuffer;
-
-    Range m_vertexBufferRange;
-    Range m_indexBufferRange;
+    MemoryLayout m_memoryLayout;
 };
 
 }  // namespace sl

@@ -31,14 +31,14 @@ public:
       bool hasNextPass
     );
 
-    ~VulkanRenderPassBackend();
+    ~VulkanRenderPassBackend() override;
 
     void begin(CommandBuffer& commandBuffer, u32 imageIndex) override;
     void end(CommandBuffer& commandBuffer) override;
 
     VkRenderPass getHandle();
 
-private:
+protected:
     void generateRenderTargets();
 
     std::vector<VkClearValue> createClearValues(ClearFlags flags) const;
@@ -52,6 +52,24 @@ private:
     bool m_hasDepthAttachment;
 
     std::vector<LocalPtr<Framebuffer>> m_framebuffers;
+};
+
+class VulkanImguiRenderPassBackend final : public VulkanRenderPassBackend {
+public:
+    explicit VulkanImguiRenderPassBackend(
+      VulkanDevice& device, const Properties& properties, bool hasPreviousPass,
+      bool hasNextPass, const std::string& fontsPath
+    );
+
+    ~VulkanImguiRenderPassBackend() override;
+
+    void begin(CommandBuffer& commandBuffer, u32 imageIndex) override;
+    void end(CommandBuffer& commandBuffer) override;
+
+private:
+    void loadFonts(const std::string& fontsPath);
+
+    VkDescriptorPool m_uiPool;
 };
 
 }  // namespace sl::vk
