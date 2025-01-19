@@ -70,12 +70,12 @@ void VulkanCommandBuffer::execute(const Command& command) {
         [&](const BindVertexBufferCommand& cmd) {
             vkCmdBindVertexBuffers(
               m_handle, 0, 1,
-              static_cast<VulkanBuffer*>(cmd.buffer)->getHandlePointer(), &cmd.offset
+              static_cast<VulkanBuffer&>(cmd.buffer).getHandlePointer(), &cmd.offset
             );
         },
         [&](const BindIndexBufferCommand& cmd) {
             vkCmdBindIndexBuffer(
-              m_handle, static_cast<VulkanBuffer*>(cmd.buffer)->getHandle(),
+              m_handle, static_cast<VulkanBuffer&>(cmd.buffer).getHandle(),
               cmd.offset, VK_INDEX_TYPE_UINT32
             );
         },
@@ -83,6 +83,12 @@ void VulkanCommandBuffer::execute(const Command& command) {
             vkCmdDraw(
               m_handle, cmd.vertexCount, cmd.instanceCount, cmd.firstVertex,
               cmd.firstInstance
+            );
+        },
+        [&](const DrawIndexedCommand& cmd) {
+            vkCmdDrawIndexed(
+              m_handle, cmd.indexCount, cmd.instanceCount, cmd.firstIndex,
+              cmd.vertexOffset, cmd.firstInstance
             );
         },
         [&](const SetViewportCommand& cmd) {

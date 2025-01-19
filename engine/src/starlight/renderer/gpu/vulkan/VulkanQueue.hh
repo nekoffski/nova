@@ -14,6 +14,8 @@ public:
     bool submit(const SubmitInfo& submitInfo) override;
     bool present(const PresentInfo& presentInfo) override;
 
+    VkQueue getHandle();
+
 private:
     VkQueue m_handle;
 };

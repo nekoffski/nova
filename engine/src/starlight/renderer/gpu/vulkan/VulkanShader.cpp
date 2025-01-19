@@ -361,10 +361,7 @@ void VulkanShader::addUniform(
 }
 
 void VulkanShader::use(CommandBuffer& commandBuffer) {
-    // m_pipeline->bind(
-    //   static_cast<VulkanCommandBuffer&>(commandBuffer),
-    //   VK_PIPELINE_BIND_POINT_GRAPHICS
-    // );
+    m_pipeline->bind(static_cast<VulkanCommandBuffer&>(commandBuffer));
 }
 
 void VulkanShader::bindGlobals() {
@@ -400,7 +397,7 @@ void VulkanShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
 
     const auto globalSetBindingCount =
       m_descriptorSets[descSetIndexGlobal].bindingCount;
-    ASSERT(globalSetBindingCount <= 1, "Global image samplers not supportedyet ");
+    // ASSERT(globalSetBindingCount <= 1, "Global image samplers not supported yet");
 
     std::vector<VkDescriptorImageInfo> imageInfos;
     if (m_globalUniformSamplerCount > 0) {
@@ -414,7 +411,7 @@ void VulkanShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
             );
             imageInfos.emplace_back(
               texture->getSampler(), texture->getView(),
-              VK_IMAGE_LAYOUT_GENERAL  // TODO: transition layout?
+              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL  // TODO: transition layout?
             );
 
             VkWriteDescriptorSet samplerDescriptor;
@@ -436,6 +433,7 @@ void VulkanShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
     );
 
     auto globalDescriptor = &m_globalDescriptorSets[imageIndex];
+
     vkCmdBindDescriptorSets(
       static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle(),
       VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getLayout(), 0, 1,
@@ -521,6 +519,7 @@ void VulkanShader::applyInstance(CommandBuffer& commandBuffer, u32 imageIndex) {
           m_device.logical.handle, descriptorCount, descriptorWrites.data(), 0, 0
         );
     }
+
     vkCmdBindDescriptorSets(
       static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle(),
       VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getLayout(), 1, 1,
@@ -706,7 +705,7 @@ static std::unordered_map<PolygonMode, VkPolygonMode> vkPolygonModes = {
 };
 
 void VulkanShader::bindPipeline(Pipeline& pipeline) {
-    m_pipeline = dynamic_cast<VulkanPipeline*>(&pipeline);
+    m_pipeline = static_cast<VulkanPipeline*>(&pipeline);
 }
 
 VulkanPipeline::Properties VulkanShader::getPipelineProperties() {

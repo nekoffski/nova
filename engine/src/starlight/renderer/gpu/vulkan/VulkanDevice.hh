@@ -111,7 +111,7 @@ public:
     explicit VulkanDevice(Window& window, const Config& config);
 
     void waitIdle() override;
-    Queue& getQueue(Queue::Type type) override;
+    VulkanQueue& getQueue(Queue::Type type) override;
 
     std::optional<i32> findMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
 
@@ -142,6 +142,7 @@ public:
     OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) override;
 
     Window& window;
+    Config config;
     Allocator* allocator;
     Instance instance;
 

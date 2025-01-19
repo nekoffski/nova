@@ -177,11 +177,6 @@ VulkanPipeline::VulkanPipeline(
     pipeline_layout_create_info.setLayoutCount = props.descriptorSetLayouts.size();
     pipeline_layout_create_info.pSetLayouts    = props.descriptorSetLayouts.data();
 
-    LOG_TRACE(
-      "Descriptor set layouts in pipeline: {}",
-      pipeline_layout_create_info.setLayoutCount
-    );
-
     // for (int i = 0; i < pipeline_layout_create_info.setLayoutCount; ++i) {
     // }
 

@@ -18,7 +18,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] EventHandlerId pushEventHandler(
+    EventHandlerId pushEventHandler(
       std::function<void(const T&, details::HandledCallback&&)>&& handler
     ) {
         return pushEventHandlerImpl(
@@ -30,9 +30,7 @@ public:
     }
 
     template <typename T>
-    [[nodiscard]] EventHandlerId pushEventHandler(
-      std::function<void(const T&)>&& handler
-    ) {
+    EventHandlerId pushEventHandler(std::function<void(const T&)>&& handler) {
         return pushEventHandlerImpl(
           typeid(T),
           [handler = std::move(handler)](

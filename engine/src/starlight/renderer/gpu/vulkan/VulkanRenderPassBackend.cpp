@@ -1,5 +1,10 @@
 #include "VulkanRenderPassBackend.hh"
 
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <imgui.h>
+#include <ImGuizmo.h>
+
 #include "VulkanCommandBuffer.hh"
 #include "VulkanSwapchain.hh"
 
@@ -311,6 +316,132 @@ void VulkanRenderPassBackendCreateInfo::createRenderPassCreateInfo() {
     handle.pDependencies   = &m_dependency;
     handle.pNext           = 0;
     handle.flags           = 0;
+}
+
+/*
+    VulkanImguiRenderPassBackend
+*/
+
+VulkanImguiRenderPassBackend::VulkanImguiRenderPassBackend(
+  VulkanDevice& device, const Properties& properties, bool hasPreviousPass,
+  bool hasNextPass, const std::string& fontsPath
+) : VulkanRenderPassBackend(device, properties, hasPreviousPass, hasNextPass) {
+    VkDescriptorPoolSize poolSizes[] = {
+        { VK_DESCRIPTOR_TYPE_SAMPLER,                1000 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,       1000 }
+    };
+    VkDescriptorPoolCreateInfo poolInfo;
+    poolInfo.pNext         = nullptr;
+    poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets       = 1000;
+    poolInfo.poolSizeCount = std::size(poolSizes);
+    poolInfo.pPoolSizes    = poolSizes;
+
+    VK_ASSERT(vkCreateDescriptorPool(
+      m_device.logical.handle, &poolInfo, m_device.allocator, &m_uiPool
+    ));
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForVulkan(
+      static_cast<GLFWwindow*>(m_device.window.getHandle()), true
+    );
+
+    ImGui_ImplVulkan_InitInfo initInfo;
+    clearMemory(&initInfo);
+    initInfo.Instance       = m_device.instance.handle;
+    initInfo.PhysicalDevice = m_device.physical.handle;
+    initInfo.Device         = m_device.logical.handle;
+    initInfo.Queue          = m_device.getQueue(Queue::Type::graphics).getHandle();
+    initInfo.DescriptorPool = m_uiPool;
+    initInfo.MinImageCount  = 3;
+    initInfo.ImageCount     = 3;
+    initInfo.MSAASamples    = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.RenderPass     = m_handle;
+
+    ImGui_ImplVulkan_Init(&initInfo);
+
+    loadFonts(fontsPath);
+}
+
+VulkanImguiRenderPassBackend::~VulkanImguiRenderPassBackend() {
+    m_device.waitIdle();
+
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    if (m_uiPool) {
+        vkDestroyDescriptorPool(
+          m_device.logical.handle, m_uiPool, m_device.allocator
+        );
+    }
+}
+
+void VulkanImguiRenderPassBackend::begin(
+  CommandBuffer& commandBuffer, u32 imageIndex
+) {
+    VulkanRenderPassBackend::begin(commandBuffer, imageIndex);
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGuizmo::BeginFrame();
+}
+
+void VulkanImguiRenderPassBackend::end(CommandBuffer& commandBuffer) {
+    ImGui::Render();
+    ImGui_ImplVulkan_RenderDrawData(
+      ImGui::GetDrawData(),
+      static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle()
+    );
+    ImGui::EndFrame();
+    VulkanRenderPassBackend::end(commandBuffer);
+}
+
+#define ICON_MIN_FA 0xe005
+#define ICON_MAX_FA 0xf8ff
+
+void VulkanImguiRenderPassBackend::loadFonts(const std::string& fontsPath) {
+    // TODO: make it configurable
+    auto imguiFonts = ImGui::GetIO().Fonts;
+    auto handle     = imguiFonts->AddFontFromFileTTF(
+      fmt::format("{}/Roboto-Regular.ttf", fontsPath).c_str(), 15
+    );
+    ASSERT(handle, "Could not load font");
+
+    ImFontConfig config;
+    config.MergeMode        = true;
+    config.GlyphMinAdvanceX = 12.0f;
+    config.GlyphMaxAdvanceX = 15.0f;
+    config.GlyphOffset.y    = 1.0f;
+
+    static std::array<ImWchar, 3> mergedRanges = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+
+    ASSERT(
+      imguiFonts->AddFontFromFileTTF(
+        fmt::format("{}/fa-solid-900.ttf", fontsPath).c_str(), 13.0f, &config,
+        mergedRanges.data()
+      ),
+      "Could not merge font"
+    );
+    ImGui_ImplVulkan_CreateFontsTexture();
 }
 
 }  // namespace sl::vk

@@ -7,11 +7,6 @@
 #include "starlight/core/Context.hh"
 #include "starlight/core/event/Events.hh"
 
-#include "starlight/renderer/views/WorldRenderView.hh"
-#include "starlight/renderer/views/LightsDebugRenderView.hh"
-#include "starlight/renderer/views/SkyboxRenderView.hh"
-#include "starlight/renderer/views/UIRenderView.hh"
-#include "starlight/renderer/views/ShadowMapsRenderView.hh"
 #include "starlight/renderer/camera/EulerCamera.hh"
 #include "starlight/renderer/Renderer.hh"
 #include "starlight/renderer/RenderGraph.hh"
@@ -19,10 +14,11 @@
 #include "starlight/renderer/light/PointLight.hh"
 #include "starlight/scene/Scene.hh"
 #include "starlight/renderer/MeshComposite.hh"
-// #include "starlight/ui/UI.hh"
 #include "starlight/ui/fonts/FontAwesome.hh"
 #include "starlight/renderer/passes/SkyboxRenderPass.hh"
 #include "starlight/renderer/passes/GridRenderPass.hh"
+#include "starlight/renderer/passes/WorldRenderPass.hh"
+#include "starlight/renderer/passes/ShadowMapsRenderPass.hh"
 
 static std::atomic_bool isRunning = true;
 
@@ -39,10 +35,17 @@ int main(int argc, char** argv) {
     auto& window     = context.getWindow();
     auto& eventProxy = sl::EventProxy::get();
 
+    eventProxy.pushEventHandler<sl::KeyEvent>([&](auto& event) {
+        if (event.action == sl::KeyAction::press && event.key == SL_KEY_ESCAPE)
+            isRunning = false;
+    });
+
     sl::Renderer renderer{ context };
     sl::RenderGraph renderGraph{ renderer };
 
     renderGraph.addRenderPass<sl::SkyboxRenderPass>();
+    renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
+    renderGraph.addRenderPass<sl::WorldRenderPass>();
     renderGraph.addRenderPass<sl::GridRenderPass>();
 
     const auto viewportSize = window.getFramebufferSize();
@@ -57,8 +60,15 @@ int main(int argc, char** argv) {
     );
 
     sl::Scene scene{ window, &camera };
+    scene.skybox = sl::SkyboxFactory::get().load("skybox2/skybox");
 
-    int frames = 10;
+    auto& entity = scene.addEntity();
+    entity.addComponent<sl::MeshComposite>(
+      sl::MeshFactory::get().getCube(),
+      sl::MaterialFactory::get().load("Builtin.Material.Test")
+    );
+
+    int frames = 2;
 
     while (isRunning) {
         context.beginFrame([&](float deltaTime) {

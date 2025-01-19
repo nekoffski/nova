@@ -27,7 +27,8 @@ void Material::applyUniforms(
   ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex,
   const u64 renderFrameNumber
 ) {
-    if (m_renderFrameNumber != renderFrameNumber) {
+    if (true) {
+        //(m_renderFrameNumber != renderFrameNumber) {
         shader->setInstanceUniforms(
           commandBuffer, m_instance->getId(shader), imageIndex,
           [&](Shader::UniformProxy& proxy) {

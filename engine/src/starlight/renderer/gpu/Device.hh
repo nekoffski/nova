@@ -40,8 +40,10 @@ public:
       CommandBuffer::Severity severity = CommandBuffer::Severity::primary
     ) = 0;
 
-    virtual OwningPtr<Texture>
-      createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&) = 0;
+    virtual OwningPtr<Texture> createTexture(
+      const Texture::ImageData& image,
+      const Texture::SamplerProperties& = Texture::SamplerProperties::createDefault()
+    ) = 0;
 
     virtual OwningPtr<RenderPassBackend> createRenderPassBackend(
       const RenderPassBackend::Properties& props, bool hasPreviousPass,

@@ -34,12 +34,15 @@ void RenderPass::run(
 
 void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     m_renderPassBackend.clear();
+    m_pipeline.clear();
+
     const auto props = createProperties(hasPreviousPass, hasNextPass);
     auto& device     = m_renderer.getDevice();
 
     m_renderPassBackend =
       device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
     m_pipeline = device.createPipeline(*m_shader, *m_renderPassBackend);
+    m_shader->bindPipeline(*m_pipeline);
 }
 
 Rect2<u32> RenderPass::getViewport() {
@@ -58,14 +61,33 @@ Rect2<u32> RenderPass::getViewport() {
     };
 }
 
+void RenderPass::drawMesh(Mesh& mesh, CommandBuffer& commandBuffer) {
+    const auto& memoryLayout = mesh.getMemoryLayout();
+
+    commandBuffer.execute(BindVertexBufferCommand{
+      .buffer = m_renderer.getVertexBuffer(),
+      .offset = memoryLayout.vertexBufferRange.offset,
+    });
+
+    commandBuffer.execute(BindIndexBufferCommand{
+      .buffer = m_renderer.getIndexBuffer(),
+      .offset = memoryLayout.indexBufferRange.offset,
+    });
+
+    commandBuffer.execute(DrawIndexedCommand{
+      .indexCount = (u32)memoryLayout.indexCount,
+    });
+}
+
 RenderPassBackend::Properties RenderPass::createDefaultProperties(
-  Attachment attachments, ClearFlags clearFlags
+  Attachment attachments, ClearFlags clearFlags, RenderPassBackend::Type type
 ) {
     RenderPassBackend::Properties props;
 
     props.clearColor = Vec4<f32>{ 0.0f };
     props.clearFlags = clearFlags;
     props.rect       = getViewport();
+    props.type       = type;
 
     auto& swapchain = m_renderer.getSwapchain();
 

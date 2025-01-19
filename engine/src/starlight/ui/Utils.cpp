@@ -2,7 +2,6 @@
 
 #include <imgui.h>
 
-// TODO: abstraction
 #include <backends/imgui_impl_vulkan.h>
 
 namespace sl::ui {
@@ -16,9 +15,6 @@ void indent(Callback&& callback) {
     callback();
     ImGui::Unindent();
 }
-
-void pushFont(Font* font) { ImGui::PushFont(font->handle); }
-void popFont() { ImGui::PopFont(); }
 
 void pushTextColor(const Vec3<f32>& color) {
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color.x, color.y, color.z, 1.0f));

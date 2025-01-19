@@ -9,19 +9,27 @@
 namespace sl {
 
 struct BindVertexBufferCommand {
-    Buffer* buffer;
+    Buffer& buffer;
     u64 offset;
 };
 
 struct BindIndexBufferCommand {
-    Buffer* buffer;
+    Buffer& buffer;
     u64 offset;
 };
 
 struct DrawCommand {
     u32 vertexCount;
-    u32 instanceCount;
+    u32 instanceCount = 1u;
     u32 firstVertex   = 0u;
+    u32 firstInstance = 0u;
+};
+
+struct DrawIndexedCommand {
+    u32 indexCount;
+    u32 firstIndex    = 0u;
+    u32 vertexOffset  = 0u;
+    u32 instanceCount = 1u;
     u32 firstInstance = 0u;
 };
 
@@ -36,7 +44,7 @@ struct SetScissorsCommand {
 };
 
 using Command = std::variant<
-  BindVertexBufferCommand, BindIndexBufferCommand, DrawCommand, SetViewportCommand,
-  SetScissorsCommand>;
+  BindVertexBufferCommand, BindIndexBufferCommand, DrawCommand, DrawIndexedCommand,
+  SetViewportCommand, SetScissorsCommand>;
 
 }  // namespace sl

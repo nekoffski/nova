@@ -1,4 +1,4 @@
-// #include "UIRenderView.hh"
+// #include "UIRenderPass.hh"
 
 // #include <imgui.h>
 // #include <backends/imgui_impl_glfw.h>
@@ -8,13 +8,13 @@
 
 // namespace sl {
 
-// UIRenderView::UIRenderView(
+// UIRenderPass::UIRenderPass(
 //   const FontsProperties& fontsProperties, UICallback&& callback
 // ) :
-//     RenderView("UIRenderView", { 0.0f, 0.0f }),
+//     RenderView("UIRenderPass", { 0.0f, 0.0f }),
 //     m_fontsProperties(fontsProperties), m_uiCallback(callback) {}
 
-// RenderPassBackend::Properties UIRenderView::generateRenderPassProperties(
+// RenderPassBackend::Properties UIRenderPass::generateRenderPassProperties(
 //   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
 // ) {
 //     const auto clearFlags =
@@ -26,7 +26,7 @@
 //     );
 // }
 
-// void UIRenderView::init(RendererBackend& renderer, RenderPass& renderPass) {
+// void UIRenderPass::init(RendererBackend& renderer, RenderPass& renderPass) {
 //     m_uiRenderer = UIRenderer::create(renderer, renderPass);
 //     m_uiRenderer->setStyle();
 
@@ -37,7 +37,7 @@
 //     );
 // }
 
-// void UIRenderView::render(
+// void UIRenderPass::render(
 //   [[maybe_unused]] RendererBackend& renderer, [[maybe_unused]] RenderPacket&
 //   packet,
 //   [[maybe_unused]] const RenderProperties& props, [[maybe_unused]] float

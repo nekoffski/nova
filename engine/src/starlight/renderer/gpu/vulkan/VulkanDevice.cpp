@@ -22,7 +22,7 @@
 namespace sl::vk {
 
 VulkanDevice::VulkanDevice(Window& window, const Config& config) :
-    window(window), allocator(nullptr), instance(config, allocator),
+    window(window), config(config), allocator(nullptr), instance(config, allocator),
 #ifdef SL_VK_DEBUG
     m_debugMessenger(instance.handle, allocator),
 #endif
@@ -52,9 +52,13 @@ OwningPtr<Swapchain> VulkanDevice::createSwapchain(const Vec2<u32>& size) {
 OwningPtr<RenderPassBackend> VulkanDevice::createRenderPassBackend(
   const RenderPassBackend::Properties& props, bool hasPreviousPass, bool hasNextPass
 ) {
-    return createOwningPtr<VulkanRenderPassBackend>(
-      *this, props, hasPreviousPass, hasNextPass
-    );
+    return props.type == RenderPassBackend::Type::normal
+             ? createOwningPtr<VulkanRenderPassBackend>(
+                 *this, props, hasPreviousPass, hasNextPass
+               )
+             : createOwningPtr<VulkanImguiRenderPassBackend>(
+                 *this, props, hasPreviousPass, hasNextPass, config.paths.fonts
+               );
 }
 
 OwningPtr<Semaphore> VulkanDevice::createSemaphore() {
@@ -82,7 +86,9 @@ OwningPtr<Pipeline> VulkanDevice::createPipeline(
 
 void VulkanDevice::waitIdle() { vkDeviceWaitIdle(logical.handle); }
 
-Queue& VulkanDevice::getQueue(Queue::Type type) { return logical.queues.at(type); }
+VulkanQueue& VulkanDevice::getQueue(Queue::Type type) {
+    return logical.queues.at(type);
+}
 
 std::optional<i32> VulkanDevice::findMemoryIndex(u32 typeFilter, u32 propertyFlags)
   const {

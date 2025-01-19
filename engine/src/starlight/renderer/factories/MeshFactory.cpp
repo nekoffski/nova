@@ -29,11 +29,6 @@ ResourceRef<Mesh> MeshFactory::getPlane() { return m_plane; }
 ResourceRef<Mesh> MeshFactory::getUnitSphere() { return m_unitSphere; }
 
 void MeshFactory::createDefaults() {
-    Mesh::Properties3D cubeConfig{
-        CubeProperties{ 1.0f, 1.0f, 1.0f, 1, 1 }
-    };
-    m_cube = create("Cube", cubeConfig);
-
     Mesh::Properties3D unitSphereConfig{
         SphereProperties{ 16, 16, 1.0f }
     };
@@ -43,6 +38,11 @@ void MeshFactory::createDefaults() {
         PlaneProperties{ 5.0f, 5.0f, 2, 2 }
     };
     m_plane = create("Plane", planeConfig);
+
+    Mesh::Properties3D cubeConfig{
+        CubeProperties{ 1.0f, 1.0f, 1.0f, 1, 1 }
+    };
+    m_cube = create("Cube", cubeConfig);
 }
 
 OwningPtr<Mesh> MeshFactory::createMesh(const Mesh::Data& meshData) {

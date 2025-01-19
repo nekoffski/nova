@@ -1,21 +1,22 @@
 // #pragma once
 
+// #include <functional>
+
 // #include "starlight/core/memory/Memory.hh"
 
 // #include "RenderView.hh"
 
 // #include "starlight/renderer/RenderPass.hh"
-// #include "starlight/renderer/gpu/Shader.hh"
-// #include "starlight/renderer/Skybox.hh"
+// #include "starlight/renderer/gpu/UIRenderer.hh"
 
 // namespace sl {
 
-// class SkyboxRenderView : public RenderView {
+// class UIRenderPass : public RenderView {
 // public:
-//     explicit SkyboxRenderView(
-//       const Vec2<f32>& viewportOffset,
-//       ResourceRef<Shader> shader = SkyboxFactory::get().getDefaultShader()
-//     );
+//     using FontsProperties = std::vector<Font::Properties>;
+//     using UICallback      = std::function<void()>;
+
+//     explicit UIRenderPass(const FontsProperties& fonts, UICallback&& callback);
 
 //     RenderPassBackend::Properties generateRenderPassProperties(
 //       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
@@ -29,7 +30,10 @@
 //     ) override;
 
 // private:
-//     ResourceRef<Shader> m_shader;
+//     FontsProperties m_fontsProperties;
+//     UICallback m_uiCallback;
+//     OwningPtr<UIRenderer> m_uiRenderer;
+//     std::vector<Font*> m_fonts;
 // };
 
 // }  // namespace sl
