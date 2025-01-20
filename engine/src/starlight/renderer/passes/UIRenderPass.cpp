@@ -1,11 +1,4 @@
 #include "UIRenderPass.hh"
-// #include "UIRenderPass.hh"
-
-// #include <imgui.h>
-// #include <backends/imgui_impl_glfw.h>
-// #include <backends/imgui_impl_vulkan.h>
-
-// #include "starlight/renderer/gpu/vulkan/VulkanCommandBuffer.hh"
 
 #include "starlight/renderer/Renderer.hh"
 

@@ -2,6 +2,8 @@
 
 #include <starlight/ui/UI.hh>
 #include <starlight/core/event/EventProxy.hh>
+#include <starlight/renderer/factories/MeshFactory.hh>
+#include <starlight/renderer/factories/MaterialFactory.hh>
 
 #include "Events.hh"
 

@@ -36,7 +36,7 @@ void VulkanImageHandle::show(
 VkDescriptorSet VulkanImageHandle::createDescriptorSet(Texture* texture) {
     auto VulkanTexture = static_cast<vk::VulkanTexture*>(texture);
     auto sampler       = VulkanTexture->getSampler();
-    auto view          = VulkanTexture->getImage()->getView();
+    auto view          = VulkanTexture->getView();
 
     return ImGui_ImplVulkan_AddTexture(
       sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL

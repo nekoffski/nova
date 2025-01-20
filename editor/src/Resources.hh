@@ -4,7 +4,7 @@
 #include <unordered_set>
 
 #include <starlight/core/utils/Resource.hh>
-#include <starlight/renderer/gpu/Mesh.hh>
+#include <starlight/renderer/Mesh.hh>
 #include <starlight/renderer/gpu/Texture.hh>
 #include <starlight/renderer/Material.hh>
 #include <starlight/ui/widgets/Image.hh>

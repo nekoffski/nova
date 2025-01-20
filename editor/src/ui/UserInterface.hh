@@ -9,9 +9,11 @@
 #include "Console.hh"
 #include "Resources.hh"
 
+#include "starlight/renderer/passes/UIRenderPass.hh"
+
 namespace sle {
 
-class UserInterface {
+class UserInterface : public sl::UI {
 public:
     struct Config {
         static Config createDefault();
@@ -29,7 +31,7 @@ public:
     void onViewportReisze(const sl::Vec2<sl::u32>& viewport);
     void setRenderGraph(sl::RenderGraph& renderGraph);
 
-    void render();
+    void render() override;
 
     const Config& getConfig() const;
 
