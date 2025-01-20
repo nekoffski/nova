@@ -8,7 +8,7 @@
 #include <starlight/core/Context.hh>
 #include <starlight/core/memory/Memory.hh>
 #include <starlight/core/event/EventHandlerSentinel.hh>
-#include <starlight/renderer/RendererFrontend.hh>
+#include <starlight/renderer/Renderer.hh>
 #include <starlight/renderer/camera/Camera.hh>
 #include <starlight/scene/parsing/SceneParser.hh>
 
@@ -37,7 +37,7 @@ private:
     sl::Context m_context;
     sl::EventProxy& m_eventProxy;
     sl::Window& m_window;
-    sl::RendererFrontend m_renderer;
+    sl::Renderer m_renderer;
     sl::EventHandlerSentinel m_eventSentinel;
     Cameras m_cameras;
 

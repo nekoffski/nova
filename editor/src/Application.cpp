@@ -1,12 +1,12 @@
 #include "Application.hh"
 
 #include <starlight/core/event/Events.hh>
-#include <starlight/renderer/views/UIRenderView.hh>
-#include <starlight/renderer/views/WorldRenderView.hh>
-#include <starlight/renderer/views/SkyboxRenderView.hh>
-#include <starlight/renderer/views/LightsDebugRenderView.hh>
-#include <starlight/renderer/views/ShadowMapsRenderView.hh>
-#include <starlight/renderer/views/GridRenderView.hh>
+#include <starlight/renderer/passes/UIRenderPass.hh>
+#include <starlight/renderer/passes/WorldRenderPass.hh>
+#include <starlight/renderer/passes/SkyboxRenderPass.hh>
+// #include <starlight/renderer/passes/LightsDebugRenderPass.hh>
+#include <starlight/renderer/passes/ShadowMapsRenderPass.hh>
+#include <starlight/renderer/passes/GridRenderPass.hh>
 #include <starlight/ui/fonts/FontAwesome.hh>
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/Scene.hh>
@@ -20,8 +20,7 @@ Application::Application(
 ) :
     m_isRunning(true), m_config(config), m_context(config),
     m_eventProxy(m_context.getEventProxy()), m_window(m_context.getWindow()),
-    m_renderer(m_context.getWindow(), m_eventProxy, config),
-    m_eventSentinel(m_eventProxy),
+    m_renderer(m_context), m_eventSentinel(m_eventProxy),
     m_cameras(m_window.getFramebufferSize(), m_eventProxy),
     m_scene(m_window, m_cameras.getActive()),
     m_userInterface(m_eventProxy, m_window.getFramebufferSize(), &m_scene) {
@@ -43,18 +42,6 @@ void Application::init() { initEvents(); }
 void Application::startRenderLoop() {
     auto viewport = m_window.getFramebufferSize();
 
-    // sl::Font::SubfontProperties icons{
-    //     "/home/nek0/kapik/projects/starlight/assets/fonts/fa-solid-900.ttf",
-    //     ICON_MIN_FA, ICON_MAX_FA
-    // };
-    // sl::Font::Properties font{
-    //     .name = "main-font",
-    //     .path =
-    //       "/home/nek0/kapik/projects/starlight/assets/fonts/Roboto-Regular.ttf",
-    //     .size     = 15,
-    //     .subfonts = { icons }
-    // };
-
     sl::Vec2<sl::f32> viewportOffset{
         m_userInterface.getConfig().panelWidthRatio,
         m_userInterface.getConfig().panelHeightRatio
@@ -62,26 +49,20 @@ void Application::startRenderLoop() {
 
     auto worldShader = sl::ShaderFactory::get().load("Builtin.Shader.Material");
 
-    auto& backend = m_renderer.getRendererBackend();
-    auto renderGraph =
-      sl::RenderGraph::Builder{ backend, m_eventProxy, viewport }
-        .addView<sl::SkyboxRenderView>(viewportOffset)
-        .addView<sl::ShadowMapsRenderView>(viewportOffset)
-        .addView<sl::WorldRenderView>(viewportOffset, worldShader)
-        .addView<sl::GridRenderView>(viewportOffset)
-        .addView<sl::LightsDebugRenderView>(viewportOffset)
-        .addView<sl::UIRenderView>(
-          std::vector<sl::Font::Properties>{ font },
-          [&]() { m_userInterface.render(); }
-        )
-        .build();
+    sl::RenderGraph renderGraph{ m_renderer };
 
-    m_userInterface.setRenderGraph(*renderGraph);
+    renderGraph.addRenderPass<sl::SkyboxRenderPass>();
+    renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
+    renderGraph.addRenderPass<sl::WorldRenderPass>();
+    renderGraph.addRenderPass<sl::GridRenderPass>();
+    renderGraph.addRenderPass<sl::UIRenderPass>(m_userInterface);
+
+    m_userInterface.setRenderGraph(renderGraph);
 
     while (m_isRunning) {
         auto renderPacket = m_scene.getRenderPacket();
         m_context.beginFrame([&](float deltaTime) {
-            m_renderer.renderFrame(deltaTime, renderPacket, *renderGraph);
+            renderGraph.render(renderPacket);
             m_cameras.update(deltaTime);
         });
     }
@@ -101,11 +82,11 @@ void Application::initEvents() {
               LOG_INFO("Key ESC pressed, quitting");
               exit();
           } else if (event.key == SL_KEY_Z) {
-              m_renderer.setRenderMode(sl::RenderMode::lights);
+              //   m_renderer.setRenderMode(sl::RenderMode::lights);
           } else if (event.key == SL_KEY_X) {
-              m_renderer.setRenderMode(sl::RenderMode::normals);
+              //   m_renderer.setRenderMode(sl::RenderMode::normals);
           } else if (event.key == SL_KEY_C) {
-              m_renderer.setRenderMode(sl::RenderMode::standard);
+              //   m_renderer.setRenderMode(sl::RenderMode::standard);
           }
       })
       .add<events::SceneSerialization>([&](const auto& event, auto&& handled) {

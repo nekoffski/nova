@@ -1,5 +1,9 @@
 #include "Resources.hh"
 
+#include <starlight/renderer/factories/MaterialFactory.hh>
+#include <starlight/renderer/factories/MeshFactory.hh>
+#include <starlight/renderer/factories/TextureFactory.hh>
+
 namespace sle {
 
 Resources::Resources() {

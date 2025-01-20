@@ -2,6 +2,7 @@
 
 #include <starlight/ui/UI.hh>
 #include <starlight/core/TaskQueue.hh>
+#include <starlight/renderer/factories/TextureFactory.hh>
 
 namespace sle {
 
