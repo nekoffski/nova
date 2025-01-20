@@ -1,39 +1,28 @@
-// #pragma once
+#pragma once
 
-// #include <functional>
+#include "starlight/renderer/RenderPass.hh"
 
-// #include "starlight/core/memory/Memory.hh"
+namespace sl {
 
-// #include "RenderView.hh"
+struct UI {
+    virtual void render() = 0;
+};
 
-// #include "starlight/renderer/RenderPass.hh"
-// #include "starlight/renderer/gpu/UIRenderer.hh"
+class UIRenderPass final : public RenderPassBase {
+public:
+    explicit UIRenderPass(Renderer& renderer, UI& ui);
 
-// namespace sl {
+private:
+    void init(bool hasPreviousPass, bool hasNextPass) override;
 
-// class UIRenderPass : public RenderView {
-// public:
-//     using FontsProperties = std::vector<Font::Properties>;
-//     using UICallback      = std::function<void()>;
+    void run(RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex)
+      override;
 
-//     explicit UIRenderPass(const FontsProperties& fonts, UICallback&& callback);
+    RenderPassBackend::Properties createProperties(
+      bool hasPreviousPass, bool hasNextPass
+    ) override;
 
-//     RenderPassBackend::Properties generateRenderPassProperties(
-//       RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-//     ) override;
+    UI& m_ui;
+};
 
-//     void init(RendererBackend& renderer, RenderPass& renderPass) override;
-
-//     void render(
-//       RendererBackend& renderer, RenderPacket& packet, const RenderProperties&
-//       props, float deltaTime, CommandBuffer& commandBuffer, u32 imageIndex
-//     ) override;
-
-// private:
-//     FontsProperties m_fontsProperties;
-//     UICallback m_uiCallback;
-//     OwningPtr<UIRenderer> m_uiRenderer;
-//     std::vector<Font*> m_fonts;
-// };
-
-// }  // namespace sl
+}  // namespace sl

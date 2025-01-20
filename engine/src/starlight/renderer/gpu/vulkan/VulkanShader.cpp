@@ -411,7 +411,7 @@ void VulkanShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
             );
             imageInfos.emplace_back(
               texture->getSampler(), texture->getView(),
-              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL  // TODO: transition layout?
+              VK_IMAGE_LAYOUT_GENERAL  // TODO: transition layout?
             );
 
             VkWriteDescriptorSet samplerDescriptor;

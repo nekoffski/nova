@@ -6,46 +6,14 @@
 
 namespace sl {
 
-RenderPass::RenderPass(
-  Renderer& renderer, ResourceRef<Shader> shader, const Vec2<f32>& viewportOffset,
+RenderPassBase::RenderPassBase(
+  Renderer& renderer, const Vec2<f32>& viewportOffset,
   std::optional<std::string> name
 ) :
-    m_renderer(renderer), m_shader(shader), m_viewportOffset(viewportOffset),
+    m_renderer(renderer), m_viewportOffset(viewportOffset),
     name(name.value_or(fmt::format("RenderPass_{}", getId()))) {}
 
-void RenderPass::run(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
-) {
-    const auto viewport = getViewport();
-    commandBuffer.execute(SetViewportCommand{
-      .offset = viewport.offset,
-      .size   = viewport.size,
-    });
-
-    m_renderPassBackend->run(
-      commandBuffer, imageIndex,
-      [&](CommandBuffer& commandBuffer, u32 imageIndex) {
-          m_shader->bindPipeline(*m_pipeline);
-          m_pipeline->bind(commandBuffer);
-          render(packet, commandBuffer, imageIndex);
-      }
-    );
-}
-
-void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
-    m_renderPassBackend.clear();
-    m_pipeline.clear();
-
-    const auto props = createProperties(hasPreviousPass, hasNextPass);
-    auto& device     = m_renderer.getDevice();
-
-    m_renderPassBackend =
-      device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
-    m_pipeline = device.createPipeline(*m_shader, *m_renderPassBackend);
-    m_shader->bindPipeline(*m_pipeline);
-}
-
-Rect2<u32> RenderPass::getViewport() {
+Rect2<u32> RenderPassBase::getViewport() {
     auto framebufferSize = m_renderer.getWindow().getFramebufferSize();
 
     Vec2<u32> viewportOffset{
@@ -61,25 +29,7 @@ Rect2<u32> RenderPass::getViewport() {
     };
 }
 
-void RenderPass::drawMesh(Mesh& mesh, CommandBuffer& commandBuffer) {
-    const auto& memoryLayout = mesh.getMemoryLayout();
-
-    commandBuffer.execute(BindVertexBufferCommand{
-      .buffer = m_renderer.getVertexBuffer(),
-      .offset = memoryLayout.vertexBufferRange.offset,
-    });
-
-    commandBuffer.execute(BindIndexBufferCommand{
-      .buffer = m_renderer.getIndexBuffer(),
-      .offset = memoryLayout.indexBufferRange.offset,
-    });
-
-    commandBuffer.execute(DrawIndexedCommand{
-      .indexCount = (u32)memoryLayout.indexCount,
-    });
-}
-
-RenderPassBackend::Properties RenderPass::createDefaultProperties(
+RenderPassBackend::Properties RenderPassBase::createDefaultProperties(
   Attachment attachments, ClearFlags clearFlags, RenderPassBackend::Type type
 ) {
     RenderPassBackend::Properties props;
@@ -110,6 +60,58 @@ RenderPassBackend::Properties RenderPass::createDefaultProperties(
     }
 
     return props;
+}
+
+RenderPass::RenderPass(
+  Renderer& renderer, ResourceRef<Shader> shader, const Vec2<f32>& viewportOffset,
+  std::optional<std::string> name
+) : RenderPassBase(renderer, viewportOffset, name), m_shader(shader) {}
+
+void RenderPass::run(
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+) {
+    const auto viewport = getViewport();
+    commandBuffer.execute(SetViewportCommand{
+      .offset = viewport.offset,
+      .size   = viewport.size,
+    });
+
+    m_renderPassBackend->run(
+      commandBuffer, imageIndex,
+      [&](CommandBuffer& commandBuffer, u32 imageIndex) {
+          m_shader->bindPipeline(*m_pipeline);
+          m_pipeline->bind(commandBuffer);
+          render(packet, commandBuffer, imageIndex);
+      }
+    );
+}
+
+void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
+    const auto props = createProperties(hasPreviousPass, hasNextPass);
+    auto& device     = m_renderer.getDevice();
+
+    m_renderPassBackend =
+      device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
+    m_pipeline = device.createPipeline(*m_shader, *m_renderPassBackend);
+    m_shader->bindPipeline(*m_pipeline);
+}
+
+void RenderPass::drawMesh(Mesh& mesh, CommandBuffer& commandBuffer) {
+    const auto& memoryLayout = mesh.getMemoryLayout();
+
+    commandBuffer.execute(BindVertexBufferCommand{
+      .buffer = m_renderer.getVertexBuffer(),
+      .offset = memoryLayout.vertexBufferRange.offset,
+    });
+
+    commandBuffer.execute(BindIndexBufferCommand{
+      .buffer = m_renderer.getIndexBuffer(),
+      .offset = memoryLayout.indexBufferRange.offset,
+    });
+
+    commandBuffer.execute(DrawIndexedCommand{
+      .indexCount = (u32)memoryLayout.indexCount,
+    });
 }
 
 }  // namespace sl

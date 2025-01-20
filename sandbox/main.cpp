@@ -19,6 +19,12 @@
 #include "starlight/renderer/passes/GridRenderPass.hh"
 #include "starlight/renderer/passes/WorldRenderPass.hh"
 #include "starlight/renderer/passes/ShadowMapsRenderPass.hh"
+#include "starlight/renderer/passes/UIRenderPass.hh"
+#include "starlight/ui/UI.hh"
+
+struct UI : sl::UI {
+    void render() { ImGui::Text("hello world"); }
+};
 
 static std::atomic_bool isRunning = true;
 
@@ -43,10 +49,13 @@ int main(int argc, char** argv) {
     sl::Renderer renderer{ context };
     sl::RenderGraph renderGraph{ renderer };
 
+    UI ui{};
+
     renderGraph.addRenderPass<sl::SkyboxRenderPass>();
     renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
     renderGraph.addRenderPass<sl::WorldRenderPass>();
     renderGraph.addRenderPass<sl::GridRenderPass>();
+    renderGraph.addRenderPass<sl::UIRenderPass>(ui);
 
     const auto viewportSize = window.getFramebufferSize();
 
