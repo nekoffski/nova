@@ -13,7 +13,7 @@ WorldRenderPass::WorldRenderPass(Renderer& renderer
 ) : RenderPass(renderer, ShaderFactory::get().load("Builtin.Shader.Material")) {}
 
 RenderPassBackend::Properties WorldRenderPass::createProperties(
-  bool hasPreviousPass, bool hasNextPass
+  [[maybe_unused]] bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
     return createDefaultProperties(
       Attachment::swapchainColor | Attachment::depth, ClearFlags::depth

@@ -10,7 +10,7 @@ SkyboxRenderPass::SkyboxRenderPass(Renderer& renderer
 ) : RenderPass(renderer, SkyboxFactory::get().getDefaultShader()) {}
 
 RenderPassBackend::Properties SkyboxRenderPass::createProperties(
-  bool hasPreviousPass, bool hasNextPass
+  [[maybe_unused]] bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
     return createDefaultProperties(Attachment::swapchainColor, ClearFlags::color);
 }
