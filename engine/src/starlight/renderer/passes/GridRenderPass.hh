@@ -6,7 +6,7 @@ namespace sl {
 
 class GridRenderPass : public RenderPass {
 public:
-    explicit GridRenderPass(Renderer& renderer);
+    explicit GridRenderPass(Renderer& renderer, const Vec2<f32>& viewportOffset);
 
 private:
     RenderPassBackend::Properties createProperties(

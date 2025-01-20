@@ -40,19 +40,17 @@ int Application::start() {
 void Application::init() { initEvents(); }
 
 void Application::startRenderLoop() {
-    // auto viewport = m_window.getFramebufferSize();
-
-    // sl::Vec2<sl::f32> viewportOffset{
-    //     m_userInterface.getConfig().panelWidthRatio,
-    //     m_userInterface.getConfig().panelHeightRatio
-    // };
+    sl::Vec2<sl::f32> viewportOffset{
+        m_userInterface.getConfig().panelWidthRatio,
+        m_userInterface.getConfig().panelHeightRatio
+    };
 
     sl::RenderGraph renderGraph{ m_renderer };
 
-    renderGraph.addRenderPass<sl::SkyboxRenderPass>();
+    renderGraph.addRenderPass<sl::SkyboxRenderPass>(viewportOffset);
     renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
-    renderGraph.addRenderPass<sl::WorldRenderPass>();
-    renderGraph.addRenderPass<sl::GridRenderPass>();
+    renderGraph.addRenderPass<sl::WorldRenderPass>(viewportOffset);
+    renderGraph.addRenderPass<sl::GridRenderPass>(viewportOffset);
     renderGraph.addRenderPass<sl::UIRenderPass>(m_userInterface);
 
     m_userInterface.setRenderGraph(renderGraph);

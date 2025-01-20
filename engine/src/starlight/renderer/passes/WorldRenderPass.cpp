@@ -9,8 +9,13 @@
 
 namespace sl {
 
-WorldRenderPass::WorldRenderPass(Renderer& renderer
-) : RenderPass(renderer, ShaderFactory::get().load("Builtin.Shader.Material")) {}
+WorldRenderPass::WorldRenderPass(
+  Renderer& renderer, const Vec2<f32>& viewportOffset
+) :
+    RenderPass(
+      renderer, ShaderFactory::get().load("Builtin.Shader.Material"), viewportOffset,
+      "WorldRenderPass"
+    ) {}
 
 RenderPassBackend::Properties WorldRenderPass::createProperties(
   [[maybe_unused]] bool hasPreviousPass, [[maybe_unused]] bool hasNextPass

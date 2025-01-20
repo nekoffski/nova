@@ -6,8 +6,13 @@
 
 namespace sl {
 
-SkyboxRenderPass::SkyboxRenderPass(Renderer& renderer
-) : RenderPass(renderer, SkyboxFactory::get().getDefaultShader()) {}
+SkyboxRenderPass::SkyboxRenderPass(
+  Renderer& renderer, const Vec2<f32>& viewportOffset
+) :
+    RenderPass(
+      renderer, SkyboxFactory::get().getDefaultShader(), viewportOffset,
+      "SkyboxRenderPass"
+    ) {}
 
 RenderPassBackend::Properties SkyboxRenderPass::createProperties(
   [[maybe_unused]] bool hasPreviousPass, [[maybe_unused]] bool hasNextPass

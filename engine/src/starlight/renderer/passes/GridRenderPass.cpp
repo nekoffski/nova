@@ -4,8 +4,11 @@
 
 namespace sl {
 
-GridRenderPass::GridRenderPass(Renderer& renderer
-) : RenderPass(renderer, ShaderFactory::get().load("Builtin.Shader.Grid")) {}
+GridRenderPass::GridRenderPass(Renderer& renderer, const Vec2<f32>& viewportOffset) :
+    RenderPass(
+      renderer, ShaderFactory::get().load("Builtin.Shader.Grid"), viewportOffset,
+      "GridRenderPass"
+    ) {}
 
 RenderPassBackend::Properties GridRenderPass::createProperties(
   bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
