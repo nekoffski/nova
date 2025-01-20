@@ -16,7 +16,7 @@ void UIRenderPass::init(bool hasPreviousPass, bool hasNextPass) {
 }
 
 void UIRenderPass::run(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+  [[maybe_unused]] RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
 ) {
     const auto viewport = getViewport();
     commandBuffer.execute(SetViewportCommand{
@@ -31,7 +31,7 @@ void UIRenderPass::run(
 }
 
 RenderPassBackend::Properties UIRenderPass::createProperties(
-  bool hasPreviousPass, bool hasNextPass
+  bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
     return createDefaultProperties(
       Attachment::swapchainColor,

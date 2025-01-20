@@ -40,14 +40,12 @@ int Application::start() {
 void Application::init() { initEvents(); }
 
 void Application::startRenderLoop() {
-    auto viewport = m_window.getFramebufferSize();
+    // auto viewport = m_window.getFramebufferSize();
 
-    sl::Vec2<sl::f32> viewportOffset{
-        m_userInterface.getConfig().panelWidthRatio,
-        m_userInterface.getConfig().panelHeightRatio
-    };
-
-    auto worldShader = sl::ShaderFactory::get().load("Builtin.Shader.Material");
+    // sl::Vec2<sl::f32> viewportOffset{
+    //     m_userInterface.getConfig().panelWidthRatio,
+    //     m_userInterface.getConfig().panelHeightRatio
+    // };
 
     sl::RenderGraph renderGraph{ m_renderer };
 

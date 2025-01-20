@@ -14,7 +14,7 @@ ShadowMapsRenderPass::ShadowMapsRenderPass(Renderer& renderer
 ) : RenderPass(renderer, ShaderFactory::get().load("Builtin.Shader.ShadowMaps")) {}
 
 RenderPassBackend::Properties ShadowMapsRenderPass::createProperties(
-  bool hasPreviousPass, bool hasNextPass
+  [[maybe_unused]] bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
     auto& swapchain      = m_renderer.getSwapchain();
     auto depthProperties = swapchain.getDepthBuffer()->getImageData();

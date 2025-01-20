@@ -8,7 +8,7 @@ GridRenderPass::GridRenderPass(Renderer& renderer
 ) : RenderPass(renderer, ShaderFactory::get().load("Builtin.Shader.Grid")) {}
 
 RenderPassBackend::Properties GridRenderPass::createProperties(
-  bool hasPreviousPass, bool hasNextPass
+  bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
     return createDefaultProperties(
       Attachment::swapchainColor | Attachment::depth,
