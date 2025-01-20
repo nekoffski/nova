@@ -68,6 +68,7 @@ public:
 
 private:
     void loadFonts(const std::string& fontsPath);
+    void setStyles();
 
     VkDescriptorPool m_uiPool;
 };

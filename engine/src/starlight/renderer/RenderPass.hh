@@ -21,7 +21,39 @@
 
 namespace sl {
 
-class RenderPass : public NonMovable, public Identificable<RenderPass> {
+class RenderPassBase : public NonMovable, public Identificable<RenderPassBase> {
+public:
+    explicit RenderPassBase(
+      Renderer& renderer, const Vec2<f32>& viewportOffset = { 0.0f, 0.0f },
+      std::optional<std::string> name = {}
+    );
+
+    virtual void init(bool hasPreviousPass, bool hasNextPass) = 0;
+    virtual void run(
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+    ) = 0;
+
+protected:
+    virtual Rect2<u32> getViewport();
+
+    RenderPassBackend::Properties createDefaultProperties(
+      Attachment attachments, ClearFlags clearFlags = ClearFlags::none,
+      RenderPassBackend::Type type = RenderPassBackend::Type::normal
+    );
+
+    virtual RenderPassBackend::Properties createProperties(
+      bool hasPreviousPass, bool hasNextPass
+    ) = 0;
+
+    Renderer& m_renderer;
+    OwningPtr<RenderPassBackend> m_renderPassBackend;
+    Vec2<f32> m_viewportOffset;
+
+public:
+    const std::string name;
+};
+
+class RenderPass : public RenderPassBase {
 public:
     explicit RenderPass(
       Renderer& renderer, ResourceRef<Shader> shader,
@@ -33,27 +65,10 @@ public:
     void run(RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex);
 
 protected:
-    RenderPassBackend::Properties createDefaultProperties(
-      Attachment attachments, ClearFlags clearFlags = ClearFlags::none,
-      RenderPassBackend::Type type = RenderPassBackend::Type::normal
-    );
-
-    virtual Rect2<u32> getViewport();
-    virtual RenderPassBackend::Properties createProperties(
-      bool hasPreviousPass, bool hasNextPass
-    ) = 0;
-
-protected:
     void drawMesh(Mesh& mesh, CommandBuffer& buffer);
 
-    Renderer& m_renderer;
     ResourceRef<Shader> m_shader;
-    Vec2<f32> m_viewportOffset;
-    OwningPtr<RenderPassBackend> m_renderPassBackend;
     OwningPtr<Pipeline> m_pipeline;
-
-public:
-    const std::string name;
 
 private:
     virtual void render(

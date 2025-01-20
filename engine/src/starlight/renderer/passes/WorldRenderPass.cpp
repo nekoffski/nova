@@ -15,12 +15,6 @@ WorldRenderPass::WorldRenderPass(Renderer& renderer
 RenderPassBackend::Properties WorldRenderPass::createProperties(
   bool hasPreviousPass, bool hasNextPass
 ) {
-    // auto clearFlags = ClearFlags::depth | ClearFlags::stencil;
-    // if (not hasPreviousPass) clearFlags |= ClearFlags::color;
-
-    // return createDefaultProperties(
-    //   Attachment::swapchainColor | Attachment::depth, clearFlags
-    // );
     return createDefaultProperties(
       Attachment::swapchainColor | Attachment::depth, ClearFlags::depth
     );

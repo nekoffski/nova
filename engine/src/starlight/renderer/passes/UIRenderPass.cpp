@@ -1,3 +1,4 @@
+#include "UIRenderPass.hh"
 // #include "UIRenderPass.hh"
 
 // #include <imgui.h>
@@ -6,44 +7,44 @@
 
 // #include "starlight/renderer/gpu/vulkan/VulkanCommandBuffer.hh"
 
-// namespace sl {
+#include "starlight/renderer/Renderer.hh"
 
-// UIRenderPass::UIRenderPass(
-//   const FontsProperties& fontsProperties, UICallback&& callback
-// ) :
-//     RenderView("UIRenderPass", { 0.0f, 0.0f }),
-//     m_fontsProperties(fontsProperties), m_uiCallback(callback) {}
+namespace sl {
 
-// RenderPassBackend::Properties UIRenderPass::generateRenderPassProperties(
-//   RendererBackend& renderer, RenderPass::ChainFlags chainFlags
-// ) {
-//     const auto clearFlags =
-//       isFlagEnabled(chainFlags, RenderPass::ChainFlags::hasPrevious)
-//         ? RenderPass::ClearFlags::none
-//         : RenderPass::ClearFlags::color;
-//     return generateDefaultRenderPassProperties(
-//       renderer, Attachment::swapchainColor, clearFlags
-//     );
-// }
+sl::UIRenderPass::UIRenderPass(Renderer& renderer, UI& ui) :
+    RenderPassBase(renderer, { 0.0f, 0.0f }, "UIRenderPass"), m_ui(ui) {}
 
-// void UIRenderPass::init(RendererBackend& renderer, RenderPass& renderPass) {
-//     m_uiRenderer = UIRenderer::create(renderer, renderPass);
-//     m_uiRenderer->setStyle();
+void UIRenderPass::init(bool hasPreviousPass, bool hasNextPass) {
+    const auto props = createProperties(hasPreviousPass, hasNextPass);
+    auto& device     = m_renderer.getDevice();
 
-//     std::transform(
-//       m_fontsProperties.begin(), m_fontsProperties.end(),
-//       std::back_inserter(m_fonts),
-//       [&](const auto& props) -> Font* { return m_uiRenderer->addFont(props); }
-//     );
-// }
+    m_renderPassBackend =
+      device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
+}
 
-// void UIRenderPass::render(
-//   [[maybe_unused]] RendererBackend& renderer, [[maybe_unused]] RenderPacket&
-//   packet,
-//   [[maybe_unused]] const RenderProperties& props, [[maybe_unused]] float
-//   deltaTime, CommandBuffer& commandBuffer, [[maybe_unused]] u32 imageIndex
-// ) {
-//     m_uiRenderer->render(commandBuffer, m_uiCallback);
-// }
+void UIRenderPass::run(
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+) {
+    const auto viewport = getViewport();
+    commandBuffer.execute(SetViewportCommand{
+      .offset = viewport.offset,
+      .size   = viewport.size,
+    });
 
-// }  // namespace sl
+    auto render = [&]([[maybe_unused]] CommandBuffer&, [[maybe_unused]] u32) {
+        m_ui.render();
+    };
+    m_renderPassBackend->run(commandBuffer, imageIndex, render);
+}
+
+RenderPassBackend::Properties UIRenderPass::createProperties(
+  bool hasPreviousPass, bool hasNextPass
+) {
+    return createDefaultProperties(
+      Attachment::swapchainColor,
+      hasPreviousPass ? ClearFlags::none : ClearFlags::color,
+      RenderPassBackend::Type::ui
+    );
+}
+
+}  // namespace sl

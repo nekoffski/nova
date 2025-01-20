@@ -16,7 +16,7 @@ void RenderGraph::render(RenderPacket& renderPacket) {
 }
 
 void RenderGraph::rebuildChain() {
-    std::vector<RenderPass*> activePasses;
+    std::vector<RenderPassBase*> activePasses;
     activePasses.reserve(m_nodes.size());
 
     for (auto& [renderPass, active] : m_nodes)
