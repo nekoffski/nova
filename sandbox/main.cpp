@@ -51,10 +51,12 @@ int main(int argc, char** argv) {
 
     UI ui{};
 
-    renderGraph.addRenderPass<sl::SkyboxRenderPass>();
+    sl::Vec2<sl::f32> viewportOffset{ 0.0f, 0.0f };
+
+    renderGraph.addRenderPass<sl::SkyboxRenderPass>(viewportOffset);
     renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
-    renderGraph.addRenderPass<sl::WorldRenderPass>();
-    renderGraph.addRenderPass<sl::GridRenderPass>();
+    renderGraph.addRenderPass<sl::WorldRenderPass>(viewportOffset);
+    renderGraph.addRenderPass<sl::GridRenderPass>(viewportOffset);
     renderGraph.addRenderPass<sl::UIRenderPass>(ui);
 
     const auto viewportSize = window.getFramebufferSize();
