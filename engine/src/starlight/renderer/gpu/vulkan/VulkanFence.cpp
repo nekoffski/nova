@@ -18,12 +18,15 @@ VulkanFence::VulkanFence(VulkanDevice& device, State state) :
     VK_ASSERT(vkCreateFence(
       m_device.logical.handle, &fenceCreateInfo, m_device.allocator, &m_handle
     ));
+    LOG_TRACE("vkCreateFence: {}", static_cast<void*>(m_handle));
 }
 
 VulkanFence::~VulkanFence() {
     wait(u64Max);
-    if (m_handle)
+    if (m_handle) {
+        LOG_TRACE("vkDestroyFence: {}", static_cast<void*>(m_handle));
         vkDestroyFence(m_device.logical.handle, m_handle, m_device.allocator);
+    }
 }
 
 VkFence VulkanFence::getHandle() { return m_handle; }

@@ -136,6 +136,7 @@ void VulkanSwapchain::createSwapchain() {
       m_device.logical.handle, &swapchainCreateInfo.handle, m_device.allocator,
       &m_handle
     ));
+    LOG_TRACE("vkCreateSwapchainKHR: {}", static_cast<void*>(m_handle));
 }
 
 void VulkanSwapchain::createImages() {
@@ -190,10 +191,10 @@ void VulkanSwapchain::create() {
 VulkanSwapchain::~VulkanSwapchain() { destroy(); }
 
 void VulkanSwapchain::destroy() {
+    LOG_TRACE("vkDestroySwapchainKHR: {}", static_cast<void*>(m_handle));
     vkDestroySwapchainKHR(m_device.logical.handle, m_handle, m_device.allocator);
     m_textures.clear();
     m_depthTexture.clear();
-    LOG_TRACE("VulkanSwapchain destroyed");
 }
 
 std::optional<u32> VulkanSwapchain::acquireNextImageIndex(

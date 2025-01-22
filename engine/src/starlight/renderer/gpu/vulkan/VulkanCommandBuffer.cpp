@@ -23,12 +23,12 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, Severity severity
     VK_ASSERT(
       vkAllocateCommandBuffers(m_device.logical.handle, &allocateInfo, &m_handle)
     );
+    LOG_TRACE("vkAllocateCommandBuffers: {}", static_cast<void*>(m_handle));
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer() {
-    LOG_TRACE("Destroying command buffer");
-
     if (m_handle) {
+        LOG_TRACE("vkFreeCommandBuffers: {}", static_cast<void*>(m_handle));
         vkFreeCommandBuffers(
           m_device.logical.handle, m_device.logical.graphicsCommandPool, 1, &m_handle
         );

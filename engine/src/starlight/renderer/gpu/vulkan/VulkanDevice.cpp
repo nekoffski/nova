@@ -208,7 +208,7 @@ VulkanDevice::Instance::Instance(const Config& config, Allocator* allocator) :
 
 VulkanDevice::Instance::~Instance() {
     if (handle) {
-        LOG_TRACE("Destroying vulkan instance");
+        LOG_TRACE("vkDestroyInstance: {}", static_cast<void*>(handle));
         vkDestroyInstance(handle, m_allocator);
     }
 }
@@ -299,7 +299,7 @@ VulkanDevice::Surface::Surface(
 
 VulkanDevice::Surface::~Surface() {
     if (handle) {
-        LOG_TRACE("Vulkan surface destroyed");
+        LOG_TRACE("vkDestroySurfaceKHR: {}", static_cast<void*>(handle));
         vkDestroySurfaceKHR(m_instance, handle, m_allocator);
     }
 }
@@ -628,10 +628,18 @@ VulkanDevice::Logical::Logical(
 }
 
 VulkanDevice::Logical::~Logical() {
-    LOG_TRACE("Destroying vulkan logical device");
-    if (graphicsCommandPool)
+    vkDeviceWaitIdle(handle);
+
+    if (graphicsCommandPool) {
+        LOG_TRACE(
+          "vkDestroyCommandPool: {}", static_cast<void*>(graphicsCommandPool)
+        );
         vkDestroyCommandPool(handle, graphicsCommandPool, m_allocator);
-    if (handle) vkDestroyDevice(handle, m_allocator);
+    }
+    if (handle) {
+        LOG_TRACE("vkDestroyDevice: {}", static_cast<void*>(handle));
+        vkDestroyDevice(handle, m_allocator);
+    }
 }
 
 void VulkanDevice::Logical::createDevice(const Physical::QueueIndices& queueIndices
@@ -689,6 +697,7 @@ void VulkanDevice::Logical::createDevice(const Physical::QueueIndices& queueIndi
     VK_ASSERT(
       vkCreateDevice(m_physicalDevice, &deviceCreateInfo, m_allocator, &handle)
     );
+    LOG_TRACE("vkCreateDevice: {}", static_cast<void*>(handle));
 }
 
 void VulkanDevice::Logical::createCommandPool(
@@ -704,6 +713,7 @@ void VulkanDevice::Logical::createCommandPool(
     VK_ASSERT(
       vkCreateCommandPool(handle, &poolCreateInfo, m_allocator, &graphicsCommandPool)
     );
+    LOG_TRACE("vkCreateCommandPool: {}", static_cast<void*>(graphicsCommandPool));
 }
 
 void VulkanDevice::Logical::assignQueues(const Physical::QueueIndices& queueIndices

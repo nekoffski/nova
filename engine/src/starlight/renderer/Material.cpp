@@ -15,7 +15,7 @@ Material::Material(const Properties& props) :
     LOG_TRACE("Creating Material");
 }
 
-Material::~Material() { LOG_TRACE("Destroying Material"); }
+Material::~Material() { LOG_TRACE("Destroying Material: {}", getId()); }
 
 bool Material::isTransparent() const {
     return isFlagEnabled(

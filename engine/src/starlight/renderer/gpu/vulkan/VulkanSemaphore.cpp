@@ -12,11 +12,14 @@ VulkanSemaphore::VulkanSemaphore(VulkanDevice& device
     VK_ASSERT(vkCreateSemaphore(
       m_device.logical.handle, &semaphoreCreateInfo, m_device.allocator, &m_handle
     ));
+    LOG_TRACE("vkCreateSemaphore: {}", static_cast<void*>(m_handle));
 }
 
 VulkanSemaphore::~VulkanSemaphore() {
-    if (m_handle)
+    if (m_handle) {
+        LOG_TRACE("vkDestroySemaphore: {}", static_cast<void*>(m_handle));
         vkDestroySemaphore(m_device.logical.handle, m_handle, m_device.allocator);
+    }
 }
 
 VkSemaphore VulkanSemaphore::getHandle() { return m_handle; }

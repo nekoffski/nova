@@ -34,11 +34,14 @@ VulkanRenderPassBackend::Framebuffer::Framebuffer(
     VK_ASSERT(vkCreateFramebuffer(
       m_device.logical.handle, &createInfo, m_device.allocator, &handle
     ));
+    LOG_TRACE("vkCreateFramebuffer: {}", static_cast<void*>(handle));
 }
 
 VulkanRenderPassBackend::Framebuffer::~Framebuffer() {
-    if (handle)
+    if (handle) {
+        LOG_TRACE("vkDestroyFramebuffer: {}", static_cast<void*>(handle));
         vkDestroyFramebuffer(m_device.logical.handle, handle, m_device.allocator);
+    }
 }
 
 /*
@@ -102,7 +105,7 @@ VulkanRenderPassBackend::VulkanRenderPassBackend(
     VK_ASSERT(vkCreateRenderPass(
       m_device.logical.handle, &createInfo.handle, m_device.allocator, &m_handle
     ));
-    LOG_TRACE("Vulkan render pass handle created");
+    LOG_TRACE("vkCreateRenderPass: {}", static_cast<void*>(m_handle));
 
     if (properties.renderTargets.size() == 0)
         LOG_WARN("Render pass with no render targets created");
@@ -114,6 +117,7 @@ VulkanRenderPassBackend::VulkanRenderPassBackend(
 VulkanRenderPassBackend::~VulkanRenderPassBackend() {
     if (m_handle) {
         m_device.waitIdle();
+        LOG_TRACE("vkDestroyRenderPass: {}", static_cast<void*>(m_handle));
         vkDestroyRenderPass(m_device.logical.handle, m_handle, m_device.allocator);
     }
 }

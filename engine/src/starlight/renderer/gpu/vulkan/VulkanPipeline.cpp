@@ -184,6 +184,7 @@ VulkanPipeline::VulkanPipeline(
     VK_ASSERT(vkCreatePipelineLayout(
       m_device, &pipeline_layout_create_info, m_allocator, &m_layout
     ));
+    LOG_TRACE("vkCreatePipelineLayout: {}", static_cast<void*>(m_layout));
 
     // VulkanPipeline create
     VkGraphicsPipelineCreateInfo pipeline_create_info;
@@ -213,6 +214,7 @@ VulkanPipeline::VulkanPipeline(
     VK_ASSERT(vkCreateGraphicsPipelines(
       m_device, VK_NULL_HANDLE, 1, &pipeline_create_info, m_allocator, &m_handle
     ));
+    LOG_TRACE("vkCreateGraphicsPipelines: {}", static_cast<void*>(m_handle));
 }
 
 }  // namespace sl::vk

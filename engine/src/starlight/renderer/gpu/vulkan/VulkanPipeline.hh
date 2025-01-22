@@ -40,10 +40,13 @@ public:
       VulkanRenderPassBackend& renderPass
     );
 
-    ~VulkanPipeline() {
-        LOG_TRACE("Vulkan pipeline destroyed");
+    ~VulkanPipeline() override {
         vkDeviceWaitIdle(m_device);
+
+        LOG_TRACE("vkDestroyPipeline: {}", static_cast<void*>(m_handle));
         vkDestroyPipeline(m_device, m_handle, m_allocator);
+
+        LOG_TRACE("vkDestroyPipelineLayout: {}", static_cast<void*>(m_layout));
         vkDestroyPipelineLayout(m_device, m_layout, m_allocator);
     }
 

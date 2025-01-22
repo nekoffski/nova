@@ -88,5 +88,6 @@ int main(int argc, char** argv) {
         });
     }
 
+    LOG_INFO("Sandbox exited");
     return 0;
 }

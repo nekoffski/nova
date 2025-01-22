@@ -20,7 +20,7 @@ namespace sl::vk {
 
 class VulkanTextureBase : public Texture {
 public:
-    VulkanTextureBase(
+    explicit VulkanTextureBase(
       VulkanDevice& device, const ImageData& imageData,
       const SamplerProperties& sampler
     );

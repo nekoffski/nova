@@ -15,7 +15,7 @@ namespace sl::vk {
 class VulkanSwapchain : public Swapchain {
 public:
     explicit VulkanSwapchain(VulkanDevice& device, const Vec2<u32>& size);
-    ~VulkanSwapchain();
+    ~VulkanSwapchain() override;
 
     void recreate(const Vec2<u32>& size) override;
 

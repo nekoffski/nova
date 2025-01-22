@@ -34,6 +34,7 @@ VulkanBuffer::VulkanBuffer(VulkanDevice& device, const Properties& props) :
     VK_ASSERT(vkCreateBuffer(
       m_device.logical.handle, &bufferCreateInfo, m_device.allocator, &m_handle
     ));
+    LOG_TRACE("vkCreateBuffer: {}", static_cast<void*>(m_handle));
 
     const auto memoryRequirements = getMemoryRequirements();
 
@@ -49,6 +50,7 @@ VulkanBuffer::VulkanBuffer(VulkanDevice& device, const Properties& props) :
     VK_ASSERT(vkAllocateMemory(
       m_device.logical.handle, &allocateInfo, m_device.allocator, &m_memory
     ));
+    LOG_TRACE("vkAllocateMemory: {}", static_cast<void*>(m_memory));
 
     if (props.bindOnCreate) bind();
 }
@@ -57,8 +59,14 @@ VulkanBuffer::~VulkanBuffer() {
     auto device    = m_device.logical.handle;
     auto allocator = m_device.allocator;
 
-    if (m_memory) vkFreeMemory(device, m_memory, allocator);
-    if (m_handle) vkDestroyBuffer(device, m_handle, allocator);
+    if (m_memory) {
+        LOG_TRACE("vkFreeMemory: {}", static_cast<void*>(m_memory));
+        vkFreeMemory(device, m_memory, allocator);
+    }
+    if (m_handle) {
+        LOG_TRACE("vkDestroyBuffer: {}", static_cast<void*>(m_handle));
+        vkDestroyBuffer(device, m_handle, allocator);
+    }
 }
 
 VkMemoryRequirements VulkanBuffer::getMemoryRequirements() const {

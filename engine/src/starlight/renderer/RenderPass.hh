@@ -27,6 +27,7 @@ public:
       Renderer& renderer, const Vec2<f32>& viewportOffset = { 0.0f, 0.0f },
       std::optional<std::string> name = {}
     );
+    virtual ~RenderPassBase() = default;
 
     virtual void init(bool hasPreviousPass, bool hasNextPass) = 0;
     virtual void run(

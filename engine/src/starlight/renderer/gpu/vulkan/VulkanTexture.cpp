@@ -96,6 +96,7 @@ void VulkanTextureBase::createSampler() {
     VK_ASSERT(vkCreateSampler(
       m_device.logical.handle, &samplerInfo, m_device.allocator, &m_sampler
     ));
+    LOG_TRACE("vkCreateSampler: {}", static_cast<void*>(m_sampler));
 }
 
 static VkImageViewCreateInfo createViewCreateInfo(
@@ -125,6 +126,7 @@ void VulkanTextureBase::createView() {
     VK_ASSERT(vkCreateImageView(
       m_device.logical.handle, &viewCreateInfo, m_device.allocator, &m_view
     ))
+    LOG_TRACE("vkCreateImageView: {}", static_cast<void*>(m_view));
 }
 
 VulkanTextureBase::VulkanTextureBase(
@@ -146,14 +148,11 @@ VkSampler VulkanTextureBase::getSampler() const { return m_sampler; }
 VulkanTexture::VulkanTexture(
   VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
 ) : VulkanTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE) {
+    LOG_TRACE("Creating vulkan texture: {}", getId());
     create();
-    LOG_TRACE("Texture created");
 }
 
-VulkanTexture::~VulkanTexture() {
-    destroy();
-    LOG_TRACE("Vulkan texture destroyed");
-}
+VulkanTexture::~VulkanTexture() { destroy(); }
 
 void VulkanTexture::resize(u32 width, u32 height) {
     m_imageData.width  = width;
@@ -285,14 +284,29 @@ void VulkanTexture::create() {
 }
 
 void VulkanTexture::destroy() {
+    LOG_TRACE("Destroying vulkan texture: {}", getId());
     auto device    = m_device.logical.handle;
     auto allocator = m_device.allocator;
 
-    if (m_sampler) vkDestroySampler(device, m_sampler, allocator);
-    if (m_view) vkDestroyImageView(device, m_view, allocator);
-    if (m_memory) vkFreeMemory(device, m_memory, allocator);
-    if (m_image) vkDestroyImage(device, m_image, allocator);
-    LOG_TRACE("VKImage destroyed");
+    if (m_sampler) {
+        LOG_TRACE("vkDestroySampler: {}", static_cast<void*>(m_sampler));
+        vkDestroySampler(device, m_sampler, allocator);
+    }
+
+    if (m_view) {
+        LOG_TRACE("vkDestroyImageView: {}", static_cast<void*>(m_view));
+        vkDestroyImageView(device, m_view, allocator);
+    }
+
+    if (m_memory) {
+        LOG_TRACE("vkFreeMemory: {}", static_cast<void*>(m_memory));
+        vkFreeMemory(device, m_memory, allocator);
+    }
+
+    if (m_image) {
+        LOG_TRACE("vkDestroyImage: {}", static_cast<void*>(m_image));
+        vkDestroyImage(device, m_image, allocator);
+    }
 }
 
 void VulkanTexture::allocateAndBindMemory() {
@@ -317,6 +331,8 @@ void VulkanTexture::allocateAndBindMemory() {
     VK_ASSERT(vkAllocateMemory(
       m_device.logical.handle, &memoryAllocateInfo, m_device.allocator, &m_memory
     ));
+    LOG_TRACE("vkAllocateMemory: {}", static_cast<void*>(m_memory));
+
     VK_ASSERT(vkBindImageMemory(m_device.logical.handle, m_image, m_memory, 0));
 }
 
@@ -349,6 +365,7 @@ void VulkanTexture::createImage() {
     VK_ASSERT(vkCreateImage(
       m_device.logical.handle, &imageCreateInfo, m_device.allocator, &m_image
     ));
+    LOG_TRACE("vkCreateImage: {}", static_cast<void*>(m_image));
 }
 
 /*
