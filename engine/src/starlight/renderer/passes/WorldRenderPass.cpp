@@ -4,8 +4,7 @@
 
 #include "starlight/renderer/factories/ShaderFactory.hh"
 #include "starlight/renderer/factories/MeshFactory.hh"
-
-#include "starlight/renderer/RenderMode.hh"
+#include "starlight/renderer/Core.hh"
 
 namespace sl {
 

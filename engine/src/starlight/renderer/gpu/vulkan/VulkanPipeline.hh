@@ -12,7 +12,6 @@
 #include "VulkanRenderPassBackend.hh"
 
 #include "starlight/core/math/Vertex.hh"
-#include "starlight/renderer/CullMode.hh"
 
 #include "starlight/renderer/gpu/Pipeline.hh"
 #include "starlight/renderer/gpu/fwd.hh"

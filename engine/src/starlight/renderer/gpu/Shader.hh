@@ -18,8 +18,6 @@
 #include "starlight/core/Log.hh"
 #include "starlight/core/utils/Resource.hh"
 
-#include "starlight/renderer/CullMode.hh"
-#include "starlight/renderer/PolygonMode.hh"
 #include "starlight/renderer/fwd.hh"
 #include "Texture.hh"
 

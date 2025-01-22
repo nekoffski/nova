@@ -5,11 +5,25 @@
 
 namespace sl {
 
+enum class RenderMode : u8 { standard = 0, normals = 1, lights = 2 };
+
+enum class CullMode : u8 { none, front, back, frontAndBack };
+
+std::string cullModeToString(CullMode);
+CullMode cullModeFromString(const std::string&);
+
+enum class PolygonMode : u8 { fill, line, point };
+
+std::string polygonModeToString(PolygonMode polygonMode);
+PolygonMode polygonModeFromString(const std::string& polygonName);
+
 enum class ClearFlags : u8 { none = 0x0, color = 0x1, depth = 0x2, stencil = 0x4 };
 constexpr void enableBitOperations(ClearFlags);
 
 enum class Attachment : u8 { none = 0x0, swapchainColor = 0x1, depth = 0x2 };
 constexpr void enableBitOperations(Attachment);
+
+// TODO: camelCase
 
 enum class MemoryProperty : u64 {
     undefined                               = 0x0,

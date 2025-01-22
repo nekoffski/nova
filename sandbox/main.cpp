@@ -79,8 +79,6 @@ int main(int argc, char** argv) {
       sl::MaterialFactory::get().load("Builtin.Material.Test")
     );
 
-    int frames = 2;
-
     while (isRunning) {
         context.beginFrame([&](float deltaTime) {
             auto renderPacket = scene.getRenderPacket();
@@ -88,8 +86,6 @@ int main(int argc, char** argv) {
 
             camera.update(deltaTime);
         });
-
-        // if (--frames <= 0) break;
     }
 
     return 0;
