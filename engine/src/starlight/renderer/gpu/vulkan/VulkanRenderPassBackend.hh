@@ -54,7 +54,7 @@ protected:
     std::vector<LocalPtr<Framebuffer>> m_framebuffers;
 };
 
-class VulkanImguiRenderPassBackend final : public VulkanRenderPassBackend {
+class VulkanImguiRenderPassBackend : public VulkanRenderPassBackend {
 public:
     explicit VulkanImguiRenderPassBackend(
       VulkanDevice& device, const Properties& properties, bool hasPreviousPass,
@@ -69,8 +69,6 @@ public:
 private:
     void loadFonts(const std::string& fontsPath);
     void setStyles();
-
-    VkDescriptorPool m_uiPool;
 };
 
 }  // namespace sl::vk

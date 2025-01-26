@@ -41,26 +41,35 @@ UserInterface::UserInterface(
   sl::RenderGraph* renderGraph, const Config& config
 ) :
     m_eventProxy(eventProxy), m_eventSentinel(eventProxy), m_config(config),
-    m_viewport(viewport),
-    m_leftCombo("left-combo", createLeftComboProperties(viewport, config)),
-    m_bottomCombo("bottom-combo", createBottomComboProperties(viewport, config)),
-    m_sceneView(scene, m_resources), m_propertiesView(renderGraph),
-    m_resourcesView(m_resources) {
+    m_viewport(viewport), m_sceneView(scene, m_resources),
+    m_propertiesView(renderGraph), m_resourcesView(m_resources) {
     m_eventSentinel.add<sl::WindowResized>([&](auto& event) {
         onViewportReisze(event.size);
     });
 
+    createLayout(viewport);
     initMenu();
-    initLeftCombo();
-    initBottomCombo();
 
     EDITOR_LOG_INFO("UI started!");
     EDITOR_LOG_INFO("Welcome to the Starlight Engine Editor");
 }
 
+void UserInterface::createLayout(const sl::Vec2<sl::u32>& viewport) {
+    m_bottomCombo.clear();
+    m_leftCombo.clear();
+
+    m_leftCombo.emplace("left-combo", createLeftComboProperties(viewport, m_config));
+    m_bottomCombo.emplace(
+      "bottom-combo", createBottomComboProperties(viewport, m_config)
+    );
+
+    initLeftCombo();
+    initBottomCombo();
+}
+
 void UserInterface::onViewportReisze(const sl::Vec2<sl::u32>& viewport) {
     m_viewport = viewport;
-    // todo: resize everything
+    createLayout(viewport);
 }
 
 void UserInterface::setRenderGraph(sl::RenderGraph& renderGraph) {
@@ -69,14 +78,14 @@ void UserInterface::setRenderGraph(sl::RenderGraph& renderGraph) {
 
 void UserInterface::render() {
     m_menu.render();
-    m_leftCombo.render();
-    m_bottomCombo.render();
+    m_leftCombo->render();
+    m_bottomCombo->render();
 }
 
 const UserInterface::Config& UserInterface::getConfig() const { return m_config; }
 
 void UserInterface::initBottomCombo() {
-    m_bottomCombo
+    (*m_bottomCombo)
       .addPanel(ICON_FA_FOLDER "  Resources", [&]() { m_resourcesView.render(); })
       .addPanel(ICON_FA_TERMINAL "  Messages", [&]() {
           sl::ui::namedScope("console-content", [&]() {
@@ -86,7 +95,8 @@ void UserInterface::initBottomCombo() {
 }
 
 void UserInterface::initLeftCombo() {
-    m_leftCombo.addPanel(ICON_FA_CITY "  Scene", [&]() { m_sceneView.render(); })
+    (*m_leftCombo)
+      .addPanel(ICON_FA_CITY "  Scene", [&]() { m_sceneView.render(); })
       .addPanel(ICON_FA_WRENCH "  Properties", [&]() { m_propertiesView.render(); });
 }
 

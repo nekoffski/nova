@@ -31,4 +31,11 @@ constexpr OwningPtr<T> createOwningPtr(Args&&... args) {
     return kc::mem::makeOwningPtr<T>(std::forward<Args>(args)...);
 }
 
+// template <typename T> using OwningPtr = UniqPtr<T>;
+
+// template <typename T, typename... Args>
+// constexpr OwningPtr<T> createOwningPtr(Args&&... args) {
+//     return createUniqPtr<T>(std::forward<Args>(args)...);
+// }
+
 }  // namespace sl

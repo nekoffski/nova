@@ -6,14 +6,23 @@
 
 namespace sl {
 
-RenderGraph::RenderGraph(Renderer& renderer) : m_renderer(renderer) {}
-
-void RenderGraph::render(RenderPacket& renderPacket) {
-    m_renderer.renderFrame([&](CommandBuffer& commandBuffer, u32 imageIndex) {
-        for (auto& renderPass : m_activeRenderPasses)
-            renderPass->run(renderPacket, commandBuffer, imageIndex);
+RenderGraph::RenderGraph(Renderer& renderer
+) : m_renderer(renderer), m_eventSentinel(renderer.getContext().getEventProxy()) {
+    m_eventSentinel.add<WindowResized>([&]([[maybe_unused]] auto&) {
+        onWindowResize();
     });
 }
+
+void RenderGraph::render(RenderPacket& renderPacket) {
+    m_renderer.renderFrame(
+      [&](CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber) {
+          for (auto& renderPass : m_activeRenderPasses)
+              renderPass->run(renderPacket, commandBuffer, imageIndex, frameNumber);
+      }
+    );
+}
+
+void RenderGraph::onWindowResize() { rebuildChain(); }
 
 void RenderGraph::rebuildChain() {
     std::vector<RenderPassBase*> activePasses;

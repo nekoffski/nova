@@ -49,7 +49,8 @@ RenderPassBackend::Properties ShadowMapsRenderPass::createProperties(
 }
 
 void ShadowMapsRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+  [[maybe_unused]] u64 frameNumber
 ) {
     if (packet.directionalLights.empty()) return;
 
@@ -60,7 +61,6 @@ void ShadowMapsRenderPass::render(
         Vec3<f32>(0.0f, 1.0f, 0.0f)
       );
 
-    m_shader->use(commandBuffer);
     m_shader->setGlobalUniforms(
       commandBuffer, imageIndex,
       [&](Shader::UniformProxy& proxy) { proxy.set("depthMVP", depthMVP); }
@@ -77,8 +77,8 @@ void ShadowMapsRenderPass::render(
 
 Rect2<u32> ShadowMapsRenderPass::getViewport() {
     return Rect2<u32>{
-        Vec2<u32>{ 0u,   0u    },
-        Vec2<u32>{ 1024, 1024u }
+        Vec2<u32>{ 0u,                  0u                  },
+        Vec2<u32>{ shadowMapResolution, shadowMapResolution }
     };
 }
 

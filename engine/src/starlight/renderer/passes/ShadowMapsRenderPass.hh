@@ -13,8 +13,10 @@ private:
       bool hasPreviousPass, bool hasNextPass
     ) override;
 
-    void render(RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex)
-      override;
+    void render(
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+      u64 frameNumber
+    ) override;
 
     Rect2<u32> getViewport() override;
 

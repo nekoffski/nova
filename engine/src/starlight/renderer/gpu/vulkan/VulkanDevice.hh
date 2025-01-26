@@ -2,8 +2,9 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/window/Window.hh"
-#include "starlight/core/Config.hh"
+#include "starlight/core/Context.hh"
 #include "starlight/core/utils/Enum.hh"
+#include "starlight/core/event/EventHandlerSentinel.hh"
 
 #include "starlight/renderer/gpu/Device.hh"
 #include "starlight/renderer/gpu/Sync.hh"
@@ -108,7 +109,8 @@ public:
         Allocator* m_allocator;
     };
 
-    explicit VulkanDevice(Window& window, const Config& config);
+    explicit VulkanDevice(Context& context);
+    ~VulkanDevice() override;
 
     void waitIdle() override;
     VulkanQueue& getQueue(Queue::Type type) override;
@@ -143,10 +145,14 @@ public:
 
     Window& window;
     Config config;
+    EventHandlerSentinel m_eventSentinel;
     Allocator* allocator;
     Instance instance;
 
 private:
+    void onWindowResize();
+    void createUiResources();
+
 #ifdef SL_VK_DEBUG
     DebugMessenger m_debugMessenger;
 #endif
@@ -155,6 +161,7 @@ public:
     Surface surface;
     Physical physical;
     Logical logical;
+    VkDescriptorPool uiDescriptorPool;
 };
 
 }  // namespace sl::vk

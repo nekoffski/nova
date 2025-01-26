@@ -8,9 +8,7 @@ namespace sl {
 
 OwningPtr<Device> Device::create(Context& context) {
 #ifdef SL_USE_VK
-    return createOwningPtr<vk::VulkanDevice>(
-      context.getWindow(), context.getConfig()
-    );
+    return createOwningPtr<vk::VulkanDevice>(context);
 #endif
     return nullptr;
 }

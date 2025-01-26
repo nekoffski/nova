@@ -11,12 +11,14 @@ void UIRenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     const auto props = createProperties(hasPreviousPass, hasNextPass);
     auto& device     = m_renderer.getDevice();
 
+    m_renderPassBackend.clear();
     m_renderPassBackend =
       device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
 }
 
 void UIRenderPass::run(
-  [[maybe_unused]] RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+  [[maybe_unused]] RenderPacket& packet, CommandBuffer& commandBuffer,
+  u32 imageIndex, [[maybe_unused]] u64 frameNumber
 ) {
     const auto viewport = getViewport();
     commandBuffer.execute(SetViewportCommand{
@@ -24,10 +26,7 @@ void UIRenderPass::run(
       .size   = viewport.size,
     });
 
-    auto render = [&]([[maybe_unused]] CommandBuffer&, [[maybe_unused]] u32) {
-        m_ui.render();
-    };
-    m_renderPassBackend->run(commandBuffer, imageIndex, render);
+    m_renderPassBackend->run(commandBuffer, imageIndex, [&] { m_ui.render(); });
 }
 
 RenderPassBackend::Properties UIRenderPass::createProperties(

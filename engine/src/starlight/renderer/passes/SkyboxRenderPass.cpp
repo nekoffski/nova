@@ -21,9 +21,9 @@ RenderPassBackend::Properties SkyboxRenderPass::createProperties(
 }
 
 void SkyboxRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+  [[maybe_unused]] u64 frameNumber
 ) {
-    m_shader->use(commandBuffer);
     auto skybox = packet.skybox;
 
     if (not skybox) return;

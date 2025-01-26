@@ -31,7 +31,8 @@ public:
 
     virtual void init(bool hasPreviousPass, bool hasNextPass) = 0;
     virtual void run(
-      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+      u64 frameNumber
     ) = 0;
 
 protected:
@@ -63,7 +64,10 @@ public:
     );
 
     void init(bool hasPreviousPass, bool hasNextPass);
-    void run(RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex);
+    void run(
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+      u64 frameNumber
+    );
 
 protected:
     void drawMesh(Mesh& mesh, CommandBuffer& buffer);
@@ -73,7 +77,8 @@ protected:
 
 private:
     virtual void render(
-      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+      u64 frameNumber
     ) = 0;
 };
 

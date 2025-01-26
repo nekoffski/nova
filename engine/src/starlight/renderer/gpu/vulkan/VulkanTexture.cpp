@@ -288,6 +288,8 @@ void VulkanTexture::destroy() {
     auto device    = m_device.logical.handle;
     auto allocator = m_device.allocator;
 
+    m_device.waitIdle();
+
     if (m_sampler) {
         LOG_TRACE("vkDestroySampler: {}", static_cast<void*>(m_sampler));
         vkDestroySampler(device, m_sampler, allocator);

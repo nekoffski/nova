@@ -68,7 +68,7 @@ RenderPass::RenderPass(
 ) : RenderPassBase(renderer, viewportOffset, name), m_shader(shader) {}
 
 void RenderPass::run(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
 ) {
     const auto viewport = getViewport();
     commandBuffer.execute(SetViewportCommand{
@@ -81,7 +81,7 @@ void RenderPass::run(
       [&](CommandBuffer& commandBuffer, u32 imageIndex) {
           m_shader->bindPipeline(*m_pipeline);
           m_pipeline->bind(commandBuffer);
-          render(packet, commandBuffer, imageIndex);
+          render(packet, commandBuffer, imageIndex, frameNumber);
       }
     );
 }
@@ -89,6 +89,9 @@ void RenderPass::run(
 void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     const auto props = createProperties(hasPreviousPass, hasNextPass);
     auto& device     = m_renderer.getDevice();
+
+    m_renderPassBackend.clear();
+    m_pipeline.clear();
 
     m_renderPassBackend =
       device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);

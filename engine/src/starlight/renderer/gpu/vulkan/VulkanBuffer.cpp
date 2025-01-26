@@ -59,6 +59,8 @@ VulkanBuffer::~VulkanBuffer() {
     auto device    = m_device.logical.handle;
     auto allocator = m_device.allocator;
 
+    m_device.waitIdle();
+
     if (m_memory) {
         LOG_TRACE("vkFreeMemory: {}", static_cast<void*>(m_memory));
         vkFreeMemory(device, m_memory, allocator);

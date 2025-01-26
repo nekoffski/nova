@@ -25,6 +25,7 @@ struct RenderPacket {
     std::vector<DirectionalLight> directionalLights;
     std::vector<RenderEntity> entities;
     std::vector<Texture*> shadowMaps;  // TODO: static array instead
+    u64 frameNumber;
 };
 
 }  // namespace sl

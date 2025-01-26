@@ -20,7 +20,8 @@ RenderPassBackend::Properties GridRenderPass::createProperties(
 }
 
 void GridRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+  [[maybe_unused]] u64 frameNumber
 ) {
     m_shader->setGlobalUniforms(
       commandBuffer, imageIndex,

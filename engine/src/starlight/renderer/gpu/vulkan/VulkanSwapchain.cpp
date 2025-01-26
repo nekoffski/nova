@@ -209,9 +209,7 @@ std::optional<u32> VulkanSwapchain::acquireNextImageIndex(
     );
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        LOG_WARN("Swapchain out of date, recreating");
-        destroy();
-        create();
+        LOG_WARN("Swapchain out of date");
         return {};
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         LOG_ERROR(

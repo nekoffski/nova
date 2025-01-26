@@ -2,6 +2,7 @@
 
 #include <starlight/ui/UI.hh>
 #include <starlight/scene/Scene.hh>
+#include <starlight/core/memory/Memory.hh>
 
 #include "views/SceneView.hh"
 #include "views/PropertiesView.hh"
@@ -36,6 +37,7 @@ public:
     const Config& getConfig() const;
 
 private:
+    void createLayout(const sl::Vec2<sl::u32>& viewport);
     void initMenu();
     void initLeftCombo();
     void initBottomCombo();
@@ -51,8 +53,8 @@ private:
     Resources m_resources;
 
     sl::ui::MainMenuBar m_menu;
-    sl::ui::PanelCombo m_leftCombo;
-    sl::ui::PanelCombo m_bottomCombo;
+    sl::LocalPtr<sl::ui::PanelCombo> m_leftCombo;
+    sl::LocalPtr<sl::ui::PanelCombo> m_bottomCombo;
 
     SceneView m_sceneView;
     PropertiesView m_propertiesView;

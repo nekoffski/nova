@@ -70,9 +70,13 @@ bool VulkanQueue::present(const PresentInfo& presentInfo) {
 
     if (VkResult result = vkQueuePresentKHR(m_handle, &vkPresentInfo);
         result != VK_SUCCESS) {
-        LOG_ERROR(
-          "Failed to present swapchain image: {}", getResultString(result, true)
-        );
+        if (result != VK_ERROR_OUT_OF_DATE_KHR) {
+            LOG_ERROR(
+              "Failed to present swapchain image: {}", getResultString(result, true)
+            );
+        } else {
+            LOG_INFO("Swapchain out of date, need to recreate");
+        }
         return false;
     }
     return true;

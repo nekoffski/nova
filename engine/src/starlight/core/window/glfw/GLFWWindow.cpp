@@ -119,7 +119,7 @@ void GLFWWindow::onWindowResizeCallback(OnWindowResizeCallback callback) {
       [](GLFWwindow* window, int width, int height) {
           auto data = GET_WINDOW_DATA(window);
 
-          if (data->lastWidth != width && data->lastHeight != height) {
+          if (data->lastWidth != width || data->lastHeight != height) {
               data->lastWidth  = width;
               data->lastHeight = height;
               data->onWindowResize(

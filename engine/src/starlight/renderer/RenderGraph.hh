@@ -34,9 +34,13 @@ public:
     void render(RenderPacket& renderPacket);
 
 private:
+    void onWindowResize();
+
     void rebuildChain();
 
     Renderer& m_renderer;
+    EventHandlerSentinel m_eventSentinel;
+
     std::vector<Node> m_nodes;
     std::vector<RenderPassBase*> m_activeRenderPasses;
 };

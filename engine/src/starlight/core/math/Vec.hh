@@ -111,6 +111,10 @@ template <typename T> using Mat2 = detail::Mat2Picker<T>::Type;
 template <typename T> using Mat3 = detail::Mat3Picker<T>::Type;
 template <typename T> using Mat4 = detail::Mat4Picker<T>::Type;
 
+inline Vec2<u32> operator+(const Vec2<u32>& lhs, const Vec2<u32>& rhs) {
+    return Vec2<u32>{ lhs.x + rhs.x, lhs.y + rhs.y };
+}
+
 inline Vec3<f32> operator*(const Mat4<f32>& lhs, const Vec3<f32>& rhs) {
     return Vec3<f32>{
         lhs * Vec4<f32>{ rhs, 1.0f }

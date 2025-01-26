@@ -36,6 +36,14 @@ public:
         end(commandBuffer);
     }
 
+    template <typename Callback>
+    requires Callable<Callback>
+    void run(CommandBuffer& commandBuffer, u32 imageIndex, Callback&& callback) {
+        begin(commandBuffer, imageIndex);
+        callback();
+        end(commandBuffer);
+    }
+
 private:
     virtual void begin(CommandBuffer& commandBuffer, u32 imageIndex) = 0;
     virtual void end(CommandBuffer& commandBuffer)                   = 0;

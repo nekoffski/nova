@@ -2,6 +2,8 @@
 
 #include "starlight/core/math/Vertex.hh"
 
+#include "starlight/core/event/WindowResized.hh"
+
 namespace sl {
 
 static constexpr u64 bufferSize = 1024 * 1024;
@@ -36,13 +38,16 @@ Renderer::Renderer(Context& context) :
     m_swapchain(m_device->createSwapchain(m_window.getFramebufferSize())),
     m_vertexBuffer(createVertexBuffer(*m_device)),
     m_indexBuffer(createIndexBuffer(*m_device)), m_currentFrame(0u),
-    m_maxFramesInFlight(m_swapchain->getImageCount()),
+    m_maxFramesInFlight(m_swapchain->getImageCount()), m_frameNumber(0u),
     m_shaderFactory(m_config.paths.shaders, *m_device),
     m_textureFactory(m_config.paths.textures, *m_device),
     m_materialFactory(m_config.paths.materials),
-    m_meshFactory(*m_vertexBuffer, *m_indexBuffer) {
+    m_meshFactory(*m_vertexBuffer, *m_indexBuffer),
+    m_eventSentinel(context.getEventProxy()), m_recreatingSwapchain(false),
+    m_framesSinceResize(0u) {
     createSyncPrimitives();
     createBuffers();
+    initEventHandlers();
 }
 
 Context& Renderer::getContext() { return m_context; }
@@ -58,6 +63,11 @@ Buffer& Renderer::getIndexBuffer() { return *m_indexBuffer; }
 Buffer& Renderer::getVertexBuffer() { return *m_vertexBuffer; }
 
 void Renderer::createSyncPrimitives() {
+    m_frameFences.clear();
+    m_imageFences.clear();
+    m_imageAvailableSemaphores.clear();
+    m_queueCompleteSemaphores.clear();
+
     for (u8 i = 0; i < m_maxFramesInFlight; ++i) {
         m_frameFences.push_back(m_device->createFence(Fence::State::signaled));
         m_imageFences.push_back(nullptr);
@@ -71,13 +81,43 @@ void Renderer::createBuffers() {
         m_commandBuffers.push_back(m_device->createCommandBuffer());
 }
 
+void Renderer::initEventHandlers() {
+    LOG_TRACE("Setting up renderer event handlers");
+    m_eventSentinel.add<WindowResized>([&](auto& event) {
+        onWindowResize(event.size);
+    });
+}
+
+void Renderer::onWindowResize(const Vec2<u32>& size) {
+    LOG_DEBUG("Window resized: {}/{} - recreating swapchain", size.w, size.h);
+    m_recreatingSwapchain = true;
+    m_framesSinceResize   = 0;
+
+    m_device->waitIdle();
+    m_swapchain->recreate(size);
+    createSyncPrimitives();
+    m_currentFrame = 0u;
+}
+
 std::optional<u8> Renderer::beginFrame() {
+    if (m_recreatingSwapchain) [[unlikely]] {
+        static constexpr u64 framesToDrop = 60u;
+        m_recreatingSwapchain = (++m_framesSinceResize) <= framesToDrop - 1;
+        LOG_TRACE(
+          "Recreating swapchain, dropping frame: {}/{}", m_framesSinceResize,
+          framesToDrop
+        );
+        return {};
+    }
+
     m_frameFences[m_currentFrame]->wait();
 
     auto imageIndex = m_swapchain->acquireNextImageIndex(
       m_imageAvailableSemaphores[m_currentFrame].get()
     );
-    if (not imageIndex) return {};
+    if (not imageIndex) {
+        return {};
+    }
 
     auto& commandBuffer = *m_commandBuffers[*imageIndex];
     commandBuffer.begin();
@@ -128,7 +168,7 @@ void Renderer::endFrame(u32 imageIndex) {
         .fence           = getImageFence(imageIndex)
     };
 
-    if (not m_device->getGraphicsQueue().submit(submitInfo)) {
+    if (not m_device->getGraphicsQueue().submit(submitInfo)) [[unlikely]] {
     }
 
     Queue::PresentInfo presentInfo{
@@ -137,7 +177,7 @@ void Renderer::endFrame(u32 imageIndex) {
         .waitSemaphore = m_queueCompleteSemaphores[m_currentFrame].get(),
     };
 
-    if (not m_device->getPresentQueue().present(presentInfo)) {
+    if (not m_device->getPresentQueue().present(presentInfo)) [[unlikely]] {
     }
 
     m_currentFrame = (m_currentFrame + 1) % m_maxFramesInFlight;

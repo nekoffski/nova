@@ -8,6 +8,7 @@
 
 #include "starlight/core/Log.hh"
 #include "starlight/core/window/glfw/Vulkan.hh"
+#include "starlight/core/event/WindowResized.hh"
 
 #include "VulkanFence.hh"
 #include "VulkanSemaphore.hh"
@@ -21,14 +22,28 @@
 
 namespace sl::vk {
 
-VulkanDevice::VulkanDevice(Window& window, const Config& config) :
-    window(window), config(config), allocator(nullptr), instance(config, allocator),
+VulkanDevice::VulkanDevice(Context& context) :
+    window(context.getWindow()), config(context.getConfig()),
+    m_eventSentinel(context.getEventProxy()), allocator(nullptr),
+    instance(config, allocator),
 #ifdef SL_VK_DEBUG
     m_debugMessenger(instance.handle, allocator),
 #endif
     surface(instance.handle, window, allocator),
     physical(instance.handle, surface.handle),
     logical(physical.handle, allocator, physical.info.queueIndices) {
+
+    createUiResources();
+
+    m_eventSentinel.add<WindowResized>([&]([[maybe_unused]] auto&) {
+        onWindowResize();
+    });
+}
+
+VulkanDevice::~VulkanDevice() {
+    if (uiDescriptorPool) {
+        vkDestroyDescriptorPool(logical.handle, uiDescriptorPool, allocator);
+    }
 }
 
 OwningPtr<Buffer> VulkanDevice::createBuffer(const Buffer::Properties& props) {
@@ -391,6 +406,37 @@ static bool queryDeviceSwapchainSupport(
     ));
 
     return true;
+}
+
+void VulkanDevice::onWindowResize() {
+    queryDeviceSwapchainSupport(physical.handle, surface.handle, physical.info);
+}
+
+void VulkanDevice::createUiResources() {
+    VkDescriptorPoolSize poolSizes[] = {
+        { VK_DESCRIPTOR_TYPE_SAMPLER,                1000 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+        { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         1000 },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+        { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,       1000 }
+    };
+    VkDescriptorPoolCreateInfo poolInfo;
+    poolInfo.pNext         = nullptr;
+    poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets       = 1000;
+    poolInfo.poolSizeCount = std::size(poolSizes);
+    poolInfo.pPoolSizes    = poolSizes;
+
+    VK_ASSERT(
+      vkCreateDescriptorPool(logical.handle, &poolInfo, allocator, &uiDescriptorPool)
+    );
 }
 
 static bool validateExtensions(

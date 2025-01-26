@@ -32,13 +32,12 @@ struct MeshRenderData {
 };
 
 void WorldRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
 ) {
     Vec4<f32> ambientColor(0.05f, 0.05f, 0.05f, 1.0f);
     auto camera               = packet.camera;
     const auto cameraPosition = camera->getPosition();
 
-    m_shader->use(commandBuffer);
     m_shader->setGlobalUniforms(
       commandBuffer, imageIndex,
       [&](Shader::UniformProxy& proxy) {
@@ -107,7 +106,7 @@ void WorldRenderPass::render(
     transparentGeometries.clear();
 
     for (auto& [mesh, material, model, _] : meshes) {
-        material->applyUniforms(m_shader, commandBuffer, imageIndex, 1);
+        material->applyUniforms(m_shader, commandBuffer, imageIndex, frameNumber);
         m_shader->setLocalUniforms(commandBuffer, [&](Shader::UniformProxy& proxy) {
             proxy.set("model", model);
         });

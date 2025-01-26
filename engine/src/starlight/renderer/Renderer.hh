@@ -5,6 +5,7 @@
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/core/Core.hh"
 #include "starlight/core/Context.hh"
+#include "starlight/core/event/EventHandlerSentinel.hh"
 
 #include "gpu/Device.hh"
 #include "gpu/Swapchain.hh"
@@ -32,10 +33,10 @@ public:
     Buffer& getIndexBuffer();
 
     template <typename Callback>
-    requires Callable<Callback, void, CommandBuffer&, u8>
+    requires Callable<Callback, void, CommandBuffer&, u8, u64>
     void renderFrame(Callback&& callback) {
         if (auto imageIndex = beginFrame(); imageIndex) [[likely]] {
-            callback(*m_commandBuffers[*imageIndex], *imageIndex);
+            callback(*m_commandBuffers[*imageIndex], *imageIndex, ++m_frameNumber);
             endFrame(*imageIndex);
         }
     }
@@ -43,6 +44,9 @@ public:
 private:
     void createSyncPrimitives();
     void createBuffers();
+    void initEventHandlers();
+
+    void onWindowResize(const Vec2<u32>& size);
 
     Fence* getImageFence(u32 imageIndex);
 
@@ -61,6 +65,7 @@ private:
 
     u8 m_currentFrame;
     u8 m_maxFramesInFlight;
+    u64 m_frameNumber;
 
     std::vector<OwningPtr<CommandBuffer>> m_commandBuffers;
     std::vector<OwningPtr<Semaphore>> m_imageAvailableSemaphores;
@@ -74,6 +79,10 @@ private:
     MaterialFactory m_materialFactory;
     MeshFactory m_meshFactory;
     SkyboxFactory m_skyboxFactory;
+
+    EventHandlerSentinel m_eventSentinel;
+    bool m_recreatingSwapchain;
+    u64 m_framesSinceResize;
 };
 
 }  // namespace sl

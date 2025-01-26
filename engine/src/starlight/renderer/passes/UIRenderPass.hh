@@ -15,8 +15,10 @@ public:
 private:
     void init(bool hasPreviousPass, bool hasNextPass) override;
 
-    void run(RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex)
-      override;
+    void run(
+      RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+      u64 frameNumber
+    ) override;
 
     RenderPassBackend::Properties createProperties(
       bool hasPreviousPass, bool hasNextPass

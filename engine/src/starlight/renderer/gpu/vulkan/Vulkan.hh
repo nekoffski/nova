@@ -22,5 +22,3 @@ bool isGood(VkResult);
 using Allocator = VkAllocationCallbacks;
 
 }  // namespace sl::vk
-
-DEFINE_ERROR(VulkanError);
