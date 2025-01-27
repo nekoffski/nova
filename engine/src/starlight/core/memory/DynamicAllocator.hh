@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "starlight/core/utils/FreeList.hh"
+#include "starlight/core/containers/FreeList.hh"
 
 namespace sl {
 

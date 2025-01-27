@@ -3,7 +3,7 @@
 #include <optional>
 #include <vector>
 
-#include "starlight/core/utils/Id.hh"
+#include "starlight/core/Id.hh"
 
 #include "Component.hh"
 #include "ComponentManager.hh"

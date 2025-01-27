@@ -1,6 +1,6 @@
 #pragma once
 
-#include "starlight/core/utils/Resource.hh"
+#include "starlight/core/Resource.hh"
 #include "starlight/core/memory/Memory.hh"
 
 #include "starlight/renderer/Skybox.hh"

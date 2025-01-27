@@ -1,6 +1,6 @@
 #include "ShaderFactory.hh"
 
-#include "starlight/core/utils/Json.hh"
+#include "starlight/core/Json.hh"
 
 #include "TextureFactory.hh"
 

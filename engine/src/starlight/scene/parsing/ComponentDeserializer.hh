@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "starlight/core/utils/Json.hh"
+#include "starlight/core/Json.hh"
 #include "starlight/scene/ecs/Entity.hh"
 
 namespace sl {

@@ -10,7 +10,7 @@
 #include "starlight/core/math/Extent.hh"
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/math/Vertex.hh"
-#include "starlight/core/utils/Resource.hh"
+#include "starlight/core/Resource.hh"
 
 #include "gpu/Device.hh"
 #include "gpu/Buffer.hh"

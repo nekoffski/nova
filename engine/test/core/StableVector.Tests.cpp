@@ -1,4 +1,4 @@
-#include "starlight/core/utils/StableVector.hh"
+#include "starlight/core/containers/StableVector.hh"
 
 #include <gtest/gtest.h>
 

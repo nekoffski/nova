@@ -2,7 +2,7 @@
 
 #include "starlight/renderer/factories/SkyboxFactory.hh"
 
-#include "starlight/core/utils/Json.hh"
+#include "starlight/core/Json.hh"
 
 namespace sl {
 

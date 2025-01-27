@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_set>
 
-#include <starlight/core/utils/Resource.hh>
+#include <starlight/core/Resource.hh>
 #include <starlight/renderer/Mesh.hh>
 #include <starlight/renderer/gpu/Texture.hh>
 #include <starlight/renderer/Material.hh>

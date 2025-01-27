@@ -7,12 +7,9 @@
 #include <string>
 #include <concepts>
 
-#include <kc/core/ErrorBase.hpp>
 #include <kc/core/Scope.hpp>
 
 namespace sl {
-
-DEFINE_ERROR(Error);
 
 template <class... Ts> struct Overload : Ts... {
     using Ts::operator()...;

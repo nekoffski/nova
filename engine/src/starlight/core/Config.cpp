@@ -1,6 +1,6 @@
 #include "Config.hh"
 
-#include "starlight/core/utils/Json.hh"
+#include "starlight/core/Json.hh"
 #include "starlight/core/Log.hh"
 
 namespace sl {

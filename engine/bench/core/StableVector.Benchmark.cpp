@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include "starlight/core/utils/StableVector.hh"
+#include "starlight/core/containers/StableVector.hh"
 
 #include <vector>
 

@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "starlight/core/Core.hh"
-#include "starlight/core/utils/FlatMap.hh"
+#include "starlight/core/containers/FlatMap.hh"
 
 #include "Component.hh"
 

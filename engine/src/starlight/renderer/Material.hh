@@ -4,9 +4,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "starlight/core/utils/Resource.hh"
+#include "starlight/core/Resource.hh"
 #include "starlight/core/math/Core.hh"
-#include "starlight/core/utils/Id.hh"
+#include "starlight/core/Id.hh"
 #include "starlight/core/memory/Memory.hh"
 
 #include "fwd.hh"

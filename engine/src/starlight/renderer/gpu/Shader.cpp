@@ -8,7 +8,7 @@
 
 #include <fmt/core.h>
 
-#include "starlight/core/utils/Json.hh"
+#include "starlight/core/Json.hh"
 #include "starlight/renderer/factories/TextureFactory.hh"
 
 namespace sl {

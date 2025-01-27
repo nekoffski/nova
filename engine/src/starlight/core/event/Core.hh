@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include "starlight/core/utils/Id.hh"
+#include "starlight/core/Id.hh"
 #include "starlight/core/memory/Memory.hh"
 
 namespace sl {

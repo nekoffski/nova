@@ -5,9 +5,9 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/math/Core.hh"
-#include "starlight/core/utils/Enum.hh"
-#include "starlight/core/utils/Id.hh"
-#include "starlight/core/utils/Resource.hh"
+#include "starlight/core/Enum.hh"
+#include "starlight/core/Id.hh"
+#include "starlight/core/Resource.hh"
 #include "starlight/renderer/RenderPacket.hh"
 
 #include "gpu/Texture.hh"

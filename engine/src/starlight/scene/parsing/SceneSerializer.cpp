@@ -1,6 +1,6 @@
 #include "SceneSerializer.hh"
 
-#include "starlight/core/utils/Json.hh"
+#include "starlight/core/Json.hh"
 #include "starlight/core/Clock.hh"
 
 namespace sl {

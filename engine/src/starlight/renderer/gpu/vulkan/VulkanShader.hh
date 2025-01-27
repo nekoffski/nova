@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "starlight/core/utils/Id.hh"
+#include "starlight/core/Id.hh"
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/renderer/gpu/Shader.hh"
 

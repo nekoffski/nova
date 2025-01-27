@@ -4,7 +4,7 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/window/Window.hh"
-#include "starlight/core/utils/FlatMap.hh"
+#include "starlight/core/containers/FlatMap.hh"
 #include "starlight/renderer/camera/Camera.hh"
 #include "starlight/renderer/RenderPacket.hh"
 #include "starlight/renderer/Skybox.hh"

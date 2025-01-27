@@ -4,7 +4,7 @@
 #include <span>
 
 #include "starlight/core/math/Transform.hh"
-#include "starlight/core/utils/Resource.hh"
+#include "starlight/core/Resource.hh"
 
 #include "Mesh.hh"
 #include "Material.hh"

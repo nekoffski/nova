@@ -1,7 +1,7 @@
 #pragma once
 
 #include "starlight/core/Core.hh"
-#include "starlight/core/utils/Enum.hh"
+#include "starlight/core/Enum.hh"
 
 namespace sl {
 

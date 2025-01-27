@@ -1,7 +1,7 @@
 #include "Material.hh"
 
-#include "starlight/core/utils/Json.hh"
-#include "starlight/core/utils/Enum.hh"
+#include "starlight/core/Json.hh"
+#include "starlight/core/Enum.hh"
 #include "starlight/core/Log.hh"
 
 #include "starlight/renderer/factories/TextureFactory.hh"

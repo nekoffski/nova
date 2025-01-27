@@ -6,7 +6,7 @@
 #include "starlight/core/math/Extent.hh"
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/math/Vertex.hh"
-#include "starlight/core/utils/Resource.hh"
+#include "starlight/core/Resource.hh"
 
 #include "starlight/renderer/Mesh.hh"
 #include "starlight/renderer/gpu/Device.hh"

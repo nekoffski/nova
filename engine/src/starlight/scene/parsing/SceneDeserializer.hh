@@ -5,7 +5,7 @@
 
 #include "starlight/core/FileSystem.hh"
 #include "starlight/scene/Scene.hh"
-#include "starlight/core/utils/Json.hh"
+#include "starlight/core/Json.hh"
 
 #include "ComponentDeserializer.hh"
 

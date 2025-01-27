@@ -1,6 +1,6 @@
 #pragma once
 
-#include "starlight/core/utils/Id.hh"
+#include "starlight/core/Id.hh"
 
 namespace sl {
 

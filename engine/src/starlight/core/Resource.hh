@@ -5,7 +5,7 @@
 #include <kc/core/Singleton.hpp>
 
 #include "starlight/core/Core.hh"
-#include "starlight/core/utils/Id.hh"
+#include "starlight/core/Id.hh"
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/core/Log.hh"
 
