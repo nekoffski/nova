@@ -9,7 +9,7 @@ std::optional<Config> Config::fromJson(
   const std::string& path, const FileSystem& fs
 ) {
     if (not fs.isFile(path)) {
-        LOG_ERROR("Config file '{}' does not exist", path);
+        log::error("Config file '{}' does not exist", path);
         return {};
     }
 
@@ -39,7 +39,7 @@ std::optional<Config> Config::fromJson(
             }
         };
     } catch (const kc::json::JsonError& e) {
-        LOG_ERROR("Could not parse config file '{}' - {}", path, e.asString());
+        log::error("Could not parse config file '{}' - {}", path, e.asString());
     }
     return {};
 }

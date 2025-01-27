@@ -152,7 +152,7 @@ VulkanPipeline::VulkanPipeline(
 
     if (const auto pushConstantRangeCount = props.pushConstantRanges.size();
         pushConstantRangeCount > 0) {
-        ASSERT(
+        log::expect(
           pushConstantRangeCount <= 32,
           "Push constant range count {} exceeds maximum 32", pushConstantRangeCount
         );
@@ -160,7 +160,7 @@ VulkanPipeline::VulkanPipeline(
         u64 totalSize = 0u;
 
         for (const auto& range : props.pushConstantRanges) {
-            LOG_TRACE("Push constant range: {}-{}", range.offset, range.size);
+            log::trace("Push constant range: {}-{}", range.offset, range.size);
             totalSize += range.size;
         }
 
@@ -181,10 +181,10 @@ VulkanPipeline::VulkanPipeline(
     // }
 
     // Create the pipeline layout.
-    VK_ASSERT(vkCreatePipelineLayout(
+    log::expect(vkCreatePipelineLayout(
       m_device, &pipeline_layout_create_info, m_allocator, &m_layout
     ));
-    LOG_TRACE("vkCreatePipelineLayout: {}", static_cast<void*>(m_layout));
+    log::trace("vkCreatePipelineLayout: {}", static_cast<void*>(m_layout));
 
     // VulkanPipeline create
     VkGraphicsPipelineCreateInfo pipeline_create_info;
@@ -211,10 +211,10 @@ VulkanPipeline::VulkanPipeline(
     pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
     pipeline_create_info.basePipelineIndex  = -1;
 
-    VK_ASSERT(vkCreateGraphicsPipelines(
+    log::expect(vkCreateGraphicsPipelines(
       m_device, VK_NULL_HANDLE, 1, &pipeline_create_info, m_allocator, &m_handle
     ));
-    LOG_TRACE("vkCreateGraphicsPipelines: {}", static_cast<void*>(m_handle));
+    log::trace("vkCreateGraphicsPipelines: {}", static_cast<void*>(m_handle));
 }
 
 }  // namespace sl::vk

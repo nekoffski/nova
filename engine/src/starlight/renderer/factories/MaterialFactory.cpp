@@ -29,7 +29,7 @@ ResourceRef<Material> MaterialFactory::load(
     if (auto properties = Material::Properties::fromFile(fullPath, fs); properties)
         return store(name, createOwningPtr<Material>(*properties));
 
-    LOG_WARN("Could not load material config for '{}'", name);
+    log::warn("Could not load material config for '{}'", name);
     return nullptr;
 }
 

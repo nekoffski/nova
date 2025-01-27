@@ -25,7 +25,7 @@ private:
     // TODO: find better way
     kc::json::Node serialize(void* ptr) const override {
         auto component = static_cast<Component*>(ptr);
-        // ASSERT(
+        // log::expect(
         //   component, "Invalid component serializer: {}", typeid(Component).name()
         // );
         return serialize(*component);

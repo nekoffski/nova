@@ -12,7 +12,7 @@ Window::Window(WindowImpl& window) : m_windowImpl(window) { setCallbacks(); }
 
 void Window::setCallbacks() {
     m_windowImpl.onWindowCloseCallback([]() {
-        LOG_INFO("Window closed, emitting event");
+        log::info("Window closed, emitting event");
         EventProxy::get().emit<QuitEvent>("Window closed");
     });
 
@@ -20,7 +20,7 @@ void Window::setCallbacks() {
         WindowResized event{
             Vec2<u32>{ width, height }
         };
-        LOG_TRACE("Window resized, emitting event: {}", event);
+        log::trace("Window resized, emitting event: {}", event);
         EventProxy::get().emit<WindowResized>(event);
     });
 }

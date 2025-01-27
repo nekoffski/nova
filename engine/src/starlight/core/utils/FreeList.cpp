@@ -19,7 +19,7 @@ FreeList::FreeList(u64 size) :
     m_head->offset = 0;
     m_head->size   = m_totalSize;
 
-    LOG_TRACE(
+    log::trace(
       "Creating free list with {}b capacity, maxEntries={}", m_totalSize,
       m_maxEntries
     );
@@ -29,7 +29,9 @@ void FreeList::resize(u64 newSize) {
     m_maxEntries = newSize / sizeof(void*);
 
     u64 sizeDiff = newSize - m_totalSize;
-    ASSERT(sizeDiff > 0, "New size of the list must be greater than the actual one");
+    log::expect(
+      sizeDiff > 0, "New size of the list must be greater than the actual one"
+    );
 
     m_totalSize = newSize;
 
@@ -37,12 +39,11 @@ void FreeList::resize(u64 newSize) {
     m_nodes.resize(newSize);
 
     m_head = &m_nodes[0];
-    // TODO
-    ASSERT(false, "NOT IMPLEMENTED YET!");
+    log::panic("NOT IMPLEMENTED YET!");
 }
 
 void FreeList::freeBlock(u64 size, u64 offset) {
-    ASSERT(
+    log::expect(
       size > 0 && offset > 0,
       "Could not free block with invalid offset ({}) or size ({})", offset, size
     );
@@ -88,11 +89,11 @@ void FreeList::freeBlock(u64 size, u64 offset) {
         previous = node;
         node     = node->next;
     }
-    LOG_WARN("Unable to find block to free, that's unexpected");
+    log::warn("Unable to find block to free, that's unexpected");
 }
 
 std::optional<u64> FreeList::allocateBlock(u64 size) {
-    ASSERT(size > 0, "Could not allocate block with size less or equal 0");
+    log::expect(size > 0, "Could not allocate block with size less or equal 0");
 
     Node* previous = nullptr;
     Node* node     = m_head;
@@ -122,7 +123,7 @@ std::optional<u64> FreeList::allocateBlock(u64 size) {
         node     = node->next;
     }
 
-    LOG_WARN(
+    log::warn(
       "Could not find block with enough memory {} bytes requested, total space left: {}",
       size, spaceLeft()
     );

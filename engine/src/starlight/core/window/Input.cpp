@@ -14,19 +14,19 @@ Input::Input(WindowImpl& windowImpl) :
 void Input::setCallbacks() {
     m_windowImpl.onKeyCallback([](KeyAction action, int key) {
         KeyEvent event{ action, key };
-        LOG_TRACE("Detected key action, emitting event: {}", event);
+        log::trace("Detected key action, emitting event: {}", event);
         EventProxy::get().emit<KeyEvent>(event);
     });
 
     m_windowImpl.onScrollCallback([](float offset) {
         ScrollEvent event{ offset };
-        LOG_TRACE("Detected scroll, emitting event: {}", event);
+        log::trace("Detected scroll, emitting event: {}", event);
         EventProxy::get().emit<ScrollEvent>(event);
     });
 
     m_windowImpl.onMouseCallback([](MouseAction action, int button) {
         MouseEvent event{ action, button };
-        LOG_TRACE("Detected mouse action, emitting event: {}", event);
+        log::trace("Detected mouse action, emitting event: {}", event);
         EventProxy::get().emit<MouseEvent>(event);
     });
 }

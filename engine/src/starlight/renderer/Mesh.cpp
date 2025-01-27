@@ -7,14 +7,18 @@ namespace sl {
 
 Mesh::Mesh(const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer) :
     m_extent(data.extent), m_vertexBuffer(vertexBuffer), m_indexBuffer(indexBuffer) {
-    LOG_DEBUG(
+    log::debug(
       "Creating Mesh, vertex data size = {}b, index data size = {}b",
       data.vertexDataSize, data.indexDataSize
-    )
+    );
     auto vertexRange = vertexBuffer.allocate(data.vertexDataSize, data.vertexData);
     auto indexRange  = indexBuffer.allocate(data.indexDataSize, data.indexData);
-    ASSERT(vertexRange, "Could not allocate vertex buffer range for mesh");
-    ASSERT(indexRange, "Could not allocate index buffer range for mesh");
+    log::expect(
+      vertexRange.has_value(), "Could not allocate vertex buffer range for mesh"
+    );
+    log::expect(
+      indexRange.has_value(), "Could not allocate index buffer range for mesh"
+    );
 
     m_memoryLayout.vertexBufferRange = *vertexRange;
     m_memoryLayout.indexBufferRange  = *indexRange;
@@ -115,11 +119,11 @@ Mesh::Properties3D::Properties3D(const PlaneProperties& props) {
             v3->position           = glm::vec3{ maxX, 0.0f, minZ };
             v3->textureCoordinates = glm::vec2{ maxUVX, minUVZ };
 
-            LOG_DEBUG("Plane y={}/x={} segment", y, x);
-            LOG_DEBUG("v0={}", *v0);
-            LOG_DEBUG("v1={}", *v1);
-            LOG_DEBUG("v2={}", *v2);
-            LOG_DEBUG("v3={}", *v3);
+            log::debug("Plane y={}/x={} segment", y, x);
+            log::debug("v0={}", *v0);
+            log::debug("v1={}", *v1);
+            log::debug("v2={}", *v2);
+            log::debug("v3={}", *v3);
 
             uint32_t iOffset = ((y * props.xSegments) + x) * 6;
 
@@ -138,7 +142,7 @@ Mesh::Properties3D::Properties3D(const PlaneProperties& props) {
 Mesh::Properties3D::Properties3D(const CubeProperties& props) {
     const auto& [width, height, depth, xTile, yTile] = props;
 
-    ASSERT(
+    log::expect(
       width > 0 && depth > 0 && height > 0 && xTile > 0 && yTile > 0,
       "Invalid properties for cube, dimensions must be greater than 0"
     );

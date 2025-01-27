@@ -5,28 +5,28 @@ namespace sl {
 DynamicAllocator::DynamicAllocator(uint64_t size) :
     m_totalSize(size), m_freeList(size), m_memory(size, 0),
     m_memoryAlias(m_memory.data()) {
-    ASSERT(size > 0, "Could not created allocator with size=0");
+    log::expect(size > 0, "Could not created allocator with size=0");
 }
 
 void* DynamicAllocator::allocate(uint64_t size) {
-    ASSERT(size > 0, "Could not allocate memory block of size 0");
+    log::expect(size > 0, "Could not allocate memory block of size 0");
 
     if (auto offset = m_freeList.allocateBlock(size); offset.has_value()) {
         void* block = static_cast<void*>(m_memoryAlias + *offset);
-        LOG_TRACE("Allocating block of size {} at {}", size, block);
+        log::trace("Allocating block of size {} at {}", size, block);
         return block;
     }
 
-    LOG_ERROR("Could not allocate memory, not enough left");
+    log::error("Could not allocate memory, not enough left");
     return nullptr;
 }
 
 void DynamicAllocator::free(void* block, uint64_t size) {
-    ASSERT(block != nullptr, "Could not free nullptr");
-    LOG_TRACE("Freeing block {} of size {}", block, size);
+    log::expect(block != nullptr, "Could not free nullptr");
+    log::trace("Freeing block {} of size {}", block, size);
 
     if (block < m_memoryAlias || block > m_memoryAlias + m_totalSize) {
-        LOG_ERROR(
+        log::error(
           "Trying to free block {} outside of allocator range {} - {}", block,
           m_memoryAlias, m_memoryAlias + m_totalSize
         );

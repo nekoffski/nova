@@ -1,15 +1,14 @@
 #include "Log.hh"
 
-#include <atomic>
+#include <fmt/core.h>
 
-std::atomic_bool sl_isVariableLoggingEnabled;
+namespace sl::log {
 
-namespace sl {
+void init(std::string_view applicationName) {
+    const auto pattern =
+      fmt::format("%^[%d-%m-%Y %T] [Th: %t] %-7l [{}]: %v %$", applicationName);
+    spdlog::set_pattern(pattern);
+    spdlog::set_level(spdlog::level::trace);
+}
 
-void enableVariableLogging() { sl_isVariableLoggingEnabled = true; }
-
-void disableVariableLogging() { sl_isVariableLoggingEnabled = false; }
-
-bool isVariableLoggingEnabled() { return sl_isVariableLoggingEnabled; }
-
-}  // namespace sl
+}  // namespace sl::log

@@ -31,15 +31,15 @@ VulkanRenderPassBackend::Framebuffer::Framebuffer(
     createInfo.height          = size.h;
     createInfo.layers          = 1;
 
-    VK_ASSERT(vkCreateFramebuffer(
+    log::expect(vkCreateFramebuffer(
       m_device.logical.handle, &createInfo, m_device.allocator, &handle
     ));
-    LOG_TRACE("vkCreateFramebuffer: {}", static_cast<void*>(handle));
+    log::trace("vkCreateFramebuffer: {}", static_cast<void*>(handle));
 }
 
 VulkanRenderPassBackend::Framebuffer::~Framebuffer() {
     if (handle) {
-        LOG_TRACE("vkDestroyFramebuffer: {}", static_cast<void*>(handle));
+        log::trace("vkDestroyFramebuffer: {}", static_cast<void*>(handle));
         vkDestroyFramebuffer(m_device.logical.handle, handle, m_device.allocator);
     }
 }
@@ -89,7 +89,7 @@ VulkanRenderPassBackend::VulkanRenderPassBackend(
 ) :
     m_device(device), m_handle(VK_NULL_HANDLE), m_props(properties),
     m_hasColorAttachment(false), m_hasDepthAttachment(false) {
-    LOG_TRACE("Creating VulkanRenderPassBackend instance");
+    log::trace("Creating VulkanRenderPassBackend instance");
 
     for (auto& target : properties.renderTargets) {
         if (target.colorAttachment != nullptr) m_hasColorAttachment = true;
@@ -102,22 +102,22 @@ VulkanRenderPassBackend::VulkanRenderPassBackend(
       m_hasDepthAttachment
     );
 
-    VK_ASSERT(vkCreateRenderPass(
+    log::expect(vkCreateRenderPass(
       m_device.logical.handle, &createInfo.handle, m_device.allocator, &m_handle
     ));
-    LOG_TRACE("vkCreateRenderPass: {}", static_cast<void*>(m_handle));
+    log::trace("vkCreateRenderPass: {}", static_cast<void*>(m_handle));
 
     if (properties.renderTargets.size() == 0)
-        LOG_WARN("Render pass with no render targets created");
+        log::warn("Render pass with no render targets created");
 
     generateRenderTargets();
-    LOG_TRACE("VulkanRenderPassBackend instance created");
+    log::trace("VulkanRenderPassBackend instance created");
 }
 
 VulkanRenderPassBackend::~VulkanRenderPassBackend() {
     if (m_handle) {
         m_device.waitIdle();
-        LOG_TRACE("vkDestroyRenderPass: {}", static_cast<void*>(m_handle));
+        log::trace("vkDestroyRenderPass: {}", static_cast<void*>(m_handle));
         vkDestroyRenderPass(m_device.logical.handle, m_handle, m_device.allocator);
     }
 }
@@ -191,7 +191,7 @@ static void addAttachment(
 
 void VulkanRenderPassBackend::generateRenderTargets() {
     auto& renderTargets = m_props.renderTargets;
-    LOG_TRACE("Generating render targets for render pass");
+    log::trace("Generating render targets for render pass");
     for (const auto& renderTarget : renderTargets) {
         std::vector<VkImageView> attachmentViews;
 
@@ -201,7 +201,7 @@ void VulkanRenderPassBackend::generateRenderTargets() {
         if (renderTarget.depthAttachment != nullptr)
             addAttachment(attachmentViews, renderTarget.depthAttachment);
 
-        LOG_TRACE(
+        log::trace(
           "Creating framebuffer for render target, attachment count: {}",
           attachmentViews.size()
         );
@@ -400,7 +400,7 @@ void VulkanImguiRenderPassBackend::loadFonts(const std::string& fontsPath) {
     auto handle     = imguiFonts->AddFontFromFileTTF(
       fmt::format("{}/Roboto-Regular.ttf", fontsPath).c_str(), 15
     );
-    ASSERT(handle, "Could not load font");
+    log::expect(handle, "Could not load font");
 
     ImFontConfig config;
     config.MergeMode        = true;
@@ -410,7 +410,7 @@ void VulkanImguiRenderPassBackend::loadFonts(const std::string& fontsPath) {
 
     static std::array<ImWchar, 3> mergedRanges = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
-    ASSERT(
+    log::expect(
       imguiFonts->AddFontFromFileTTF(
         fmt::format("{}/fa-solid-900.ttf", fontsPath).c_str(), 13.0f, &config,
         mergedRanges.data()

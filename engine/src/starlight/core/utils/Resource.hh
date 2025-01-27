@@ -7,6 +7,7 @@
 #include "starlight/core/Core.hh"
 #include "starlight/core/utils/Id.hh"
 #include "starlight/core/memory/Memory.hh"
+#include "starlight/core/Log.hh"
 
 namespace sl {
 
@@ -108,7 +109,7 @@ protected:
           m_records.emplace(name, ResourceRecord{ std::move(resource), name, 0u });
 
         if (not inserted) {
-            LOG_WARN("Record with name='{}' already exists", name);
+            log::warn("Record with name='{}' already exists", name);
             return nullptr;
         }
 
@@ -118,7 +119,9 @@ protected:
             const auto id            = record.data->getId();
             const auto [_, inserted] = m_recordsById.emplace(id, &record);
 
-            ASSERT(inserted, "Map 'id' -> 'record' desynchronized with main buffer");
+            log::expect(
+              inserted, "Map 'id' -> 'record' desynchronized with main buffer"
+            );
         }
         ResourceRef<T> ref{ record.data.get(), this, name };
         m_view.push_back(ref);
@@ -129,7 +132,7 @@ protected:
         if (auto it = m_records.find(name); it != m_records.end()) {
             if (auto& record = it->second; --record.referenceCounter <= 0) {
                 // 1 instance for view vector
-                LOG_INFO(
+                log::info(
                   "Reference counter of Resource {} less or equals 1, destroying",
                   name
                 );
@@ -141,7 +144,7 @@ protected:
                 m_records.erase(name);
             }
         } else {
-            LOG_WARN("Could not find record to release with name: {}", name);
+            log::warn("Could not find record to release with name: {}", name);
         }
     }
 
@@ -165,16 +168,16 @@ template <typename T>
 ResourceRef<T>::ResourceRef(
   T* resource, ResourceFactory<T>* manager, const std::string& name
 ) : m_resource(resource), m_manager(manager), m_name(name) {
-    LOG_TRACE("Creating resource ref: {}", name);
-    ASSERT(
+    log::trace("Creating resource ref: {}", name);
+    log::expect(
       resource != nullptr,
       "Attempt to create ResourceRef with resource == nullptr, {}", name
     );
-    ASSERT(
+    log::expect(
       manager != nullptr,
       "Attempt to create ResourceRef with manager == nullptr, {}", name
     );
-    ASSERT(manager->acquire(name), "Could not acquire resource: {}", name);
+    log::expect(manager->acquire(name), "Could not acquire resource: {}", name);
 }
 
 template <typename T> std::string ResourceRef<T>::getName() const {

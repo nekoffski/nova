@@ -2,6 +2,7 @@
 
 #include "starlight/core/utils/Json.hh"
 #include "starlight/core/utils/Enum.hh"
+#include "starlight/core/Log.hh"
 
 #include "starlight/renderer/factories/TextureFactory.hh"
 
@@ -12,10 +13,10 @@ Material::Material(const Properties& props) :
     m_renderFrameNumber(0),
     m_textures{ props.diffuseMap, props.specularMap, props.normalMap } {
     m_instance.emplace(m_textures.asArray());
-    LOG_TRACE("Creating Material");
+    log::trace("Creating Material");
 }
 
-Material::~Material() { LOG_TRACE("Destroying Material: {}", getId()); }
+Material::~Material() { log::trace("Destroying Material: {}", getId()); }
 
 bool Material::isTransparent() const {
     return isFlagEnabled(
@@ -65,10 +66,10 @@ Material::Properties Material::Properties::createDefault() {
 std::optional<Material::Properties> Material::Properties::fromFile(
   const std::string& path, const FileSystem& fs
 ) {
-    LOG_TRACE("Loading material properties file: {}", path);
+    log::trace("Loading material properties file: {}", path);
 
     if (not fs.isFile(path)) {
-        LOG_ERROR("Could not find file: '{}'", path);
+        log::error("Could not find file: '{}'", path);
         return {};
     }
 
@@ -97,7 +98,7 @@ std::optional<Material::Properties> Material::Properties::fromFile(
 
         return props;
     } catch (kc::json::JsonError& e) {
-        LOG_ERROR("Could not parse material '{}' file: {}", path, e.asString());
+        log::error("Could not parse material '{}' file: {}", path, e.asString());
     }
     return {};
 }

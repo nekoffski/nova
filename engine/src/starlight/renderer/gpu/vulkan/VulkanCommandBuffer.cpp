@@ -20,15 +20,15 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, Severity severity
     allocateInfo.level              = level;
     allocateInfo.commandBufferCount = 1;
 
-    VK_ASSERT(
+    log::expect(
       vkAllocateCommandBuffers(m_device.logical.handle, &allocateInfo, &m_handle)
     );
-    LOG_TRACE("vkAllocateCommandBuffers: {}", static_cast<void*>(m_handle));
+    log::trace("vkAllocateCommandBuffers: {}", static_cast<void*>(m_handle));
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer() {
     if (m_handle) {
-        LOG_TRACE("vkFreeCommandBuffers: {}", static_cast<void*>(m_handle));
+        log::trace("vkFreeCommandBuffers: {}", static_cast<void*>(m_handle));
         vkFreeCommandBuffers(
           m_device.logical.handle, m_device.logical.graphicsCommandPool, 1, &m_handle
         );
@@ -56,10 +56,10 @@ static VkCommandBufferBeginInfo createCommandBufferBeginInfo(
 
 void VulkanCommandBuffer::begin(BeginFlags flags) {
     auto beginInfo = createCommandBufferBeginInfo(flags);
-    VK_ASSERT(vkBeginCommandBuffer(m_handle, &beginInfo));
+    log::expect(vkBeginCommandBuffer(m_handle, &beginInfo));
 }
 
-void VulkanCommandBuffer::end() { VK_ASSERT(vkEndCommandBuffer(m_handle)); }
+void VulkanCommandBuffer::end() { log::expect(vkEndCommandBuffer(m_handle)); }
 
 VkCommandBuffer* VulkanCommandBuffer::getHandlePtr() { return &m_handle; }
 

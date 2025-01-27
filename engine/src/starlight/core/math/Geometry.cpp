@@ -1,10 +1,12 @@
 #include "Geometry.hh"
 
+#include "starlight/core/Log.hh"
+
 namespace sl {
 
 void generateFaceNormals(std::span<Vertex3> vertices, const std::span<u32> indices) {
     const int indexCount = indices.size();
-    ASSERT(
+    log::expect(
       indexCount % 3 == 0, "Index count ({}) must be a multiplication of 3",
       indexCount
     );
@@ -27,7 +29,7 @@ void generateFaceNormals(std::span<Vertex3> vertices, const std::span<u32> indic
 
 void generateTangents(std::span<Vertex3> vertices, const std::span<u32> indices) {
     const int indexCount = indices.size();
-    ASSERT(
+    log::expect(
       indexCount % 3 == 0, "Index count ({}) must be a multiplication of 3",
       indexCount
     );
@@ -37,11 +39,11 @@ void generateTangents(std::span<Vertex3> vertices, const std::span<u32> indices)
         auto& v1 = vertices[indices[i + 1]];
         auto& v2 = vertices[indices[i + 2]];
 
-        // LOG_TRACE(
+        // log::trace(
         //   "Input vertices positions: {} {} {}", v0.position, v1.position,
         //   v2.position
         // );
-        // LOG_TRACE(
+        // log::trace(
         //   "Input vertices tex coords: {} {} {}", v0.textureCoordinates,
         //   v1.textureCoordinates, v2.textureCoordinates
         // );
@@ -55,7 +57,7 @@ void generateTangents(std::span<Vertex3> vertices, const std::span<u32> indices)
         float dividend = (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
         float fc       = 1.0f / dividend;
 
-        // LOG_TRACE("fc={}", fc);
+        // log::trace("fc={}", fc);
 
         auto tangent = Vec3<f32>(
           deltaUV2.y * edge1.x - deltaUV1.y * edge2.x,
@@ -72,7 +74,7 @@ void generateTangents(std::span<Vertex3> vertices, const std::span<u32> indices)
         v1.tangent = hTangent;
         v2.tangent = hTangent;
 
-        // LOG_TRACE("Generated tangent: {}", hTangent);
+        // log::trace("Generated tangent: {}", hTangent);
     }
 }
 

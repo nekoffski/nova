@@ -43,10 +43,10 @@ public:
     ~VulkanPipeline() override {
         vkDeviceWaitIdle(m_device);
 
-        LOG_TRACE("vkDestroyPipeline: {}", static_cast<void*>(m_handle));
+        log::trace("vkDestroyPipeline: {}", static_cast<void*>(m_handle));
         vkDestroyPipeline(m_device, m_handle, m_allocator);
 
-        LOG_TRACE("vkDestroyPipelineLayout: {}", static_cast<void*>(m_layout));
+        log::trace("vkDestroyPipelineLayout: {}", static_cast<void*>(m_layout));
         vkDestroyPipelineLayout(m_device, m_layout, m_allocator);
     }
 

@@ -20,7 +20,7 @@ Shader::Scope Shader::scopeFromString(const std::string& name) {
         return Shader::Scope::instance;
     else if (name == "global")
         return Shader::Scope::global;
-    FATAL_ERROR("Could not parse shader scope: {}", name);
+    log::panic("Could not parse shader scope: {}", name);
 }
 
 std::string Shader::scopeToString(Shader::Scope scope) {
@@ -50,7 +50,7 @@ Shader::Attribute::Type Shader::Attribute::typeFromString(const std::string& nam
           { "i32",  Shader::Attribute::Type::int32     },
     };
     const auto record = nameToType.find(name);
-    ASSERT(record != nameToType.end(), "Invalid type attribute name: {}", name);
+    log::expect(record != nameToType.end(), "Invalid type attribute name: {}", name);
     return record->second;
 }
 
@@ -68,7 +68,7 @@ std::string Shader::Attribute::typeToString(Type type) {
         { Shader::Attribute::Type::int32,     "i32"  },
     };
     const auto record = typeToName.find(type);
-    ASSERT(
+    log::expect(
       record != typeToName.end(), "Invalid attribute type: {}", fmt::underlying(type)
     );
     return record->second;
@@ -88,7 +88,7 @@ u32 Shader::Attribute::getTypeSize(Type type) {
         { Shader::Attribute::Type::int32,     4  },
     };
     const auto record = typeToSize.find(type);
-    ASSERT(
+    log::expect(
       record != typeToSize.end(), "Invalid attribute type: {}", fmt::underlying(type)
     );
     return record->second;
@@ -103,7 +103,7 @@ Shader::Stage::Type Shader::Stage::typeFromString(const std::string& name) {
         return Shader::Stage::Type::fragment;
     else if (name == "compute")
         return Shader::Stage::Type::compute;
-    FATAL_ERROR("Invalid stage name: {}", name);
+    log::panic("Invalid stage name: {}", name);
 }
 
 std::string Shader::Stage::typeToString(Shader::Stage::Type type) {
@@ -117,7 +117,7 @@ std::string Shader::Stage::typeToString(Shader::Stage::Type type) {
         case Shader::Stage::Type::compute:
             return "compute";
     }
-    FATAL_ERROR("Invalid stage type: {}", fmt::underlying(type));
+    log::panic("Invalid stage type: {}", fmt::underlying(type));
 }
 
 bool Shader::Uniform::isSampler() const { return type == Type::sampler; }
@@ -140,7 +140,7 @@ Shader::Uniform::Type Shader::Uniform::typeFromString(const std::string& name) {
           { "custom", Shader::Uniform::Type::custom    }
     };
     const auto record = nameToType.find(name);
-    ASSERT(record != nameToType.end(), "Invalid type Uniform name: {}", name);
+    log::expect(record != nameToType.end(), "Invalid type Uniform name: {}", name);
     return record->second;
 }
 
@@ -161,7 +161,7 @@ std::string Shader::Uniform::typeToString(Type type) {
         { Shader::Uniform::Type::custom,    "custom" },
     };
     const auto record = typeToName.find(type);
-    ASSERT(
+    log::expect(
       record != typeToName.end(), "Invalid Uniform type: {}", fmt::underlying(type)
     );
     return record->second;
@@ -184,7 +184,7 @@ u32 Shader::Uniform::getTypeSize(Type type) {
         { Shader::Uniform::Type::custom,    0  }
     };
     const auto record = typeToSize.find(type);
-    ASSERT(
+    log::expect(
       record != typeToSize.end(), "Invalid Uniform type: {}", fmt::underlying(type)
     );
     return record->second;

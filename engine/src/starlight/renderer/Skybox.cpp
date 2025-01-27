@@ -10,7 +10,7 @@ Skybox::Skybox(ResourceRef<Texture> cubeMap) : m_cubeMap(cubeMap) {
     m_instance.emplace(std::vector<Texture*>{ m_cubeMap.get() });
 }
 
-Skybox::~Skybox() { LOG_TRACE("Destroying Skybox: {}", getId()); }
+Skybox::~Skybox() { log::trace("Destroying Skybox: {}", getId()); }
 
 void Skybox::applyUniforms(
   ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex

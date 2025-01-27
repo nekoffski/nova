@@ -14,7 +14,7 @@ ResourceRef<Texture> TextureFactory::load(
     if (auto data = Texture::ImageData::load(fullPath, textureType); data)
         return store(name, m_device.createTexture(*data, sampler));
 
-    LOG_WARN("Could not process texture: {}", fullPath);
+    log::warn("Could not process texture: {}", fullPath);
     return nullptr;
 }
 

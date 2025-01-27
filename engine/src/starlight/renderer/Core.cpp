@@ -15,7 +15,7 @@ std::string cullModeToString(CullMode mode) {
         case CullMode::frontAndBack:
             return "frontAndBack";
     }
-    FATAL_ERROR("Invalid cull mode");
+    log::panic("Could not parse cull mode");
 }
 
 CullMode cullModeFromString(const std::string& mode) {
@@ -27,7 +27,7 @@ CullMode cullModeFromString(const std::string& mode) {
         return CullMode::back;
     else if (mode == "frontAndBack")
         return CullMode::frontAndBack;
-    FATAL_ERROR("Could not parse cull mode: {}", mode);
+    log::panic("Could not parse cull mode: {}", mode);
 }
 
 std::string polygonModeToString(PolygonMode polygonMode) {
@@ -39,7 +39,7 @@ std::string polygonModeToString(PolygonMode polygonMode) {
         case PolygonMode::point:
             return "point";
     }
-    __builtin_unreachable();
+    log::panic("Could not parse polygon mode");
 }
 
 PolygonMode polygonModeFromString(const std::string& polygonName) {
@@ -49,7 +49,7 @@ PolygonMode polygonModeFromString(const std::string& polygonName) {
         return PolygonMode::fill;
     else if (polygonName == "point")
         return PolygonMode::point;
-    FATAL_ERROR("Could not parse polygon mode: {}", polygonName);
+    log::panic("Could not parse polygon mode: {}", polygonName);
 }
 
 }  // namespace sl

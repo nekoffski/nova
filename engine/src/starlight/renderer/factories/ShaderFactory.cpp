@@ -12,7 +12,7 @@ static std::optional<std::string> getShaderSource(
     const auto fullPath = fmt::format("{}/{}", shadersPath, name);
 
     if (not fs.isFile(fullPath)) {
-        LOG_WARN("Could not find shader file '{}'", fullPath);
+        log::warn("Could not find shader file '{}'", fullPath);
         return {};
     }
     return fs.readFile(fullPath);
@@ -29,7 +29,7 @@ static std::vector<Shader::Stage> processStages(
         const auto stageName = getField<std::string>(stage, "stage");
 
         auto source = getShaderSource(shadersPath, file, fs);
-        ASSERT(source, "Could not find source file for: {}", file);
+        log::expect(source.has_value(), "Could not find source file for: {}", file);
 
         stages.emplace_back(Shader::Stage::typeFromString(stageName), *source);
     }
@@ -91,10 +91,10 @@ static std::optional<Shader::Properties> loadPropertiesFromFile(
 ) {
     const auto fullPath = fmt::format("{}/{}.json", shadersPath, name);
 
-    LOG_TRACE("Loading shader config file: {}", fullPath);
+    log::trace("Loading shader config file: {}", fullPath);
 
     if (not fs.isFile(fullPath)) {
-        LOG_ERROR("Could not find file: '{}'", fullPath);
+        log::error("Could not find file: '{}'", fullPath);
         return {};
     }
 
@@ -114,7 +114,7 @@ static std::optional<Shader::Properties> loadPropertiesFromFile(
             )
         };
     } catch (kc::json::JsonError& e) {
-        LOG_ERROR("Could not parse shader '{}' file: {}", name, e.asString());
+        log::error("Could not parse shader '{}' file: {}", name, e.asString());
     }
     return {};
 }
@@ -126,7 +126,7 @@ ResourceRef<Shader> ShaderFactory::load(
   const std::string& name, const FileSystem& fs
 ) {
     if (auto resource = find(name); resource) {
-        LOG_TRACE("Shader '{}' found, returning from cache", name);
+        log::trace("Shader '{}' found, returning from cache", name);
         return resource;
     }
 
@@ -135,7 +135,7 @@ ResourceRef<Shader> ShaderFactory::load(
     );
 
     if (not properties) {
-        LOG_WARN("Could not load properties from '{}/{}'", m_shadersPath, name);
+        log::warn("Could not load properties from '{}/{}'", m_shadersPath, name);
         return nullptr;
     }
 

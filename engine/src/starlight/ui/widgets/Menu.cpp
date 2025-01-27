@@ -31,7 +31,7 @@ void Menu::render() {
 const std::string& Menu::getName() const { return m_name; }
 
 MainMenuBar::MainMenuBar() {
-    ASSERT(not sCreated, "Only 1 instance of MainMenuBar is allowed!");
+    log::expect(not sCreated, "Only 1 instance of MainMenuBar is allowed!");
     sCreated = true;
 }
 

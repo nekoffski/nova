@@ -2,6 +2,8 @@
 
 #include <stb.h>
 
+#include "starlight/core/Log.hh"
+
 namespace sl {
 
 std::optional<Texture::ImageData> loadFlatImageData(
@@ -9,7 +11,7 @@ std::optional<Texture::ImageData> loadFlatImageData(
 ) {
     static constexpr int requiredChannels = 4;
 
-    LOG_TRACE("Loading image: '{}'", path);
+    log::trace("Loading image: '{}'", path);
 
     int width;
     int height;
@@ -22,7 +24,7 @@ std::optional<Texture::ImageData> loadFlatImageData(
 
     if (not pixels) {
         if (const auto error = stbi_failure_reason(); error)
-            LOG_ERROR("Could not load '{}' - '{}'", path, error);
+            log::error("Could not load '{}' - '{}'", path, error);
         return {};
     }
 
@@ -42,7 +44,7 @@ std::optional<Texture::ImageData> loadFlatImageData(
     }
 
     if (channels != requiredChannels) {
-        LOG_WARN(
+        log::warn(
           "Image '{}' has different channels count than required - {} != {}", path,
           requiredChannels, channels
         );
@@ -59,7 +61,7 @@ std::optional<Texture::ImageData> loadFlatImageData(
     image.pixels.reserve(bufferSize);
     std::copy(pixels, pixels + bufferSize, std::back_inserter(image.pixels));
 
-    LOG_TRACE(
+    log::trace(
       "Image loaded: width={}, height={}, channels={}", image.width, image.height,
       image.channels
     );
@@ -69,7 +71,7 @@ std::optional<Texture::ImageData> loadFlatImageData(
 
 std::optional<Texture::ImageData> loadCubemapData(std::string_view path) {
     // +X, -X, +Y, -Y, +Z, -Z
-    LOG_DEBUG("Loading cube map: {}", path);
+    log::debug("Loading cube map: {}", path);
 
     // TODO: assuming jpg for now but implement some enum to make it
     // configurable
@@ -97,7 +99,7 @@ std::optional<Texture::ImageData> loadCubemapData(std::string_view path) {
           loadFlatImageData(path, Texture::Orientation::horizontal);
 
         if (not imageData) {
-            LOG_ERROR("Could not load cubemap face: '{}'", path);
+            log::error("Could not load cubemap face: '{}'", path);
             return {};
         }
 
@@ -111,7 +113,7 @@ std::optional<Texture::ImageData> loadCubemapData(std::string_view path) {
             data.pixels.resize(chunkSize * cubeFaces, 0u);
         }
 
-        ASSERT(
+        log::expect(
           imageData->width == data.width && imageData->height == data.height
             && imageData->channels == data.channels,
           "Cube map faces have different size"

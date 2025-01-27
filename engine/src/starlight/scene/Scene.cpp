@@ -69,7 +69,7 @@ void Scene::clear() {
 
 Entity& Scene::addEntity(std::optional<std::string> name) {
     auto record = m_entities.emplace(m_componentManager, name);
-    ASSERT(record, "Could not add entity");
+    log::expect(record, "Could not add entity");
     return *record;
 }
 

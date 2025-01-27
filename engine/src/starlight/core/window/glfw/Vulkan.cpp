@@ -9,9 +9,6 @@
 
 #include "starlight/core/Log.hh"
 
-#define VK_ASSERT(expr) \
-    { ASSERT(expr == VK_SUCCESS, "Vulkan Fatal Error: {}", fmt::underlying(expr)); }
-
 namespace sl::glfw {
 
 VkSurfaceKHR createVulkanSurface(
@@ -19,12 +16,16 @@ VkSurfaceKHR createVulkanSurface(
 ) {
     VkSurfaceKHR surface;
 
-    LOG_TRACE("Creating Vulkan surface");
-    ASSERT(windowHandle != nullptr, "windowHandle==nullptr");
+    log::trace("Creating Vulkan surface");
+    log::expect(windowHandle != nullptr, "windowHandle==nullptr");
 
-    VK_ASSERT(glfwCreateWindowSurface(
+    auto result = glfwCreateWindowSurface(
       instance, static_cast<GLFWwindow*>(windowHandle), allocator, &surface
-    ));
+    );
+    log::expect(
+      result == VK_SUCCESS, "GLFW Vulkan Surface creating error: {}",
+      fmt::underlying(result)
+    );
 
     return surface;
 }

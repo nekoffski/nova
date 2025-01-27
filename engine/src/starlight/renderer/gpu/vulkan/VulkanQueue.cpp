@@ -42,7 +42,7 @@ bool VulkanQueue::submit(const SubmitInfo& submitInfo) {
     );
 
     if (result != VK_SUCCESS) {
-        LOG_ERROR(
+        log::error(
           "vkQueueSubmit failed with result: {}", getResultString(result, true)
         );
         return false;
@@ -71,11 +71,11 @@ bool VulkanQueue::present(const PresentInfo& presentInfo) {
     if (VkResult result = vkQueuePresentKHR(m_handle, &vkPresentInfo);
         result != VK_SUCCESS) {
         if (result != VK_ERROR_OUT_OF_DATE_KHR) {
-            LOG_ERROR(
+            log::error(
               "Failed to present swapchain image: {}", getResultString(result, true)
             );
         } else {
-            LOG_INFO("Swapchain out of date, need to recreate");
+            log::info("Swapchain out of date, need to recreate");
         }
         return false;
     }

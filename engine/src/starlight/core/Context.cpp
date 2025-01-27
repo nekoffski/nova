@@ -18,8 +18,6 @@ float Context::beginFrame() {
 }
 
 void Context::endFrame() {
-    sl::disableVariableLogging();
-
     m_windowImpl.swapBuffers();
 
     m_clock.update();

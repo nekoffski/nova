@@ -114,7 +114,7 @@ std::optional<i32> VulkanDevice::findMemoryIndex(u32 typeFilter, u32 propertyFla
           && (props.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags;
         if (isSuitable) return i;
     }
-    LOG_WARN(
+    log::warn(
       "Unable to find suitable memory type: {}/{}", typeFilter, propertyFlags
     );
     return {};
@@ -164,15 +164,15 @@ static void assertLayers(std::span<const char*> layers) {
       [](auto& layer) -> const char* { return layer.layerName; }
     );
 
-    LOG_TRACE("Available Vulkan layers:");
-    for (const auto& layerName : layerNames) LOG_TRACE("\t{}", layerName);
+    log::trace("Available Vulkan layers:");
+    for (const auto& layerName : layerNames) log::trace("\t{}", layerName);
 
     for (const auto& requiredLayer : layers) {
-        ASSERT(
+        log::expect(
           kc::core::contains(layerNames, requiredLayer),
           "Required layer {} not found", requiredLayer
         );
-        LOG_DEBUG("Layer {} found", requiredLayer);
+        log::debug("Layer {} found", requiredLayer);
     }
 }
 
@@ -184,7 +184,7 @@ static std::vector<const char*> getLayers() {
 #endif
 
     assertLayers(layers);
-    LOG_DEBUG("All required vulkan layers found");
+    log::debug("All required vulkan layers found");
     return layers;
 }
 
@@ -210,20 +210,20 @@ VulkanDevice::Instance::Instance(const Config& config, Allocator* allocator) :
     auto layers          = getLayers();
     auto extensions      = getExtensions();
 
-    for (auto& layer : layers) LOG_DEBUG("Will enable layer: {}", layer);
+    for (auto& layer : layers) log::debug("Will enable layer: {}", layer);
     for (auto& extension : extensions)
-        LOG_DEBUG("Will enable extensions: {}", extension);
+        log::debug("Will enable extensions: {}", extension);
 
     auto instanceCreateInfo =
       createInstanceCreateInfo(applicationInfo, extensions, layers);
 
-    VK_ASSERT(vkCreateInstance(&instanceCreateInfo, m_allocator, &handle));
-    LOG_TRACE("Vulkan Instance initialized");
+    log::expect(vkCreateInstance(&instanceCreateInfo, m_allocator, &handle));
+    log::trace("Vulkan Instance initialized");
 }
 
 VulkanDevice::Instance::~Instance() {
     if (handle) {
-        LOG_TRACE("vkDestroyInstance: {}", static_cast<void*>(handle));
+        log::trace("vkDestroyInstance: {}", static_cast<void*>(handle));
         vkDestroyInstance(handle, m_allocator);
     }
 }
@@ -240,13 +240,16 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
 ) {
     switch (messageSeverity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            LOG_WARN("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
+            log::warn("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
+            break;
 
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-            LOG_ERROR("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
+            log::error("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
+            break;
 
         default:
-            LOG_INFO("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
+            log::info("VK_DEBUG_LAYER - {}", pCallbackData->pMessage);
+            break;
     }
 
     return false;
@@ -280,11 +283,11 @@ VulkanDevice::DebugMessenger::DebugMessenger(
     auto createDebugMessenger = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
       vkGetInstanceProcAddr(m_instance, debugFactoryFunctionName)
     );
-    ASSERT(createDebugMessenger, "Failed to create debug messenger factory");
-    VK_ASSERT(
+    log::expect(createDebugMessenger, "Failed to create debug messenger factory");
+    log::expect(
       createDebugMessenger(m_instance, &debugCreateInfo, m_allocator, &m_handle)
     );
-    LOG_TRACE("Created Vulkan Debug Messenger");
+    log::trace("Created Vulkan Debug Messenger");
 }
 
 VulkanDevice::DebugMessenger::~DebugMessenger() {
@@ -309,12 +312,12 @@ VulkanDevice::Surface::Surface(
 ) :
     handle(glfw::createVulkanSurface(instance, window.getHandle(), allocator)),
     m_instance(instance), m_allocator(allocator) {
-    LOG_TRACE("Vulkan surface created");
+    log::trace("Vulkan surface created");
 }
 
 VulkanDevice::Surface::~Surface() {
     if (handle) {
-        LOG_TRACE("vkDestroySurfaceKHR: {}", static_cast<void*>(handle));
+        log::trace("vkDestroySurfaceKHR: {}", static_cast<void*>(handle));
         vkDestroySurfaceKHR(m_instance, handle, m_allocator);
     }
 }
@@ -325,12 +328,11 @@ VulkanDevice::Surface::~Surface() {
 
 static std::vector<VkPhysicalDevice> getPhysicalDevices(VkInstance instance) {
     u32 deviceCount = 0;
-    VK_ASSERT(vkEnumeratePhysicalDevices(instance, &deviceCount, 0));
-
-    ASSERT(deviceCount > 0, "Could not find any physical device");
+    log::expect(vkEnumeratePhysicalDevices(instance, &deviceCount, 0));
+    log::expect(deviceCount > 0, "Could not find any physical device");
 
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-    VK_ASSERT(
+    log::expect(
       vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data())
     );
 
@@ -363,7 +365,7 @@ static bool assignQueues(
         if (queueFlags & VK_QUEUE_TRANSFER_BIT) markIndex(Queue::Type::transfer, i);
 
         VkBool32 supportsPresent = false;
-        VK_ASSERT(
+        log::expect(
           vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &supportsPresent)
         );
 
@@ -375,33 +377,34 @@ static bool assignQueues(
 static bool queryDeviceSwapchainSupport(
   VkPhysicalDevice device, VkSurfaceKHR surface, VulkanDevice::Physical::Info& info
 ) {
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+    log::expect(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
       device, surface, &info.surfaceCapabilities
     ));
 
     u32 count = 0;
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, 0));
+    log::expect(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &count, 0));
 
     if (count == 0) {
-        LOG_INFO("No surface formats supported, skipping");
+        log::info("No surface formats supported, skipping");
         return false;
     }
 
     info.surfaceFormats.resize(count);
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(
+    log::expect(vkGetPhysicalDeviceSurfaceFormatsKHR(
       device, surface, &count, info.surfaceFormats.data()
     ));
 
     count = 0;
-    VK_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, 0));
+    log::expect(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &count, 0)
+    );
 
     if (count == 0) {
-        LOG_INFO("No surface present modes supported, skipping");
+        log::info("No surface present modes supported, skipping");
         return false;
     }
 
     info.presentModes.resize(count);
-    VK_ASSERT(vkGetPhysicalDeviceSurfacePresentModesKHR(
+    log::expect(vkGetPhysicalDeviceSurfacePresentModesKHR(
       device, surface, &count, info.presentModes.data()
     ));
 
@@ -434,7 +437,7 @@ void VulkanDevice::createUiResources() {
     poolInfo.poolSizeCount = std::size(poolSizes);
     poolInfo.pPoolSizes    = poolSizes;
 
-    VK_ASSERT(
+    log::expect(
       vkCreateDescriptorPool(logical.handle, &poolInfo, allocator, &uiDescriptorPool)
     );
 }
@@ -447,12 +450,12 @@ static bool validateExtensions(
     u32 availableExtensionCount = 0;
     std::vector<VkExtensionProperties> availableExtenions;
 
-    VK_ASSERT(
+    log::expect(
       vkEnumerateDeviceExtensionProperties(device, 0, &availableExtensionCount, 0)
     );
     availableExtenions.resize(availableExtensionCount);
 
-    VK_ASSERT(vkEnumerateDeviceExtensionProperties(
+    log::expect(vkEnumerateDeviceExtensionProperties(
       device, 0, &availableExtensionCount, availableExtenions.data()
     ));
 
@@ -466,7 +469,7 @@ static bool validateExtensions(
 
     for (const auto& requiredExtension : extensions) {
         if (not kc::core::contains(availableExtensionsNames, requiredExtension)) {
-            LOG_INFO("Extension {} not available", requiredExtension);
+            log::info("Extension {} not available", requiredExtension);
             return false;
         }
     }
@@ -537,32 +540,32 @@ static std::optional<VulkanDevice::Physical::Info> getPhysicalDeviceInfo(
 
     if (requirements.isDiscrete
         && info.coreProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-        LOG_INFO("Device is not a discrete GPU, and one is required, skipping");
+        log::info("Device is not a discrete GPU, and one is required, skipping");
         return {};
     }
 
     if (not assignQueues(device, surface, requirements.supportedQueues, info)) {
-        LOG_INFO("Could not satisfy queue requirements, skipping");
+        log::info("Could not satisfy queue requirements, skipping");
         return {};
     }
 
     if (not queryDeviceSwapchainSupport(device, surface, info)) {
-        LOG_INFO("Could not satisfy swapchain requirements, skipping");
+        log::info("Could not satisfy swapchain requirements, skipping");
         return {};
     }
 
     if (not validateExtensions(device, requirements.extensions)) {
-        LOG_INFO("Device doesn't provide required extensions, skipping");
+        log::info("Device doesn't provide required extensions, skipping");
         return {};
     }
 
     if (requirements.supportsSamplerAnisotropy && !info.features.samplerAnisotropy) {
-        LOG_INFO("Device does not support samplerAnisotropy, skipping");
+        log::info("Device does not support samplerAnisotropy, skipping");
         return {};
     }
 
     if (not detectDepthFormat(device, info)) {
-        LOG_INFO("Could not detect depth format, skipping");
+        log::info("Could not detect depth format, skipping");
         return {};
     }
 
@@ -585,35 +588,35 @@ static void showDeviceType(const VkPhysicalDeviceType& type) {
     switch (type) {
         default:
         case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-            LOG_INFO("GPU type is Unknown");
+            log::info("GPU type is Unknown");
             break;
         case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-            LOG_INFO("GPU type is Integrated");
+            log::info("GPU type is Integrated");
             break;
         case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-            LOG_INFO("GPU type is Discrete");
+            log::info("GPU type is Discrete");
             break;
         case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-            LOG_INFO("GPU type is Virtual");
+            log::info("GPU type is Virtual");
             break;
         case VK_PHYSICAL_DEVICE_TYPE_CPU:
-            LOG_INFO("GPU type is CPU");
+            log::info("GPU type is CPU");
             break;
     }
 }
 
 static void showDeviceInfo(const VulkanDevice::Physical::Info& info) {
-    LOG_INFO("Selected device: '{}'.", info.coreProperties.deviceName);
+    log::info("Selected device: '{}'.", info.coreProperties.deviceName);
     showDeviceType(info.coreProperties.deviceType);
 
-    LOG_INFO(
+    log::info(
       "GPU Driver version: {}.{}.{}",
       VK_VERSION_MAJOR(info.coreProperties.driverVersion),
       VK_VERSION_MINOR(info.coreProperties.driverVersion),
       VK_VERSION_PATCH(info.coreProperties.driverVersion)
     );
 
-    LOG_INFO(
+    log::info(
       "Vulkan API version: {}.{}.{}",
       VK_VERSION_MAJOR(info.coreProperties.apiVersion),
       VK_VERSION_MINOR(info.coreProperties.apiVersion),
@@ -626,9 +629,9 @@ static void showDeviceInfo(const VulkanDevice::Physical::Info& info) {
            / 1024.0f / 1024.0f);
         if (info.memoryProperties.memoryHeaps[j].flags
             & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
-            LOG_INFO("Local GPU memory: {} GiB", memorySize);
+            log::info("Local GPU memory: {} GiB", memorySize);
         } else {
-            LOG_INFO("Shared System memory: {} GiB", memorySize);
+            log::info("Shared System memory: {} GiB", memorySize);
         }
     }
 }
@@ -652,8 +655,10 @@ VulkanDevice::Physical::Physical(VkInstance instance, VkSurfaceKHR surface) :
         }
     }
 
-    ASSERT(handle != VK_NULL_HANDLE, "Could not select suitable physical device");
-    LOG_TRACE("Physical device found and initialized");
+    log::expect(
+      handle != VK_NULL_HANDLE, "Could not select suitable physical device"
+    );
+    log::trace("Physical device found and initialized");
 }
 
 /*
@@ -670,20 +675,20 @@ VulkanDevice::Logical::Logical(
     assignQueues(queueIndices);
     createCommandPool(queueIndices);
 
-    LOG_TRACE("Vulkan logical device created");
+    log::trace("Vulkan logical device created");
 }
 
 VulkanDevice::Logical::~Logical() {
     vkDeviceWaitIdle(handle);
 
     if (graphicsCommandPool) {
-        LOG_TRACE(
+        log::trace(
           "vkDestroyCommandPool: {}", static_cast<void*>(graphicsCommandPool)
         );
         vkDestroyCommandPool(handle, graphicsCommandPool, m_allocator);
     }
     if (handle) {
-        LOG_TRACE("vkDestroyDevice: {}", static_cast<void*>(handle));
+        log::trace("vkDestroyDevice: {}", static_cast<void*>(handle));
         vkDestroyDevice(handle, m_allocator);
     }
 }
@@ -713,7 +718,7 @@ void VulkanDevice::Logical::createDevice(const Physical::QueueIndices& queueIndi
     queueCreateInfos.reserve(queueCount);
 
     for (const auto index : indices) {
-        LOG_TRACE("Adding queue family index: {}", index);
+        log::trace("Adding queue family index: {}", index);
 
         queueProrities.push_back(1.0f);
         VkDeviceQueueCreateInfo info;
@@ -740,10 +745,10 @@ void VulkanDevice::Logical::createDevice(const Physical::QueueIndices& queueIndi
     deviceCreateInfo.enabledExtensionCount   = extensionNames.size();
     deviceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
 
-    VK_ASSERT(
+    log::expect(
       vkCreateDevice(m_physicalDevice, &deviceCreateInfo, m_allocator, &handle)
     );
-    LOG_TRACE("vkCreateDevice: {}", static_cast<void*>(handle));
+    log::trace("vkCreateDevice: {}", static_cast<void*>(handle));
 }
 
 void VulkanDevice::Logical::createCommandPool(
@@ -756,10 +761,10 @@ void VulkanDevice::Logical::createCommandPool(
     poolCreateInfo.queueFamilyIndex = queueIndices.at(Queue::Type::graphics);
     poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    VK_ASSERT(
+    log::expect(
       vkCreateCommandPool(handle, &poolCreateInfo, m_allocator, &graphicsCommandPool)
     );
-    LOG_TRACE("vkCreateCommandPool: {}", static_cast<void*>(graphicsCommandPool));
+    log::trace("vkCreateCommandPool: {}", static_cast<void*>(graphicsCommandPool));
 }
 
 void VulkanDevice::Logical::assignQueues(const Physical::QueueIndices& queueIndices

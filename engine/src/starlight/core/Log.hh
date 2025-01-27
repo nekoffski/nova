@@ -1,26 +1,47 @@
 #pragma once
 
-#include <kc/core/Log.h>
+#include <stdlib.h>
 
-namespace sl {
+#include <string_view>
 
-#define LOG_VARS 1
+#include <spdlog/spdlog.h>
 
-using kc::core::initLogging;
+namespace sl::log {
 
-#define FATAL_ERROR(...) ASSERT(false, __VA_ARGS__)
+namespace detail {
+template <typename... Args>
+[[noreturn]] constexpr inline void abort(
+  spdlog::format_string_t<Args...> fmt, Args&&... args
+) {
+    spdlog::error(fmt, std::forward<Args>(args)...);
+    std::abort();
+}
+}  // namespace detail
 
-void enableVariableLogging();
-void disableVariableLogging();
-bool isVariableLoggingEnabled();
+void init(std::string_view applicationName);
 
-#ifdef LOG_VARS
-#define LOG_VAR(var)                                                              \
-    do {                                                                          \
-        if (sl::isVariableLoggingEnabled()) LOG_WARN("VAR '" #var "' = {}", var); \
-    } while (false)
-#else
-#define LOG_VAR(var)
-#endif
+using spdlog::debug;
+using spdlog::error;
+using spdlog::info;
+using spdlog::trace;
+using spdlog::warn;
 
-}  // namespace sl
+template <typename... Args>
+[[noreturn]] constexpr inline void panic(
+  spdlog::format_string_t<Args...> fmt, Args&&... args
+) {
+    error("PANIC!");
+    detail::abort(std::move(fmt), std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+constexpr inline void expect(
+  bool condition, spdlog::format_string_t<Args...> fmt, Args&&... args
+) {
+    if (not condition) [[unlikely]] {
+        error("ASSERTION FAILED");
+        detail::abort(std::move(fmt), std::forward<Args>(args)...);
+    }
+}
+
+}  // namespace sl::log

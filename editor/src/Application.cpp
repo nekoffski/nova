@@ -25,7 +25,7 @@ Application::Application(
     m_scene(m_window, m_cameras.getActive()),
     m_userInterface(m_eventProxy, m_window.getFramebufferSize(), &m_scene) {
     if (scenePath) {
-        LOG_INFO("Loading initial scene: {}", *scenePath);
+        sl::log::info("Loading initial scene: {}", *scenePath);
         m_sceneParser.deserialize(m_scene, *scenePath);
     }
 }
@@ -69,13 +69,13 @@ void Application::exit() { m_isRunning.store(false); }
 void Application::initEvents() {
     m_eventSentinel
       .add<sl::QuitEvent>([&](const auto& event, auto&& handled) {
-          LOG_INFO("Received quit request: '{}'", event.reason);
+          sl::log::info("Received quit request: '{}'", event.reason);
           exit();
           handled();
       })
       .add<sl::KeyEvent>([&](const auto& event) {
           if (event.key == SL_KEY_ESCAPE && event.action == sl::KeyAction::press) {
-              LOG_INFO("Key ESC pressed, quitting");
+              sl::log::info("Key ESC pressed, quitting");
               exit();
           } else if (event.key == SL_KEY_Z) {
               //   m_renderer.setRenderMode(sl::RenderMode::lights);

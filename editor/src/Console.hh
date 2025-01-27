@@ -25,7 +25,7 @@ public:
     void info(const std::string& format, Args&&... args) {
         const auto message =
           fmt::format(fmt::runtime(format), std::forward<Args>(args)...);
-        LOG_INFO("EditorLog - {}", message);
+        sl::log::info("EditorLog - {}", message);
         writeLog(Severity::info, message);
     }
 
@@ -33,7 +33,7 @@ public:
     void debug(const std::string& format, Args&&... args) {
         const auto message =
           fmt::format(fmt::runtime(format), std::forward<Args>(args)...);
-        LOG_DEBUG("EditorLog - {}", message);
+        sl::log::debug("EditorLog - {}", message);
         writeLog(Severity::debug, message);
     }
 
@@ -41,7 +41,7 @@ public:
     void warning(const std::string& format, Args&&... args) {
         const auto message =
           fmt::format(fmt::runtime(format), std::forward<Args>(args)...);
-        LOG_WARN("EditorLog - {}", message);
+        sl::log::warn("EditorLog - {}", message);
         writeLog(Severity::warning, message);
     }
 

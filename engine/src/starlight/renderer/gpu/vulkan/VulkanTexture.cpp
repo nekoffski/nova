@@ -93,10 +93,10 @@ static VkFormat toVk(Format format, u8 channels) {
 
 void VulkanTextureBase::createSampler() {
     const auto samplerInfo = createSamplerCreateInfo(m_samplerProperties);
-    VK_ASSERT(vkCreateSampler(
+    log::expect(vkCreateSampler(
       m_device.logical.handle, &samplerInfo, m_device.allocator, &m_sampler
     ));
-    LOG_TRACE("vkCreateSampler: {}", static_cast<void*>(m_sampler));
+    log::trace("vkCreateSampler: {}", static_cast<void*>(m_sampler));
 }
 
 static VkImageViewCreateInfo createViewCreateInfo(
@@ -123,10 +123,10 @@ static VkImageViewCreateInfo createViewCreateInfo(
 
 void VulkanTextureBase::createView() {
     auto viewCreateInfo = createViewCreateInfo(m_imageData, m_image);
-    VK_ASSERT(vkCreateImageView(
+    log::expect(vkCreateImageView(
       m_device.logical.handle, &viewCreateInfo, m_device.allocator, &m_view
-    ))
-    LOG_TRACE("vkCreateImageView: {}", static_cast<void*>(m_view));
+    ));
+    log::trace("vkCreateImageView: {}", static_cast<void*>(m_view));
 }
 
 VulkanTextureBase::VulkanTextureBase(
@@ -148,7 +148,7 @@ VkSampler VulkanTextureBase::getSampler() const { return m_sampler; }
 VulkanTexture::VulkanTexture(
   VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
 ) : VulkanTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE) {
-    LOG_TRACE("Creating vulkan texture: {}", getId());
+    log::trace("Creating vulkan texture: {}", getId());
     create();
 }
 
@@ -224,7 +224,7 @@ void VulkanTexture::transitionLayout(
         source                = VK_PIPELINE_STAGE_TRANSFER_BIT;
         destination           = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     } else {
-        LOG_ERROR("Unsupported layout transition");
+        log::error("Unsupported layout transition");
         return;
     }
     vkCmdPipelineBarrier(
@@ -284,29 +284,29 @@ void VulkanTexture::create() {
 }
 
 void VulkanTexture::destroy() {
-    LOG_TRACE("Destroying vulkan texture: {}", getId());
+    log::trace("Destroying vulkan texture: {}", getId());
     auto device    = m_device.logical.handle;
     auto allocator = m_device.allocator;
 
     m_device.waitIdle();
 
     if (m_sampler) {
-        LOG_TRACE("vkDestroySampler: {}", static_cast<void*>(m_sampler));
+        log::trace("vkDestroySampler: {}", static_cast<void*>(m_sampler));
         vkDestroySampler(device, m_sampler, allocator);
     }
 
     if (m_view) {
-        LOG_TRACE("vkDestroyImageView: {}", static_cast<void*>(m_view));
+        log::trace("vkDestroyImageView: {}", static_cast<void*>(m_view));
         vkDestroyImageView(device, m_view, allocator);
     }
 
     if (m_memory) {
-        LOG_TRACE("vkFreeMemory: {}", static_cast<void*>(m_memory));
+        log::trace("vkFreeMemory: {}", static_cast<void*>(m_memory));
         vkFreeMemory(device, m_memory, allocator);
     }
 
     if (m_image) {
-        LOG_TRACE("vkDestroyImage: {}", static_cast<void*>(m_image));
+        log::trace("vkDestroyImage: {}", static_cast<void*>(m_image));
         vkDestroyImage(device, m_image, allocator);
     }
 }
@@ -322,7 +322,7 @@ void VulkanTexture::allocateAndBindMemory() {
     );
 
     if (not memoryType)
-        LOG_ERROR("Required memory type not found. VKImage not valid.");
+        log::error("Required memory type not found. VKImage not valid.");
 
     VkMemoryAllocateInfo memoryAllocateInfo;
     clearMemory(&memoryAllocateInfo);
@@ -330,12 +330,12 @@ void VulkanTexture::allocateAndBindMemory() {
     memoryAllocateInfo.allocationSize  = memoryRequirements.size;
     memoryAllocateInfo.memoryTypeIndex = memoryType.value_or(-1);
 
-    VK_ASSERT(vkAllocateMemory(
+    log::expect(vkAllocateMemory(
       m_device.logical.handle, &memoryAllocateInfo, m_device.allocator, &m_memory
     ));
-    LOG_TRACE("vkAllocateMemory: {}", static_cast<void*>(m_memory));
+    log::trace("vkAllocateMemory: {}", static_cast<void*>(m_memory));
 
-    VK_ASSERT(vkBindImageMemory(m_device.logical.handle, m_image, m_memory, 0));
+    log::expect(vkBindImageMemory(m_device.logical.handle, m_image, m_memory, 0));
 }
 
 void VulkanTexture::recreate(const Texture::ImageData& imageData) {
@@ -364,10 +364,10 @@ void VulkanTexture::createImage() {
     imageCreateInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
     if (isCubemap) imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
-    VK_ASSERT(vkCreateImage(
+    log::expect(vkCreateImage(
       m_device.logical.handle, &imageCreateInfo, m_device.allocator, &m_image
     ));
-    LOG_TRACE("vkCreateImage: {}", static_cast<void*>(m_image));
+    log::trace("vkCreateImage: {}", static_cast<void*>(m_image));
 }
 
 /*
@@ -383,7 +383,7 @@ VulkanSwapchainTexture::VulkanSwapchainTexture(
     m_image = handle;
     createView();
     createSampler();
-    LOG_TRACE("Swapchain texture created");
+    log::trace("Swapchain texture created");
 }
 
 VulkanSwapchainTexture::~VulkanSwapchainTexture() {
@@ -396,13 +396,13 @@ VulkanSwapchainTexture::~VulkanSwapchainTexture() {
 void VulkanSwapchainTexture::resize(
   [[maybe_unused]] u32 width, [[maybe_unused]] u32 height
 ) {
-    LOG_ERROR("Cannot resize swapchain texture");
+    log::error("Cannot resize swapchain texture");
 }
 
 void VulkanSwapchainTexture::write(
   [[maybe_unused]] std::span<u8> pixels, [[maybe_unused]] CommandBuffer* buffer
 ) {
-    LOG_ERROR("Cannot write to swapchain texture");
+    log::error("Cannot write to swapchain texture");
 }
 
 }  // namespace sl::vk

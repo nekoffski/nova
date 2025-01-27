@@ -25,7 +25,7 @@ public:
         // entityId is a key for the map but also Component<T> ctor argument
         auto record =
           m_components.emplace(entityId, entityId, std::forward<Args>(args)...);
-        ASSERT(record, "Could not add component");
+        log::expect(record, "Could not add component");
         return *record;
     }
 

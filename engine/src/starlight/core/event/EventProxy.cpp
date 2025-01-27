@@ -16,7 +16,7 @@ void EventProxy::popEventHandler(const EventHandlerId id) {
     for (auto& chain : m_handlers | std::views::values)
         if (std::erase_if(chain, condition) != 0) return;
 
-    LOG_WARN("Event handler with id='{}' not found", id);
+    log::warn("Event handler with id='{}' not found", id);
 }
 
 EventHandlerId EventProxy::pushEventHandlerImpl(

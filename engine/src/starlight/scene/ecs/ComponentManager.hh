@@ -29,7 +29,7 @@ public:
     }
 
     void* getComponent(std::type_index type, u64 entityId) {
-        ASSERT(
+        log::expect(
           m_componentContainers.contains(type),
           "Could not find container for type: {}", type.name()
         );

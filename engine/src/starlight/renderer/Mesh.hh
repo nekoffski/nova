@@ -26,7 +26,7 @@ concept VertexType = kc::core::is_one_of2_v<T, Vertex2, Vertex3>;
 
 template <ExtentType Extent, VertexType Vertex>
 Extent calculateExtent(const std::vector<Vertex>& vertices) {
-    ASSERT(vertices.size() > 0, "vertices.size() == 0");
+    log::expect(vertices.size() > 0, "vertices.size() == 0");
     using Vector = std::remove_cv_t<typeof(vertices[0].position)>;
 
     Vector min(0.0f);

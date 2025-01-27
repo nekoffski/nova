@@ -29,11 +29,10 @@ struct UI : sl::UI {
 static std::atomic_bool isRunning = true;
 
 int main(int argc, char** argv) {
-    sl::initLogging("sl-sandbox");
-
-    ASSERT(argc >= 2, "Config path required");
+    sl::log::init("sl-sandbox");
+    sl::log::expect(argc >= 2, "Config path required");
     auto config = sl::Config::fromJson(std::string{ argv[1] });
-    ASSERT(config, "Could not load config file");
+    sl::log::expect(config.has_value(), "Could not load config file");
 
     std::signal(SIGINT, []([[maybe_unused]] int) { isRunning = false; });
 
@@ -88,6 +87,6 @@ int main(int argc, char** argv) {
         });
     }
 
-    LOG_INFO("Sandbox exited");
+    sl::log::info("Sandbox exited");
     return 0;
 }

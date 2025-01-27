@@ -31,26 +31,28 @@ VulkanBuffer::VulkanBuffer(VulkanDevice& device, const Properties& props) :
     m_device(device), m_props(props), m_freeList(props.size) {
     auto bufferCreateInfo = createBufferCreateInfo();
 
-    VK_ASSERT(vkCreateBuffer(
+    log::expect(vkCreateBuffer(
       m_device.logical.handle, &bufferCreateInfo, m_device.allocator, &m_handle
     ));
-    LOG_TRACE("vkCreateBuffer: {}", static_cast<void*>(m_handle));
+    log::trace("vkCreateBuffer: {}", static_cast<void*>(m_handle));
 
     const auto memoryRequirements = getMemoryRequirements();
 
     const auto memoryIndex = m_device.findMemoryIndex(
       memoryRequirements.memoryTypeBits, toVk(m_props.memoryProperty)
     );
-    ASSERT(memoryIndex.has_value(), "Could not find memory index for vulkan buffer");
+    log::expect(
+      memoryIndex.has_value(), "Could not find memory index for vulkan buffer"
+    );
     m_memoryIndex = *memoryIndex;
 
     const auto allocateInfo =
       createMemoryAllocateInfo(memoryRequirements, *memoryIndex);
 
-    VK_ASSERT(vkAllocateMemory(
+    log::expect(vkAllocateMemory(
       m_device.logical.handle, &allocateInfo, m_device.allocator, &m_memory
     ));
-    LOG_TRACE("vkAllocateMemory: {}", static_cast<void*>(m_memory));
+    log::trace("vkAllocateMemory: {}", static_cast<void*>(m_memory));
 
     if (props.bindOnCreate) bind();
 }
@@ -62,11 +64,11 @@ VulkanBuffer::~VulkanBuffer() {
     m_device.waitIdle();
 
     if (m_memory) {
-        LOG_TRACE("vkFreeMemory: {}", static_cast<void*>(m_memory));
+        log::trace("vkFreeMemory: {}", static_cast<void*>(m_memory));
         vkFreeMemory(device, m_memory, allocator);
     }
     if (m_handle) {
-        LOG_TRACE("vkDestroyBuffer: {}", static_cast<void*>(m_handle));
+        log::trace("vkDestroyBuffer: {}", static_cast<void*>(m_handle));
         vkDestroyBuffer(device, m_handle, allocator);
     }
 }
@@ -92,13 +94,14 @@ VkBufferCreateInfo VulkanBuffer::createBufferCreateInfo() const {
 }
 
 void VulkanBuffer::bind(u64 offset) {
-    VK_ASSERT(vkBindBufferMemory(m_device.logical.handle, m_handle, m_memory, offset)
+    log::expect(
+      vkBindBufferMemory(m_device.logical.handle, m_handle, m_memory, offset)
     );
 }
 
 void* VulkanBuffer::lockMemory(const Range& range) {
     void* data;
-    VK_ASSERT(vkMapMemory(
+    log::expect(vkMapMemory(
       m_device.logical.handle, m_memory, range.offset,
       range.size == u64Max ? VK_WHOLE_SIZE : range.size, 0, &data
     ));
@@ -113,7 +116,7 @@ std::optional<Range> VulkanBuffer::allocate(u64 size, const void* data) {
     auto offset = m_freeList.allocateBlock(size);
 
     if (not offset) {
-        LOG_WARN("Could not allocate {}b, not space left", size);
+        log::warn("Could not allocate {}b, not space left", size);
         return {};
     }
     Range range{ .offset = *offset, .size = size };

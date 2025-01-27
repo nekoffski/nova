@@ -22,7 +22,7 @@
 //     //   vkRenderer.getLogicalDevice(), vkRenderer.getWindow(), renderPass
 //     // );
 // #else
-//     FATAL_ERROR("Could not find renderer backend implementation");
+//     log::panic("Could not find renderer backend implementation");
 // #endif
 // }
 
@@ -70,14 +70,14 @@
 
 // Font* UIRenderer::addFont(const Font::Properties& props) {
 //     auto [iterator, inserted] = m_fonts.insert({ props.name, Font{} });
-//     ASSERT(inserted, "Font '{}' already exists", props.name);
+//     log::expect(inserted, "Font '{}' already exists", props.name);
 
 //     auto& font      = iterator->second;
 //     auto imguiFonts = ImGui::GetIO().Fonts;
-//     LOG_INFO("Loading font: '{}' - '{}'", props.name, props.path);
+//     log::info("Loading font: '{}' - '{}'", props.name, props.path);
 
 //     font.handle = imguiFonts->AddFontFromFileTTF(props.path.c_str(), props.size);
-//     ASSERT(font.handle, "Could not load font '{}'", props.name);
+//     log::expect(font.handle, "Could not load font '{}'", props.name);
 
 //     if (const auto subfontSize = props.subfonts.size(); subfontSize > 0) {
 //         font.mergedFontsRanges.reserve(subfontSize);
@@ -87,7 +87,7 @@
 //               { subfont.minIndex, subfont.maxIndex, 0 }
 //             );
 
-//             LOG_INFO("Loading subfont: '{}' - '{}'", props.name, subfont.path);
+//             log::info("Loading subfont: '{}' - '{}'", props.name, subfont.path);
 
 //             ImFontConfig config;
 //             config.MergeMode        = true;
@@ -95,7 +95,7 @@
 //             config.GlyphMaxAdvanceX = 15.0f;
 //             config.GlyphOffset.y    = 1.0f;
 
-//             ASSERT(
+//             log::expect(
 //               imguiFonts->AddFontFromFileTTF(
 //                 subfont.path.c_str(), props.size - 2.0f, &config,
 //                 font.mergedFontsRanges.back().data()

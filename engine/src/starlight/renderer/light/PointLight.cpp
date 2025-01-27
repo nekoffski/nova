@@ -40,7 +40,7 @@ void PointLight::generateLODs() {
         );
 
         if (not roots) {
-            LOG_ERROR(
+            log::error(
               "Could not solve attenuation equation for light: {}",
               m_data.attenuation
             );

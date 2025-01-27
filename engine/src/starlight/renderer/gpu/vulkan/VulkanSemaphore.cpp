@@ -9,15 +9,15 @@ VulkanSemaphore::VulkanSemaphore(VulkanDevice& device
     VkSemaphoreCreateInfo semaphoreCreateInfo;
     clearMemory(&semaphoreCreateInfo);
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    VK_ASSERT(vkCreateSemaphore(
+    log::expect(vkCreateSemaphore(
       m_device.logical.handle, &semaphoreCreateInfo, m_device.allocator, &m_handle
     ));
-    LOG_TRACE("vkCreateSemaphore: {}", static_cast<void*>(m_handle));
+    log::trace("vkCreateSemaphore: {}", static_cast<void*>(m_handle));
 }
 
 VulkanSemaphore::~VulkanSemaphore() {
     if (m_handle) {
-        LOG_TRACE("vkDestroySemaphore: {}", static_cast<void*>(m_handle));
+        log::trace("vkDestroySemaphore: {}", static_cast<void*>(m_handle));
         vkDestroySemaphore(m_device.logical.handle, m_handle, m_device.allocator);
     }
 }

@@ -82,14 +82,14 @@ void Renderer::createBuffers() {
 }
 
 void Renderer::initEventHandlers() {
-    LOG_TRACE("Setting up renderer event handlers");
+    log::trace("Setting up renderer event handlers");
     m_eventSentinel.add<WindowResized>([&](auto& event) {
         onWindowResize(event.size);
     });
 }
 
 void Renderer::onWindowResize(const Vec2<u32>& size) {
-    LOG_DEBUG("Window resized: {}/{} - recreating swapchain", size.w, size.h);
+    log::debug("Window resized: {}/{} - recreating swapchain", size.w, size.h);
     m_recreatingSwapchain = true;
     m_framesSinceResize   = 0;
 
@@ -103,7 +103,7 @@ std::optional<u8> Renderer::beginFrame() {
     if (m_recreatingSwapchain) [[unlikely]] {
         static constexpr u64 framesToDrop = 60u;
         m_recreatingSwapchain = (++m_framesSinceResize) <= framesToDrop - 1;
-        LOG_TRACE(
+        log::trace(
           "Recreating swapchain, dropping frame: {}/{}", m_framesSinceResize,
           framesToDrop
         );

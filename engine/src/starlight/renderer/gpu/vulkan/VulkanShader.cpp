@@ -56,7 +56,7 @@ VkShaderStageFlagBits getStageFlagBits(Shader::Stage::Type type) {
         case Shader::Stage::Type::compute:
             return VK_SHADER_STAGE_COMPUTE_BIT;
     }
-    FATAL_ERROR("Unknown shader type: {}", fmt::underlying(type));
+    log::panic("Unknown shader type: {}", fmt::underlying(type));
 }
 
 VulkanShaderStage::VulkanShaderStage(VulkanDevice& device, const Properties& props) :
@@ -66,11 +66,11 @@ VulkanShaderStage::VulkanShaderStage(VulkanDevice& device, const Properties& pro
     m_moduleCreateInfo.codeSize = props.source.size();
     m_moduleCreateInfo.pCode    = (uint32_t*)(props.source.data());
 
-    VK_ASSERT(vkCreateShaderModule(
+    log::expect(vkCreateShaderModule(
       m_device.logical.handle, &m_moduleCreateInfo, m_device.allocator, &m_handle
     ));
 
-    LOG_DEBUG("Shader module created");
+    log::debug("Shader module created");
 
     clearMemory(&m_stageCreateInfo);
     m_stageCreateInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -97,7 +97,7 @@ VulkanShader::VulkanShader(VulkanDevice& device, const Shader::Properties& props
 
     const auto stageCount = props.stages.size();
 
-    ASSERT(
+    log::expect(
       stageCount <= maxStages, "Stage count {} exceeds maximum {}", stageCount,
       maxStages
     );
@@ -132,7 +132,7 @@ VulkanShader::VulkanShader(VulkanDevice& device, const Shader::Properties& props
         }
     }
 
-    LOG_INFO(
+    log::info(
       "Shader resource - global samplers: {}, global uniforms: {}, instance samplers: {}, instance uniforms: {}, local uniforms: {} ",
       m_globalUniformSamplerCount, m_globalUniformCount,
       m_instanceUniformSamplerCount, m_instanceUniformCount, m_localUniformCount
@@ -215,7 +215,7 @@ VulkanShader::VulkanShader(VulkanDevice& device, const Shader::Properties& props
     createDescriptorSetLayouts();
     createUniformBuffer();
 
-    LOG_DEBUG(
+    log::debug(
       "Shader_{}: global ubo size={} offset={}", getId(), m_globalUboSize,
       m_globalUboOffset
     );
@@ -251,7 +251,7 @@ void VulkanShader::addUniforms(
   [[maybe_unused]] Texture* defaultTexture
 ) {
     for (const auto& uniformProps : uniforms) {
-        ASSERT(
+        log::expect(
           not m_uniforms.contains(uniformProps.name), "Uniform '{}' already added ",
           uniformProps.name
         );
@@ -269,11 +269,13 @@ void VulkanShader::addUniforms(
 void VulkanShader::addSampler(
   const Shader::Uniform::Properties& props, Texture* defaultTexture
 ) {
-    ASSERT(
+    log::expect(
       props.scope != Scope::instance || m_useInstances,
       "Cannot ad instance sampler for shader that doesn't support instances"
     );
-    ASSERT(props.scope != Scope::local, "Samplers cannot be used at local scope");
+    log::expect(
+      props.scope != Scope::local, "Samplers cannot be used at local scope"
+    );
 
     u32 location                             = 0;
     static constexpr int maxGlobalTextures   = 128;  // TODO: configurable
@@ -281,7 +283,7 @@ void VulkanShader::addSampler(
 
     if (props.scope == Scope::global) {
         const auto globalTextureCount = m_globalTextures.size();
-        ASSERT(
+        log::expect(
           globalTextureCount + 1 <= maxGlobalTextures,
           "Shader global texture count {} exceed maximum {}", globalTextureCount + 1,
           globalTextureCount
@@ -289,7 +291,7 @@ void VulkanShader::addSampler(
         location = globalTextureCount;
         m_globalTextures.push_back(defaultTexture);
     } else {
-        ASSERT(
+        log::expect(
           m_instanceTextureCount + 1 <= maxInstanceTextures,
           "Shader instance texture count {} exceed maximum {}",
           m_instanceTextureCount + 1, maxInstanceTextures
@@ -307,9 +309,9 @@ void VulkanShader::addUniform(
     static constexpr int maxUniforms = 32;  // TODO: configurable
 
     const auto uniformCount = m_uniforms.size();
-    LOG_TRACE("Adding uniform: {}/{}/{}", name, size, scopeToString(scope));
+    log::trace("Adding uniform: {}/{}/{}", name, size, scopeToString(scope));
 
-    ASSERT(
+    log::expect(
       uniformCount + 1 <= maxUniforms, "Uniform count {} exceeds limit {}",
       uniformCount + 1, maxUniforms
     );
@@ -329,9 +331,9 @@ void VulkanShader::addUniform(
             ? m_globalUboSize
             : m_uboSize;
         uniform.size = isSampler ? 0 : size;
-        LOG_TRACE("Uniform {} offset: {}", name, uniform.offset);
+        log::trace("Uniform {} offset: {}", name, uniform.offset);
     } else {
-        ASSERT(
+        log::expect(
           scope != Scope::instance || m_useInstances,
           "Cannot add a local uniform for shader that doesn't support locals"
         );
@@ -344,7 +346,7 @@ void VulkanShader::addUniform(
         m_pushConstantRanges[m_pushConstantRangeCount++] = r;
         m_pushConstantSize += r.size;
 
-        LOG_TRACE(
+        log::trace(
           "Push constant range: {} - {}, total push constants: {}", r.offset, r.size,
           m_pushConstantRangeCount
         );
@@ -397,7 +399,6 @@ void VulkanShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
 
     const auto globalSetBindingCount =
       m_descriptorSets[descSetIndexGlobal].bindingCount;
-    // ASSERT(globalSetBindingCount <= 1, "Global image samplers not supported yet");
 
     std::vector<VkDescriptorImageInfo> imageInfos;
     if (m_globalUniformSamplerCount > 0) {
@@ -405,7 +406,7 @@ void VulkanShader::applyGlobals(CommandBuffer& commandBuffer, u32 imageIndex) {
         for (u32 i = 0; i < m_globalTextures.size(); ++i) {
             const auto texture =
               static_cast<const VulkanTextureBase*>(m_globalTextures[i]);
-            ASSERT(
+            log::expect(
               texture,
               "Could not cast texture to internal type, something went wrong"
             );
@@ -492,7 +493,7 @@ void VulkanShader::applyInstance(CommandBuffer& commandBuffer, u32 imageIndex) {
             const auto texture = static_cast<const VulkanTextureBase*>(
               m_instanceStates[m_boundInstanceId].instanceTextures[i]
             );
-            ASSERT(
+            log::expect(
               texture,
               "Could not cast texture to internal type, something went wrong"
             );
@@ -537,7 +538,7 @@ u32 VulkanShader::acquireInstanceResources(const std::vector<Texture*>& textures
             break;
         }
     }
-    ASSERT(id.hasValue(), "Could not acquire new resource id");
+    log::expect(id.hasValue(), "Could not acquire new resource id");
 
     auto& instanceState = m_instanceStates[*id];
     const u8 bindingIndex =
@@ -546,7 +547,7 @@ u32 VulkanShader::acquireInstanceResources(const std::vector<Texture*>& textures
       m_descriptorSets[descSetIndexInstance].bindings[bindingIndex].descriptorCount;
 
     if (textures.size() != m_instanceTextureCount) {
-        LOG_WARN(
+        log::warn(
           "Provided texture map range size doesn't match with instance texture count, ignoring and setting all to default map "
         );
         instanceState.instanceTextures.resize(
@@ -562,12 +563,12 @@ u32 VulkanShader::acquireInstanceResources(const std::vector<Texture*>& textures
     // allocate space in the UBO - by the stride, not the size
     if (m_uboStride > 0) {
         instanceState.offset = m_uniformBuffer->allocate(m_uboStride)->offset;
-        LOG_INFO(
+        log::info(
           "Shader {} allocated offset={} for instance resources", m_name,
           instanceState.offset.get()
         );
     } else {
-        LOG_INFO("UBO stride equals 0, not allocating memory");
+        log::info("UBO stride equals 0, not allocating memory");
     }
 
     auto& setState = instanceState.descriptorSetState;
@@ -589,7 +590,7 @@ u32 VulkanShader::acquireInstanceResources(const std::vector<Texture*>& textures
     allocateInfo.descriptorSetCount = 3;
     allocateInfo.pSetLayouts        = layouts.data();
 
-    VK_ASSERT(vkAllocateDescriptorSets(
+    log::expect(vkAllocateDescriptorSets(
       m_device.logical.handle, &allocateInfo,
       instanceState.descriptorSetState.descriptorSets.data()
     ));
@@ -598,7 +599,7 @@ u32 VulkanShader::acquireInstanceResources(const std::vector<Texture*>& textures
 }
 
 void VulkanShader::releaseInstanceResources(u32 instanceId) {
-    LOG_TRACE(
+    log::trace(
       "Releasing instance ({}) resources for Shader ({}): ", instanceId, getId()
     );
     const auto logicalDevice = m_device.logical.handle;
@@ -606,7 +607,7 @@ void VulkanShader::releaseInstanceResources(u32 instanceId) {
 
     auto& instanceState = m_instanceStates[instanceId];
 
-    VK_ASSERT(vkFreeDescriptorSets(
+    log::expect(vkFreeDescriptorSets(
       logicalDevice, m_descriptorPool, 3,
       instanceState.descriptorSetState.descriptorSets.data()
     ));
@@ -673,14 +674,14 @@ void VulkanShader::createDescriptorPool() {
     poolInfo.maxSets       = m_maxDescriptorSetCount;
     poolInfo.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
-    VK_ASSERT(vkCreateDescriptorPool(
+    log::expect(vkCreateDescriptorPool(
       m_device.logical.handle, &poolInfo, m_device.allocator, &m_descriptorPool
     ));
 }
 
 void VulkanShader::createDescriptorSetLayouts() {
     for (int i = 0; i < m_descriptorSetCount; ++i) {
-        LOG_TRACE(
+        log::trace(
           "Creating descriptor set layout: {} - bindings: {}", i,
           m_descriptorSets[i].bindingCount
         );
@@ -691,7 +692,7 @@ void VulkanShader::createDescriptorSetLayouts() {
         info.bindingCount = m_descriptorSets[i].bindingCount;
         info.pBindings    = m_descriptorSets[i].bindings.data();
 
-        VK_ASSERT(vkCreateDescriptorSetLayout(
+        log::expect(vkCreateDescriptorSetLayout(
           m_device.logical.handle, &info, m_device.allocator,
           &m_descriptorSetLayouts[i]
         ));
@@ -756,7 +757,7 @@ void VulkanShader::createUniformBuffer() {
     m_globalUboStride = getAlignedValue(m_globalUboSize, m_requiredUboAlignment);
     m_uboStride       = getAlignedValue(m_uboSize, m_requiredUboAlignment);
 
-    LOG_INFO("Minimal uniform buffer offset alignment={}", m_requiredUboAlignment);
+    log::info("Minimal uniform buffer offset alignment={}", m_requiredUboAlignment);
 
     const auto deviceLocalBits =
       m_device.physical.info.supportsDeviceLocalHostVisibleMemory
@@ -775,14 +776,15 @@ void VulkanShader::createUniformBuffer() {
     bufferProps.usage =
       BufferUsage::BUFFER_USAGE_TRANSFER_DST_BIT
       | BufferUsage::BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    bufferProps.bindOnCreate = true;
 
-    LOG_DEBUG(
+    log::debug(
       "Creating uniform buffer, globalUboStride={}, uboStride={}, totalSize={}",
       m_globalUboStride, m_uboStride, totalBufferSize
     );
     m_uniformBuffer.emplace(m_device, bufferProps);
 
-    LOG_DEBUG("Allocating {}b of memory", m_globalUboStride);
+    log::debug("Allocating {}b of memory", m_globalUboStride);
     m_globalUboOffset = m_uniformBuffer->allocate(m_globalUboStride)->offset;
     m_mappedUniformBufferBlock = m_uniformBuffer->lockMemory();
 
@@ -798,7 +800,7 @@ void VulkanShader::createUniformBuffer() {
     allocateInfo.descriptorSetCount = 3;
     allocateInfo.pSetLayouts        = globalLayouts.data();
 
-    VK_ASSERT(vkAllocateDescriptorSets(
+    log::expect(vkAllocateDescriptorSets(
       m_device.logical.handle, &allocateInfo, m_globalDescriptorSets.data()
     ));
 }

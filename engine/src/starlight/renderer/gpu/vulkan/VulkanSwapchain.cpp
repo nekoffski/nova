@@ -23,7 +23,7 @@ VkExtent2D createSwapchainExtent(
     const auto min = deviceInfo.surfaceCapabilities.minImageExtent;
     const auto max = deviceInfo.surfaceCapabilities.maxImageExtent;
 
-    LOG_INFO(
+    log::info(
       "Swapchain capabilities min/max - {} - {}/{} - {}", min.width, min.height,
       max.width, max.height
     );
@@ -35,7 +35,7 @@ VkExtent2D createSwapchainExtent(
 }
 
 Texture* VulkanSwapchain::getImage(u32 id) {
-    ASSERT(id < m_textures.size(), "Invalid image id - {}", id);
+    log::expect(id < m_textures.size(), "Invalid image id - {}", id);
     return m_textures[id].get();
 }
 
@@ -122,7 +122,7 @@ void VulkanSwapchain::createSwapchain() {
       createSwapchainExtent(m_size.w, m_size.h, m_device.physical.info);
     auto deviceImageCount = getDeviceImageCount(m_device.physical.info);
 
-    LOG_INFO(
+    log::info(
       "Creating swapchain: {}/{}", m_swapchainExtent.width, m_swapchainExtent.height
     );
 
@@ -132,21 +132,21 @@ void VulkanSwapchain::createSwapchain() {
       m_device.physical.info.presentMode, m_device.physical.info
     );
 
-    VK_ASSERT(vkCreateSwapchainKHR(
+    log::expect(vkCreateSwapchainKHR(
       m_device.logical.handle, &swapchainCreateInfo.handle, m_device.allocator,
       &m_handle
     ));
-    LOG_TRACE("vkCreateSwapchainKHR: {}", static_cast<void*>(m_handle));
+    log::trace("vkCreateSwapchainKHR: {}", static_cast<void*>(m_handle));
 }
 
 void VulkanSwapchain::createImages() {
-    VK_ASSERT(
+    log::expect(
       vkGetSwapchainImagesKHR(m_device.logical.handle, m_handle, &m_imageCount, 0)
     );
-    ASSERT(m_imageCount > 0, "swapchainImageCount==0 for vulkan swapchain");
+    log::expect(m_imageCount > 0, "swapchainImageCount==0 for vulkan swapchain");
 
     std::vector<VkImage> swapchainImages(m_imageCount, 0);
-    VK_ASSERT(vkGetSwapchainImagesKHR(
+    log::expect(vkGetSwapchainImagesKHR(
       m_device.logical.handle, m_handle, &m_imageCount, swapchainImages.data()
     ));
 
@@ -185,13 +185,13 @@ void VulkanSwapchain::createImages() {
 void VulkanSwapchain::create() {
     createSwapchain();
     createImages();
-    LOG_INFO("VulkanSwapchain created successfully.");
+    log::info("VulkanSwapchain created successfully.");
 }
 
 VulkanSwapchain::~VulkanSwapchain() { destroy(); }
 
 void VulkanSwapchain::destroy() {
-    LOG_TRACE("vkDestroySwapchainKHR: {}", static_cast<void*>(m_handle));
+    log::trace("vkDestroySwapchainKHR: {}", static_cast<void*>(m_handle));
     vkDestroySwapchainKHR(m_device.logical.handle, m_handle, m_device.allocator);
     m_textures.clear();
     m_depthTexture.clear();
@@ -209,10 +209,10 @@ std::optional<u32> VulkanSwapchain::acquireNextImageIndex(
     );
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        LOG_WARN("Swapchain out of date");
+        log::warn("Swapchain out of date");
         return {};
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        LOG_ERROR(
+        log::error(
           "Failed to acquire swapchain image: {}", getResultString(result, true)
         );
         return {};
@@ -222,7 +222,7 @@ std::optional<u32> VulkanSwapchain::acquireNextImageIndex(
 }
 
 void VulkanSwapchain::recreate(const Vec2<u32>& size) {
-    LOG_INFO("Recreating swapchain: {}/{}", size.w, size.h);
+    log::info("Recreating swapchain: {}/{}", size.w, size.h);
 
     m_size = size;
     destroy();
