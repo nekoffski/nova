@@ -1,7 +1,5 @@
 #include "Window.hh"
 
-#include <kc/core/Log.h>
-
 #include "starlight/core/event/EventProxy.hh"
 #include "starlight/core/event/Quit.hh"
 #include "starlight/core/event/WindowResized.hh"

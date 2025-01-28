@@ -1,7 +1,5 @@
 #include "VulkanBuffer.hh"
 
-#include <kc/core/Log.h>
-
 #include "VulkanDevice.hh"
 #include "VulkanCommandBuffer.hh"
 
@@ -103,7 +101,7 @@ void* VulkanBuffer::lockMemory(const Range& range) {
     void* data;
     log::expect(vkMapMemory(
       m_device.logical.handle, m_memory, range.offset,
-      range.size == u64Max ? VK_WHOLE_SIZE : range.size, 0, &data
+      range.size == max<u64>() ? VK_WHOLE_SIZE : range.size, 0, &data
     ));
     return data;
 }

@@ -1,12 +1,11 @@
 #pragma once
 
-#include <kc/core/Singleton.hpp>
-
 #include "WindowImpl.hh"
+#include "starlight/core/Singleton.hh"
 
 namespace sl {
 
-class Input : public kc::core::Singleton<Input> {
+class Input : public Singleton<Input> {
 public:
     using Button = WindowImpl::Button;
     using Key    = WindowImpl::Key;

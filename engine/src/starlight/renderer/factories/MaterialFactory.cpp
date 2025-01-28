@@ -13,12 +13,12 @@ ResourceRef<Material> MaterialFactory::getDefault() { return m_defaultMaterial; 
 ResourceRef<Material> MaterialFactory::create(
   const std::string& name, const Material::Properties& properties
 ) {
-    return store(name, createOwningPtr<Material>(properties));
+    return store(name, UniquePointer<Material>::create(properties));
 }
 
 ResourceRef<Material> MaterialFactory::create(const Material::Properties& properties
 ) {
-    return store(createOwningPtr<Material>(properties));
+    return store(UniquePointer<Material>::create(properties));
 }
 
 ResourceRef<Material> MaterialFactory::load(
@@ -27,7 +27,7 @@ ResourceRef<Material> MaterialFactory::load(
     const auto fullPath = fmt::format("{}/{}.json", m_materialsPath, name);
 
     if (auto properties = Material::Properties::fromFile(fullPath, fs); properties)
-        return store(name, createOwningPtr<Material>(*properties));
+        return store(name, UniquePointer<Material>::create(*properties));
 
     log::warn("Could not load material config for '{}'", name);
     return nullptr;

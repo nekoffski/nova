@@ -1,6 +1,7 @@
 #pragma once
 
 #include "starlight/core/Resource.hh"
+#include "starlight/core/Singleton.hh"
 #include "starlight/renderer/gpu/Shader.hh"
 #include "starlight/renderer/gpu/Device.hh"
 
@@ -8,7 +9,7 @@ namespace sl {
 
 class ShaderFactory
     : public ResourceFactory<Shader>,
-      public kc::core::Singleton<ShaderFactory> {
+      public Singleton<ShaderFactory> {
 public:
     explicit ShaderFactory(const std::string& path, Device& device);
 

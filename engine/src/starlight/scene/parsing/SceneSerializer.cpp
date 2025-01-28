@@ -1,7 +1,7 @@
 #include "SceneSerializer.hh"
 
 #include "starlight/core/Json.hh"
-#include "starlight/core/Clock.hh"
+#include "starlight/core/Time.hh"
 
 namespace sl {
 
@@ -11,7 +11,7 @@ void SceneSerializer::serialize(
     log::debug("Serializing scene: {}", path);
     kc::json::Node root;
 
-    root["ts"] = sl::Clock::get().formatTime("%Y-%m-%d %H:%M:%S");
+    root["ts"] = getTimeString("%Y-%m-%d %H:%M:%S");
 
     if (scene.skybox) {
         const auto skyboxName = scene.skybox.getName();

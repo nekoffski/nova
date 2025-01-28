@@ -15,7 +15,7 @@ ResourceRef<Skybox> SkyboxFactory::load(const std::string& name) {
         return resource;
 
     auto cubemap = TextureFactory::get().load(name, Texture::Type::cubemap);
-    return store(name, createOwningPtr<Skybox>(cubemap));
+    return store(name, UniquePointer<Skybox>::create(cubemap));
 }
 
 ResourceRef<Shader> SkyboxFactory::getDefaultShader() {

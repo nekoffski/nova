@@ -31,7 +31,6 @@ PropertiesView::EntityTab::EntityTab() : m_eventSentinel(sl::EventProxy::get()) 
       .add<events::EntitySelected>([&](auto& event) {
           m_data.selectedEntity = event.entity;
           m_data.nameBuffer     = event.entity->name;
-
           if (event.clearComponentCallback) m_componentCallback.reset();
       });
 }
@@ -126,39 +125,26 @@ void PropertiesView::setRenderGraph(sl::RenderGraph& renderGraph) {
 
 void PropertiesView::RendererTab::render() {
     sl::ui::namedScope("inspector-view-renderer-tab", [&]() {
-        sl::ui::text("Render graph");
+        sl::ui::text(ICON_FA_NETWORK_WIRED "   Render graph");
+        sl::ui::separator();
 
-        // TODO
-        // m_renderGraph->traverse(
-        //   [&](sl::u32 index, bool active, auto& view, auto& renderPass) {
-        //       const auto& name = view.name;
-        //       sl::ui::treeNode(
-        //         name,
-        //         [&]() {
-        //             sl::ui::sameLine();
-        //             sl::ui::namedScope(name, [&]() {
-        //                 if (sl::ui::checkbox("Active", active))
-        //                     m_renderGraph->toggleView(index);
-        //             });
+        bool changed = false;
 
-        //             auto properties = renderPass.getProperties();
-        //             sl::ui::text(
-        //               "Rect: {}/{} - {}/{}", properties.rect.offset.x,
-        //               properties.rect.offset.y, properties.rect.size.w,
-        //               properties.rect.size.h
-        //             );
-        //             sl::ui::text(
-        //               "Render targets: {}", properties.renderTargets.size()
-        //             );
+        m_renderGraph->forEach([&](auto& active, auto& renderPass) {
+            if (renderPass.name != "UIRenderPass") {  // TODO: find better way
+                sl::ui::namedScope(renderPass.name, [&]() {
+                    if (sl::ui::checkbox("##Active", active)) changed = true;
+                    sl::ui::sameLine();
+                    sl::ui::text(renderPass.name);
+                });
+            }
+        });
 
-        //             auto colorPtr = sl::math::value_ptr(properties.clearColor);
-        //             if (ImGui::ColorEdit4("Clear Color", colorPtr))
-        //                 renderPass.setClearColor(properties.clearColor);
-        //         },
-        //         ImGuiTreeNodeFlags_DefaultOpen
-        //       );
-        //   }
-        // );
+        if (changed) {
+            sl::TaskQueue::get().callPostFrame([&]() {
+                m_renderGraph->rebuildChain();
+            });
+        }
     });
 }
 

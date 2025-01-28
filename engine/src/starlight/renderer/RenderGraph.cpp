@@ -25,11 +25,14 @@ void RenderGraph::render(RenderPacket& renderPacket) {
 void RenderGraph::onWindowResize() { rebuildChain(); }
 
 void RenderGraph::rebuildChain() {
+    log::debug("Rebuilding render graph chain");
     std::vector<RenderPassBase*> activePasses;
     activePasses.reserve(m_nodes.size());
 
-    for (auto& [renderPass, active] : m_nodes)
+    for (auto& [renderPass, active] : m_nodes) {
+        log::debug("{} - {}", renderPass->name, active ? "ACTIVE" : "INACTIVE");
         if (active) activePasses.push_back(renderPass.get());
+    }
 
     const auto n = activePasses.size();
 

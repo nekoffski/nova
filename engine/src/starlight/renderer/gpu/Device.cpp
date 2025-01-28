@@ -6,9 +6,9 @@
 
 namespace sl {
 
-OwningPtr<Device> Device::create(Context& context) {
+UniquePointer<Device> Device::create(Context& context) {
 #ifdef SL_USE_VK
-    return createOwningPtr<vk::VulkanDevice>(context);
+    return UniquePointer<vk::VulkanDevice>::create(context);
 #endif
     return nullptr;
 }

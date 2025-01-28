@@ -34,7 +34,7 @@ private:
 
 using HandledCallback = std::function<void()>;
 using EventCallback   = std::function<void(EventStorageBase&, HandledCallback&&)>;
-using Events          = std::vector<OwningPtr<EventStorageBase>>;
+using Events          = std::vector<UniquePointer<EventStorageBase>>;
 
 struct EventHandlerRecord : Identificable<EventHandlerRecord, EventHandlerId> {
     explicit EventHandlerRecord(EventCallback&& callback);

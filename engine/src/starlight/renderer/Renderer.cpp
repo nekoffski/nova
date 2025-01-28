@@ -8,7 +8,7 @@ namespace sl {
 
 static constexpr u64 bufferSize = 1024 * 1024;
 
-static OwningPtr<Buffer> createVertexBuffer(Device& device) {
+static UniquePointer<Buffer> createVertexBuffer(Device& device) {
     return device.createBuffer(Buffer::Properties{
       .size           = bufferSize * sizeof(Vertex3),
       .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -20,7 +20,7 @@ static OwningPtr<Buffer> createVertexBuffer(Device& device) {
     });
 }
 
-static OwningPtr<Buffer> createIndexBuffer(Device& device) {
+static UniquePointer<Buffer> createIndexBuffer(Device& device) {
     return device.createBuffer(Buffer::Properties{
       .size           = bufferSize * sizeof(u32),
       .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

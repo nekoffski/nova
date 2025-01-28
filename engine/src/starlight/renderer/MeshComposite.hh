@@ -5,6 +5,7 @@
 
 #include "starlight/core/math/Transform.hh"
 #include "starlight/core/Resource.hh"
+#include "starlight/core/Concepts.hh"
 
 #include "Mesh.hh"
 #include "Material.hh"

@@ -64,7 +64,7 @@ private:
     u64 m_renderFrameNumber;
 
     Textures m_textures;
-    LocalPtr<Shader::Instance> m_instance;
+    LocalPointer<Shader::Instance> m_instance;
 };
 
 }  // namespace sl

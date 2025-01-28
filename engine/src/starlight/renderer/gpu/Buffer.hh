@@ -32,8 +32,8 @@ struct Buffer : public NonCopyable, public NonMovable {
 
     virtual void bind(u64 offset = 0) = 0;
 
-    virtual void* lockMemory(const Range& range = Range{ 0u, u64Max }) = 0;
-    virtual void unlockMemory()                                        = 0;
+    virtual void* lockMemory(const Range& range = Range{ 0u, max<u64>() }) = 0;
+    virtual void unlockMemory()                                            = 0;
 
     virtual std::optional<Range> allocate(u64 size, const void* data = nullptr) = 0;
     virtual void free(const Range& range)                                       = 0;

@@ -18,7 +18,7 @@ public:
 
     virtual std::optional<u32> acquireNextImageIndex(
       Semaphore* imageSemaphore = nullptr, Fence* fence = nullptr,
-      Nanoseconds timeout = u64Max
+      Nanoseconds timeout = max<u64>()
     )                                 = 0;
     virtual u32 getImageCount() const = 0;
 

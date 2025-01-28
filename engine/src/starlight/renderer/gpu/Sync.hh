@@ -12,8 +12,8 @@ struct Fence : public NonCopyable, public NonMovable {
 
     virtual ~Fence() = default;
 
-    virtual bool wait(Nanoseconds timeout = u64Max) = 0;
-    virtual void reset()                            = 0;
+    virtual bool wait(Nanoseconds timeout = max<u64>()) = 0;
+    virtual void reset()                                = 0;
 };
 
 struct Semaphore : public NonCopyable, public NonMovable {

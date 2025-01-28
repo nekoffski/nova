@@ -22,7 +22,7 @@ VulkanFence::VulkanFence(VulkanDevice& device, State state) :
 }
 
 VulkanFence::~VulkanFence() {
-    wait(u64Max);
+    wait(max<u64>());
     if (m_handle) {
         log::trace("vkDestroyFence: {}", static_cast<void*>(m_handle));
         vkDestroyFence(m_device.logical.handle, m_handle, m_device.allocator);

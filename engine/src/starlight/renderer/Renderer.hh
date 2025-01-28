@@ -6,6 +6,7 @@
 #include "starlight/core/Core.hh"
 #include "starlight/core/Context.hh"
 #include "starlight/core/event/EventHandlerSentinel.hh"
+#include "starlight/core/Concepts.hh"
 
 #include "gpu/Device.hh"
 #include "gpu/Swapchain.hh"
@@ -57,20 +58,20 @@ private:
     Window& m_window;
     Config m_config;
 
-    OwningPtr<Device> m_device;
-    OwningPtr<Swapchain> m_swapchain;
+    UniquePointer<Device> m_device;
+    UniquePointer<Swapchain> m_swapchain;
 
-    OwningPtr<Buffer> m_vertexBuffer;
-    OwningPtr<Buffer> m_indexBuffer;
+    UniquePointer<Buffer> m_vertexBuffer;
+    UniquePointer<Buffer> m_indexBuffer;
 
     u8 m_currentFrame;
     u8 m_maxFramesInFlight;
     u64 m_frameNumber;
 
-    std::vector<OwningPtr<CommandBuffer>> m_commandBuffers;
-    std::vector<OwningPtr<Semaphore>> m_imageAvailableSemaphores;
-    std::vector<OwningPtr<Semaphore>> m_queueCompleteSemaphores;
-    std::vector<OwningPtr<Fence>> m_frameFences;
+    std::vector<UniquePointer<CommandBuffer>> m_commandBuffers;
+    std::vector<UniquePointer<Semaphore>> m_imageAvailableSemaphores;
+    std::vector<UniquePointer<Semaphore>> m_queueCompleteSemaphores;
+    std::vector<UniquePointer<Fence>> m_frameFences;
     std::vector<Fence*> m_imageFences;
 
     // factories

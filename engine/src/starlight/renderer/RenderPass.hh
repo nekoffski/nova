@@ -48,7 +48,7 @@ protected:
     ) = 0;
 
     Renderer& m_renderer;
-    OwningPtr<RenderPassBackend> m_renderPassBackend;
+    UniquePointer<RenderPassBackend> m_renderPassBackend;
     Vec2<f32> m_viewportOffset;
 
 public:
@@ -73,7 +73,7 @@ protected:
     void drawMesh(Mesh& mesh, CommandBuffer& buffer);
 
     ResourceRef<Shader> m_shader;
-    OwningPtr<Pipeline> m_pipeline;
+    UniquePointer<Pipeline> m_pipeline;
 
 private:
     virtual void render(

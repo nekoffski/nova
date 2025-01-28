@@ -1,13 +1,13 @@
 #pragma once
 
-#include <kc/core/Singleton.hpp>
+#include "starlight/core/Singleton.hh"
 
 #include "starlight/core/math/Core.hh"
 #include "WindowImpl.hh"
 
 namespace sl {
 
-class Window : public kc::core::Singleton<Window> {
+class Window : public Singleton<Window> {
 public:
     explicit Window(WindowImpl& window);
 

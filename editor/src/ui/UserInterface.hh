@@ -53,8 +53,8 @@ private:
     Resources m_resources;
 
     sl::ui::MainMenuBar m_menu;
-    sl::LocalPtr<sl::ui::PanelCombo> m_leftCombo;
-    sl::LocalPtr<sl::ui::PanelCombo> m_bottomCombo;
+    sl::LocalPointer<sl::ui::PanelCombo> m_leftCombo;
+    sl::LocalPointer<sl::ui::PanelCombo> m_bottomCombo;
 
     SceneView m_sceneView;
     PropertiesView m_propertiesView;

@@ -1,20 +1,20 @@
 #pragma once
-#include "kc/core/Singleton.hpp"
 
+#include "starlight/core/Singleton.hh"
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/core/Log.hh"
 #include "Core.hh"
 
 namespace sl {
 
-class EventProxy : public kc::core::Singleton<EventProxy> {
+class EventProxy : public Singleton<EventProxy> {
 public:
     explicit EventProxy(details::Events& events, details::EventHandlers& handlers);
 
     template <typename T, typename... Args> void emit(Args&&... args) {
-        m_events.push_back(
-          createOwningPtr<details::EventStorage<T>>(std::forward<Args>(args)...)
-        );
+        m_events.push_back(UniquePointer<details::EventStorage<T>>::create(
+          std::forward<Args>(args)...
+        ));
     }
 
     template <typename T>

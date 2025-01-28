@@ -3,8 +3,8 @@
 #include <string>
 
 #include <kc/core/Singleton.hpp>
-#include <fmt/core.h>
 #include <starlight/core/Log.hh>
+#include <fmt/core.h>
 
 /*
     TODO: not sure if the editor will need concurecny but thread-safety would be nice

@@ -7,9 +7,8 @@
 #include <fmt/core.h>
 
 #include "starlight/renderer/camera/Camera.hh"
-
+#include "starlight/core/Utils.hh"
 #include "starlight/core/math/Core.hh"
-#include "starlight/renderer/gpu/UIRenderer.hh"
 
 namespace sl::ui {
 

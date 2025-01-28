@@ -1,7 +1,6 @@
 #include "ShadowMapsRenderPass.hh"
 
 #include "starlight/core/window/Window.hh"
-#include "starlight/core/Algorithms.hh"
 #include "starlight/renderer/factories/TextureFactory.hh"
 #include "starlight/renderer/factories/ShaderFactory.hh"
 #include "starlight/renderer/Renderer.hh"

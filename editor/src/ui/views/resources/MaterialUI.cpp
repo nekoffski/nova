@@ -57,12 +57,9 @@ void MaterialUI::render(sl::ResourceRef<sl::Material> material) {
       .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
 
     if (textureChanged) {
-        sl::TaskQueue::get().push(
-          sl::TaskQueue::Type::postFrameRender,
-          [materialTextures, material]() mutable {
-              material->setTextures(materialTextures);
-          }
-        );
+        sl::TaskQueue::get().callPostFrame([materialTextures, material]() mutable {
+            material->setTextures(materialTextures);
+        });
     }
 }
 

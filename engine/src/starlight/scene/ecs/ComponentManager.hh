@@ -12,7 +12,7 @@ namespace sl {
 
 class ComponentManager {
     using ComponentContainers =
-      std::unordered_map<std::type_index, OwningPtr<ComponentContainerBase>>;
+      std::unordered_map<std::type_index, UniquePointer<ComponentContainerBase>>;
 
 public:
     template <typename T, typename... Args>
@@ -42,7 +42,7 @@ public:
         // read, in case of under-performance - rewrite
         if (not m_componentContainers.contains(type)) [[unlikely]] {
             m_componentContainers.insert(
-              { type, createOwningPtr<ComponentContainer<T>>() }
+              { type, UniquePointer<ComponentContainer<T>>::create() }
             );
         }
         return static_cast<ComponentContainer<T>&>(*m_componentContainers[type]);

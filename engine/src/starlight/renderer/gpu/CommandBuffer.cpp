@@ -5,7 +5,7 @@
 namespace sl {
 
 ImmediateCommandBuffer::ImmediateCommandBuffer(
-  OwningPtr<CommandBuffer> commandBuffer, Queue& queue
+  UniquePointer<CommandBuffer> commandBuffer, Queue& queue
 ) : m_commandBuffer(std::move(commandBuffer)), m_queue(queue) {
     m_commandBuffer->begin(CommandBuffer::BeginFlags::singleUse);
 }

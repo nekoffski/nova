@@ -1,6 +1,7 @@
 #pragma once
 
 #include "starlight/core/Resource.hh"
+#include "starlight/core/Singleton.hh"
 #include "starlight/renderer/gpu/Device.hh"
 #include "starlight/renderer/gpu/Texture.hh"
 
@@ -8,7 +9,7 @@ namespace sl {
 
 class TextureFactory
     : public ResourceFactory<Texture>,
-      public kc::core::Singleton<TextureFactory> {
+      public Singleton<TextureFactory> {
 public:
     constexpr static Texture::PixelWidth defaultPixelColor = 255;
 

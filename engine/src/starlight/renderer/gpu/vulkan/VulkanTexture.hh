@@ -5,8 +5,6 @@
 
 #include <stb.h>
 
-#include <kc/core/Log.h>
-
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/renderer/gpu/Texture.hh"
 

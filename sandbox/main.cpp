@@ -22,6 +22,10 @@
 #include "starlight/renderer/passes/UIRenderPass.hh"
 #include "starlight/ui/UI.hh"
 
+#include "starlight/core/Utils.hh"
+
+#include <iostream>
+
 struct UI : sl::UI {
     void render() { ImGui::Text("hello world"); }
 };
@@ -30,6 +34,7 @@ static std::atomic_bool isRunning = true;
 
 int main(int argc, char** argv) {
     sl::log::init("sl-sandbox");
+
     sl::log::expect(argc >= 2, "Config path required");
     auto config = sl::Config::fromJson(std::string{ argv[1] });
     sl::log::expect(config.has_value(), "Could not load config file");

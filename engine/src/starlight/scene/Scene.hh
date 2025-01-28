@@ -7,6 +7,7 @@
 #include "starlight/core/containers/FlatMap.hh"
 #include "starlight/renderer/camera/Camera.hh"
 #include "starlight/renderer/RenderPacket.hh"
+#include "starlight/core/Concepts.hh"
 #include "starlight/renderer/Skybox.hh"
 
 #include "ecs/Entity.hh"

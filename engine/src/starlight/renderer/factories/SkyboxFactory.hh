@@ -1,6 +1,7 @@
 #pragma once
 
 #include "starlight/core/Resource.hh"
+#include "starlight/core/Singleton.hh"
 #include "starlight/core/memory/Memory.hh"
 
 #include "starlight/renderer/Skybox.hh"
@@ -9,7 +10,7 @@ namespace sl {
 
 class SkyboxFactory
     : public ResourceFactory<Skybox>,
-      public kc::core::Singleton<SkyboxFactory> {
+      public Singleton<SkyboxFactory> {
 public:
     explicit SkyboxFactory();
 

@@ -6,8 +6,7 @@
 #include "starlight/core/Core.hh"
 #include "starlight/core/Log.hh"
 #include "starlight/core/memory/Memory.hh"
-
-#include <iostream>
+#include "starlight/core/Concepts.hh"
 
 namespace sl {
 
@@ -73,7 +72,7 @@ public:
 
 private:
     const u64 m_capacity;
-    std::vector<LocalPtr<T>> m_buffer;
+    std::vector<LocalPointer<T>> m_buffer;
     std::queue<u64> m_freeSlots;
 };
 

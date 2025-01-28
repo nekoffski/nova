@@ -1,7 +1,7 @@
 #pragma once
 
-#include <kc/core/String.h>
-
+#include "starlight/core/Core.hh"
+#include "Vec.hh"
 #include "Core.hh"
 
 namespace sl {
@@ -19,11 +19,6 @@ struct Vertex3 {
     Vec4<f32> tangent;
 };
 
-}  // namespace sl
+std::string toString(const Vertex3& v);
 
-DEFINE_TO_STRING(sl::Vertex3, v) {
-    return fmt::format(
-      "Vertex3: position={}, texture coordinates={}, normal={}, color={}, tangent={}",
-      v.position, v.textureCoordinates, v.normal, v.color, v.tangent
-    );
-}
+}  // namespace sl

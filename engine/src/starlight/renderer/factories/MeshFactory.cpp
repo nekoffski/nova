@@ -45,8 +45,8 @@ void MeshFactory::createDefaults() {
     m_cube = create("Cube", cubeConfig);
 }
 
-OwningPtr<Mesh> MeshFactory::createMesh(const Mesh::Data& meshData) {
-    return createOwningPtr<Mesh>(meshData, m_vertexBuffer, m_indexBuffer);
+UniquePointer<Mesh> MeshFactory::createMesh(const Mesh::Data& meshData) {
+    return UniquePointer<Mesh>::create(meshData, m_vertexBuffer, m_indexBuffer);
 }
 
 }  // namespace sl

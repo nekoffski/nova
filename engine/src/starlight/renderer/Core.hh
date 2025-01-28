@@ -2,6 +2,7 @@
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/Enum.hh"
+#include "starlight/core/Utils.hh"
 
 namespace sl {
 

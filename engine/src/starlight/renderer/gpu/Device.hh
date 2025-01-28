@@ -20,7 +20,7 @@ class Device : public NonCopyable, public NonMovable {
 public:
     virtual ~Device() = default;
 
-    static OwningPtr<Device> create(Context& context);
+    static UniquePointer<Device> create(Context& context);
 
     virtual void waitIdle()                   = 0;
     virtual Queue& getQueue(Queue::Type type) = 0;
@@ -28,33 +28,33 @@ public:
     Queue& getGraphicsQueue();
     Queue& getPresentQueue();
 
-    virtual OwningPtr<Buffer> createBuffer(const Buffer::Properties& props) = 0;
+    virtual UniquePointer<Buffer> createBuffer(const Buffer::Properties& props) = 0;
 
-    virtual OwningPtr<Pipeline> createPipeline(
+    virtual UniquePointer<Pipeline> createPipeline(
       Shader& shader, RenderPassBackend& renderPass
     ) = 0;
 
-    virtual OwningPtr<Shader> createShader(const Shader::Properties& props) = 0;
+    virtual UniquePointer<Shader> createShader(const Shader::Properties& props) = 0;
 
-    virtual OwningPtr<CommandBuffer> createCommandBuffer(
+    virtual UniquePointer<CommandBuffer> createCommandBuffer(
       CommandBuffer::Severity severity = CommandBuffer::Severity::primary
     ) = 0;
 
-    virtual OwningPtr<Texture> createTexture(
+    virtual UniquePointer<Texture> createTexture(
       const Texture::ImageData& image,
       const Texture::SamplerProperties& = Texture::SamplerProperties::createDefault()
     ) = 0;
 
-    virtual OwningPtr<RenderPassBackend> createRenderPassBackend(
+    virtual UniquePointer<RenderPassBackend> createRenderPassBackend(
       const RenderPassBackend::Properties& props, bool hasPreviousPass,
       bool hasNextPass
     ) = 0;
 
-    virtual OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) = 0;
+    virtual UniquePointer<Swapchain> createSwapchain(const Vec2<u32>& size) = 0;
 
-    virtual OwningPtr<Semaphore> createSemaphore() = 0;
+    virtual UniquePointer<Semaphore> createSemaphore() = 0;
 
-    virtual OwningPtr<Fence> createFence(
+    virtual UniquePointer<Fence> createFence(
       Fence::State = Fence::State::notSignaled
     ) = 0;
 };

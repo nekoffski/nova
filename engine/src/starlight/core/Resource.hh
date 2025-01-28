@@ -2,12 +2,10 @@
 
 #include <unordered_map>
 
-#include <kc/core/Singleton.hpp>
-
-#include "starlight/core/Core.hh"
-#include "starlight/core/Id.hh"
-#include "starlight/core/memory/Memory.hh"
-#include "starlight/core/Log.hh"
+#include "Core.hh"
+#include "Id.hh"
+#include "Log.hh"
+#include "memory/Memory.hh"
 
 namespace sl {
 
@@ -69,7 +67,7 @@ template <typename T> class ResourceFactory {
     friend class ResourceRef<T>;
 
     struct ResourceRecord {
-        OwningPtr<T> data;
+        UniquePointer<T> data;
         std::string name;
         u32 referenceCounter;
     };
@@ -99,12 +97,12 @@ public:
 protected:
     template <typename V>
     requires std::is_same_v<V, T> && IsIdentificable<V>
-    ResourceRef<V> store(OwningPtr<V> resource) {
+    ResourceRef<V> store(UniquePointer<V> resource) {
         const auto name = fmt::format("{}_{}", m_resourceName, resource->getId());
         return store(name, std::move(resource));
     }
 
-    ResourceRef<T> store(const std::string& name, OwningPtr<T> resource) {
+    ResourceRef<T> store(const std::string& name, UniquePointer<T> resource) {
         const auto [it, inserted] =
           m_records.emplace(name, ResourceRecord{ std::move(resource), name, 0u });
 

@@ -1,12 +1,6 @@
 #pragma once
 
-#include <string>
-
-#include <fmt/core.h>
-
-#include <kc/core/Macros.h>
-#include <kc/core/String.h>
-
+#include "starlight/core/Utils.hh"
 #include "starlight/core/window/Keys.hh"
 
 namespace sl {
@@ -28,9 +22,7 @@ struct ScrollEvent {
     float offset;
 };
 
-}  // namespace sl
-
-DEFINE_TO_STRING(sl::KeyAction, action) {
+inline std::string toString(const KeyAction& action) {
     switch (action) {
         case sl::KeyAction::press:
             return "KeyPress";
@@ -46,7 +38,7 @@ DEFINE_TO_STRING(sl::KeyAction, action) {
     }
 }
 
-DEFINE_TO_STRING(sl::MouseAction, action) {
+inline std::string toString(const MouseAction& action) {
     switch (action) {
         case sl::MouseAction::press:
             return "KeyPress";
@@ -58,14 +50,16 @@ DEFINE_TO_STRING(sl::MouseAction, action) {
     }
 }
 
-DEFINE_TO_STRING(sl::KeyEvent, event) {
+inline std::string toString(const KeyEvent& event) {
     return fmt::format("KeyEvent[{}/{}]", event.key, event.action);
 }
 
-DEFINE_TO_STRING(sl::MouseEvent, event) {
+inline std::string toString(const MouseEvent& event) {
     return fmt::format("MouseEvent[{}/{}]", event.button, event.action);
 }
 
-DEFINE_TO_STRING(sl::ScrollEvent, event) {
+inline std::string toString(const ScrollEvent& event) {
     return fmt::format("ScrollEvent[{}]", event.offset);
 }
+
+}  // namespace sl

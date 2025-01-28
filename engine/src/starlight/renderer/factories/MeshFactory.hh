@@ -7,6 +7,7 @@
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/math/Vertex.hh"
 #include "starlight/core/Resource.hh"
+#include "starlight/core/Singleton.hh"
 
 #include "starlight/renderer/Mesh.hh"
 #include "starlight/renderer/gpu/Device.hh"
@@ -15,9 +16,7 @@
 
 namespace sl {
 
-class MeshFactory
-    : public ResourceFactory<Mesh>,
-      public kc::core::Singleton<MeshFactory> {
+class MeshFactory : public ResourceFactory<Mesh>, public Singleton<MeshFactory> {
 public:
     explicit MeshFactory(Buffer& vertexBuffer, Buffer& indexBuffer);
 
@@ -41,7 +40,7 @@ public:
 private:
     void createDefaults();
 
-    OwningPtr<Mesh> createMesh(const Mesh::Data& meshData);
+    UniquePointer<Mesh> createMesh(const Mesh::Data& meshData);
 
     Buffer& m_vertexBuffer;
     Buffer& m_indexBuffer;

@@ -21,7 +21,7 @@ public:
 
     void bind(u64 offset = 0) override;
 
-    void* lockMemory(const Range& range = Range{ 0u, u64Max }) override;
+    void* lockMemory(const Range& range = Range{ 0u, max<u64>() }) override;
     void unlockMemory() override;
 
     std::optional<Range> allocate(u64 size, const void* data = nullptr) override;

@@ -5,6 +5,7 @@
 #include "fwd.hh"
 #include "Core.hh"
 #include "EventProxy.hh"
+#include "starlight/core/Concepts.hh"
 
 namespace sl {
 

@@ -117,31 +117,32 @@ public:
 
     std::optional<i32> findMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
 
-    OwningPtr<Buffer> createBuffer(const Buffer::Properties& props) override;
+    UniquePointer<Buffer> createBuffer(const Buffer::Properties& props) override;
 
-    OwningPtr<Pipeline> createPipeline(Shader& shader, RenderPassBackend& renderPass)
-      override;
+    UniquePointer<Pipeline> createPipeline(
+      Shader& shader, RenderPassBackend& renderPass
+    ) override;
 
-    OwningPtr<Shader> createShader(const Shader::Properties& props) override;
+    UniquePointer<Shader> createShader(const Shader::Properties& props) override;
 
-    OwningPtr<CommandBuffer> createCommandBuffer(
+    UniquePointer<CommandBuffer> createCommandBuffer(
       CommandBuffer::Severity severity = CommandBuffer::Severity::primary
     ) override;
 
-    OwningPtr<Texture>
+    UniquePointer<Texture>
       createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&)
         override;
 
-    OwningPtr<RenderPassBackend> createRenderPassBackend(
+    UniquePointer<RenderPassBackend> createRenderPassBackend(
       const RenderPassBackend::Properties& props, bool hasPreviousPass,
       bool hasNextPass
     ) override;
 
-    OwningPtr<Semaphore> createSemaphore() override;
+    UniquePointer<Semaphore> createSemaphore() override;
 
-    OwningPtr<Fence> createFence(Fence::State) override;
+    UniquePointer<Fence> createFence(Fence::State) override;
 
-    OwningPtr<Swapchain> createSwapchain(const Vec2<u32>& size) override;
+    UniquePointer<Swapchain> createSwapchain(const Vec2<u32>& size) override;
 
     Window& window;
     Config config;

@@ -51,7 +51,7 @@ protected:
     bool m_hasColorAttachment;
     bool m_hasDepthAttachment;
 
-    std::vector<LocalPtr<Framebuffer>> m_framebuffers;
+    std::vector<LocalPointer<Framebuffer>> m_framebuffers;
 };
 
 class VulkanImguiRenderPassBackend : public VulkanRenderPassBackend {

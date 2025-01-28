@@ -5,7 +5,7 @@
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/core/event/EventProxy.hh"
 #include "starlight/core/math/Core.hh"
-#include "gpu/RendererBackend.hh"
+#include "starlight/core/Concepts.hh"
 #include "RenderPass.hh"
 #include "Renderer.hh"
 #include "RenderPacket.hh"
@@ -13,30 +13,35 @@
 namespace sl {
 
 class RenderGraph {
+public:
     struct Node {
-        OwningPtr<RenderPassBase> renderPass;
+        UniquePointer<RenderPassBase> renderPass;
         bool active = true;
     };
 
-public:
     explicit RenderGraph(Renderer& renderer);
 
     template <typename T, typename... Args>
     requires(std::is_base_of_v<RenderPassBase, T> && std::constructible_from<T, Renderer&, Args...>)
     RenderPassBase* addRenderPass(Args&&... args) {
         m_nodes.emplace_back(
-          createOwningPtr<T>(m_renderer, std::forward<Args>(args)...)
+          UniquePointer<T>::create(m_renderer, std::forward<Args>(args)...)
         );
         rebuildChain();
         return m_nodes.back().renderPass.get();
     }
 
+    template <typename Callback>
+    requires Callable<Callback, void, bool&, RenderPassBase&>
+    void forEach(Callback&& callback) {
+        for (auto& node : m_nodes) callback(node.active, *node.renderPass);
+    }
+
     void render(RenderPacket& renderPacket);
+    void rebuildChain();
 
 private:
     void onWindowResize();
-
-    void rebuildChain();
 
     Renderer& m_renderer;
     EventHandlerSentinel m_eventSentinel;

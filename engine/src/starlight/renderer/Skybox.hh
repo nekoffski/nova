@@ -22,7 +22,7 @@ public:
 
 private:
     ResourceRef<Texture> m_cubeMap;
-    LocalPtr<Shader::Instance> m_instance;
+    LocalPointer<Shader::Instance> m_instance;
 };
 
 }  // namespace sl

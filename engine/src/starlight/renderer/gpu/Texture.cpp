@@ -3,6 +3,7 @@
 #include <stb.h>
 
 #include "starlight/core/Log.hh"
+#include "starlight/core/Scope.hh"
 
 namespace sl {
 

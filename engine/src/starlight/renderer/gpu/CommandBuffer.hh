@@ -27,14 +27,14 @@ struct CommandBuffer : public NonCopyable, public NonMovable {
 
 class ImmediateCommandBuffer : public NonCopyable, public NonMovable {
 public:
-    ImmediateCommandBuffer(OwningPtr<CommandBuffer> commandBuffer, Queue& queue);
+    ImmediateCommandBuffer(UniquePointer<CommandBuffer> commandBuffer, Queue& queue);
     ~ImmediateCommandBuffer();
 
     CommandBuffer& get();
     operator CommandBuffer&();
 
 private:
-    OwningPtr<CommandBuffer> m_commandBuffer;
+    UniquePointer<CommandBuffer> m_commandBuffer;
     Queue& m_queue;
 };
 

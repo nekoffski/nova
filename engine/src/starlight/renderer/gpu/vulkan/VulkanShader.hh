@@ -121,7 +121,7 @@ private:
     std::array<VkDescriptorSet, 3> m_globalDescriptorSets;
 
     VulkanPipeline* m_pipeline;
-    LocalPtr<VulkanBuffer> m_uniformBuffer;
+    LocalPointer<VulkanBuffer> m_uniformBuffer;
 
     std::vector<InstanceState> m_instanceStates;
     std::vector<VulkanShaderStage> m_stages;

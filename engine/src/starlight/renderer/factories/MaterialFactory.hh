@@ -5,14 +5,14 @@
 #include "starlight/core/Resource.hh"
 #include "starlight/core/Id.hh"
 #include "starlight/core/memory/Memory.hh"
-
 #include "starlight/renderer/Material.hh"
+#include "starlight/core/Singleton.hh"
 
 namespace sl {
 
 class MaterialFactory
     : public ResourceFactory<Material>,
-      public kc::core::Singleton<MaterialFactory> {
+      public Singleton<MaterialFactory> {
 public:
     explicit MaterialFactory(const std::string& path);
 

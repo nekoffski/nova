@@ -1,6 +1,6 @@
 #include "Console.hh"
 
-#include <starlight/core/Clock.hh>
+#include <starlight/core/Time.hh>
 
 namespace sle {
 
@@ -15,7 +15,7 @@ const std::string& Console::getBuffer() const { return m_buffer; }
 Logger::Logger(std::string& buffer) : m_buffer(buffer) {}
 
 void Logger::writeLog(Severity severity, const std::string& message) {
-    auto timestamp = sl::Clock::get().formatTime("%Y-%m-%d %H:%M:%S");
+    auto timestamp = sl::getTimeString("%Y-%m-%d %H:%M:%S");
     // TODO: append in some more performance-friendly way
 
     auto fullMessage = fmt::format(

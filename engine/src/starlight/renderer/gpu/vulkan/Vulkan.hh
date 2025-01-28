@@ -6,13 +6,13 @@
 #include <vulkan/vulkan.hpp>
 
 #include "starlight/core/Core.hh"
+#include "starlight/core/Utils.hh"
 #include "starlight/core/Log.hh"
 
 namespace sl {
 namespace vk {
 
 std::string getResultString(VkResult result, bool extended);
-
 using Allocator = VkAllocationCallbacks;
 
 }  // namespace vk

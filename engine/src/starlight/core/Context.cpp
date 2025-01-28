@@ -9,12 +9,12 @@ Context::Context(const Config& config) :
     m_input(m_windowImpl) {}
 
 float Context::beginFrame() {
-    const auto deltaTime = m_clock.getDeltaTime();
+    m_taskQueue.dispatchQueue(TaskQueue::Type::preFrame);
 
     m_windowImpl.update();
     m_eventBroker.dispatch();
 
-    return deltaTime;
+    return m_clock.getDeltaTime();
 }
 
 void Context::endFrame() {
@@ -22,6 +22,8 @@ void Context::endFrame() {
 
     m_clock.update();
     m_input.update();
+
+    m_taskQueue.dispatchQueue(TaskQueue::Type::postFrame);
 }
 
 Window& Context::getWindow() { return m_window; }

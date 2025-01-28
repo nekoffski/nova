@@ -2,8 +2,6 @@
 
 #include <optional>
 
-#include <kc/core/Utils.hpp>
-
 #include "VulkanQueue.hh"
 
 #include "starlight/core/Log.hh"
@@ -46,54 +44,54 @@ VulkanDevice::~VulkanDevice() {
     }
 }
 
-OwningPtr<Buffer> VulkanDevice::createBuffer(const Buffer::Properties& props) {
-    return createOwningPtr<VulkanBuffer>(*this, props);
+UniquePointer<Buffer> VulkanDevice::createBuffer(const Buffer::Properties& props) {
+    return UniquePointer<VulkanBuffer>::create(*this, props);
 }
 
-OwningPtr<Texture> VulkanDevice::createTexture(
+UniquePointer<Texture> VulkanDevice::createTexture(
   const Texture::ImageData& image, const Texture::SamplerProperties& sampler
 ) {
-    return createOwningPtr<VulkanTexture>(*this, image, sampler);
+    return UniquePointer<VulkanTexture>::create(*this, image, sampler);
 }
 
-OwningPtr<Fence> VulkanDevice::createFence(Fence::State state) {
-    return createOwningPtr<VulkanFence>(*this, state);
+UniquePointer<Fence> VulkanDevice::createFence(Fence::State state) {
+    return UniquePointer<VulkanFence>::create(*this, state);
 }
 
-OwningPtr<Swapchain> VulkanDevice::createSwapchain(const Vec2<u32>& size) {
-    return createOwningPtr<VulkanSwapchain>(*this, size);
+UniquePointer<Swapchain> VulkanDevice::createSwapchain(const Vec2<u32>& size) {
+    return UniquePointer<VulkanSwapchain>::create(*this, size);
 }
 
-OwningPtr<RenderPassBackend> VulkanDevice::createRenderPassBackend(
+UniquePointer<RenderPassBackend> VulkanDevice::createRenderPassBackend(
   const RenderPassBackend::Properties& props, bool hasPreviousPass, bool hasNextPass
 ) {
     return props.type == RenderPassBackend::Type::normal
-             ? createOwningPtr<VulkanRenderPassBackend>(
+             ? UniquePointer<VulkanRenderPassBackend>::create(
                  *this, props, hasPreviousPass, hasNextPass
                )
-             : createOwningPtr<VulkanImguiRenderPassBackend>(
+             : UniquePointer<VulkanImguiRenderPassBackend>::create(
                  *this, props, hasPreviousPass, hasNextPass, config.paths.fonts
                );
 }
 
-OwningPtr<Semaphore> VulkanDevice::createSemaphore() {
-    return createOwningPtr<VulkanSemaphore>(*this);
+UniquePointer<Semaphore> VulkanDevice::createSemaphore() {
+    return UniquePointer<VulkanSemaphore>::create(*this);
 }
 
-OwningPtr<CommandBuffer> VulkanDevice::createCommandBuffer(
+UniquePointer<CommandBuffer> VulkanDevice::createCommandBuffer(
   CommandBuffer::Severity severity
 ) {
-    return createOwningPtr<VulkanCommandBuffer>(*this, severity);
+    return UniquePointer<VulkanCommandBuffer>::create(*this, severity);
 }
 
-OwningPtr<Shader> VulkanDevice::createShader(const Shader::Properties& props) {
-    return createOwningPtr<VulkanShader>(*this, props);
+UniquePointer<Shader> VulkanDevice::createShader(const Shader::Properties& props) {
+    return UniquePointer<VulkanShader>::create(*this, props);
 }
 
-OwningPtr<Pipeline> VulkanDevice::createPipeline(
+UniquePointer<Pipeline> VulkanDevice::createPipeline(
   Shader& shader, RenderPassBackend& renderPass
 ) {
-    return createOwningPtr<VulkanPipeline>(
+    return UniquePointer<VulkanPipeline>::create(
       logical.handle, allocator, shader,
       static_cast<VulkanRenderPassBackend&>(renderPass)
     );
@@ -169,8 +167,8 @@ static void assertLayers(std::span<const char*> layers) {
 
     for (const auto& requiredLayer : layers) {
         log::expect(
-          kc::core::contains(layerNames, requiredLayer),
-          "Required layer {} not found", requiredLayer
+          contains(layerNames, requiredLayer), "Required layer {} not found",
+          requiredLayer
         );
         log::debug("Layer {} found", requiredLayer);
     }
@@ -468,7 +466,7 @@ static bool validateExtensions(
     );
 
     for (const auto& requiredExtension : extensions) {
-        if (not kc::core::contains(availableExtensionsNames, requiredExtension)) {
+        if (not contains(availableExtensionsNames, requiredExtension)) {
             log::info("Extension {} not available", requiredExtension);
             return false;
         }
@@ -492,11 +490,11 @@ static void pickSurfaceFormat(VulkanDevice::Physical::Info& deviceInfo) {
 }
 
 static void pickPresentMode(VulkanDevice::Physical::Info& deviceInfo) {
-    static const auto defaultPresentMode  = VK_PRESENT_MODE_FIFO_KHR;
-    static const auto demandedPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+    static const VkPresentModeKHR defaultPresentMode  = VK_PRESENT_MODE_FIFO_KHR;
+    static const VkPresentModeKHR demandedPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 
     deviceInfo.presentMode =
-      kc::core::contains(deviceInfo.presentModes, demandedPresentMode)
+      contains(deviceInfo.presentModes, demandedPresentMode)
         ? demandedPresentMode
         : defaultPresentMode;
 }

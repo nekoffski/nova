@@ -5,8 +5,7 @@
 
 #include <stb.h>
 
-#include <kc/core/Log.h>
-#include <kc/core/Scope.hpp>
+#include "starlight/core/Scope.hh"
 
 #include "Vulkan.hh"
 #include "VulkanBuffer.hh"

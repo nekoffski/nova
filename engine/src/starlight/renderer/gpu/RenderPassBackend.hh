@@ -1,6 +1,7 @@
 #pragma once
 
 #include "starlight/core/Core.hh"
+#include "starlight/core/Concepts.hh"
 #include "starlight/renderer/Core.hh"
 #include "CommandBuffer.hh"
 #include "Texture.hh"

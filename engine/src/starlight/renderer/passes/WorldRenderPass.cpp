@@ -1,6 +1,6 @@
 #include "WorldRenderPass.hh"
 
-#include "starlight/core/Algorithms.hh"
+#include "starlight/core/Utils.hh"
 
 #include "starlight/renderer/factories/ShaderFactory.hh"
 #include "starlight/renderer/factories/MeshFactory.hh"

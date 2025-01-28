@@ -3,14 +3,13 @@
 #include <string>
 #include <span>
 
-#include <kc/core/Meta.hpp>
-
 #include "fwd.hh"
 
 #include "starlight/core/math/Extent.hh"
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/math/Vertex.hh"
 #include "starlight/core/Resource.hh"
+#include "starlight/core/Concepts.hh"
 
 #include "gpu/Device.hh"
 #include "gpu/Buffer.hh"
@@ -19,10 +18,10 @@ namespace sl {
 namespace detail {
 
 template <typename T>
-concept ExtentType = kc::core::is_one_of2_v<T, Extent2, Extent3>;
+concept ExtentType = OneOf<T, Extent2, Extent3>;
 
 template <typename T>
-concept VertexType = kc::core::is_one_of2_v<T, Vertex2, Vertex3>;
+concept VertexType = OneOf<T, Vertex2, Vertex3>;
 
 template <ExtentType Extent, VertexType Vertex>
 Extent calculateExtent(const std::vector<Vertex>& vertices) {

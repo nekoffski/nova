@@ -1,8 +1,5 @@
 #include "VulkanSwapchain.hh"
 
-#include <kc/core/Log.h>
-#include <kc/core/Utils.hpp>
-
 #include "VulkanSemaphore.hh"
 #include "VulkanDevice.hh"
 #include "VulkanFence.hh"
