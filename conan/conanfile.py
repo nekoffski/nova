@@ -9,7 +9,8 @@ requirements = [
     "spdlog/1.14.1",
     "gtest/1.15.0",
     "benchmark/1.9.0",
-    "boost/1.86.0"
+    "boost/1.86.0",
+    "nlohmann_json/3.11.3"
 ]
 
 
