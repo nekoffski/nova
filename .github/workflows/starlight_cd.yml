@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "dev"
+      - "*build*"
 jobs:
   build:
     runs-on: ubuntu-24.04

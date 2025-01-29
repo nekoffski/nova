@@ -10,7 +10,8 @@ requirements = [
     "gtest/1.15.0",
     "benchmark/1.9.0",
     "boost/1.86.0",
-    "nlohmann_json/3.11.3"
+    "nlohmann_json/3.11.3",
+    "glm/cci.20230113"
 ]
 
 

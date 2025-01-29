@@ -9,7 +9,6 @@ set(SL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/engine/src)
 # set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 # set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 
-add_definitions(-DSPDLOG_COMPILED_LIB=1)
 add_definitions(-DSL_USE_GLFW=1)
 add_definitions(-DSL_USE_VK=1)
 add_definitions(-DSL_VK_DEBUG=1)
