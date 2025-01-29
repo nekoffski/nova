@@ -12,8 +12,6 @@ jobs:
         compiler: [gcc-13]
     steps:
       - uses: actions/checkout@v2
-      - name: Pull submodules
-        run: git submodule update --init --recursive
       - name: Set scripts permissions
         run: chmod +x ./bin/*
       - name: Install system dependencies

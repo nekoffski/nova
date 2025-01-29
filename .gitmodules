@@ -1,7 +1,3 @@
-[submodule "3rdparty/libkc"]
-	path = 3rdparty/libkc
-	url = https://github.com/nekoffski/libkc.git
-	branch = dev
 [submodule "3rdparty/imgui"]
 	path = 3rdparty/imgui
 	url = https://github.com/ocornut/imgui.git

@@ -3,6 +3,7 @@
 SRC=$(dirname "$0")/../
 MODE=$1
 
+git submodule update --init --recursive
 
 if [ "$MODE" = 'dev' ]; then
     conan install ${SRC}/conan/ --output-folder=${SRC}/build --build=missing --profile ${SRC}/conan/profiles/debug
