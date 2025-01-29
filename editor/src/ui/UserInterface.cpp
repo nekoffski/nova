@@ -50,8 +50,8 @@ UserInterface::UserInterface(
     createLayout(viewport);
     initMenu();
 
-    EDITOR_LOG_INFO("UI started!");
-    EDITOR_LOG_INFO("Welcome to the Starlight Engine Editor");
+    editorWriteInfo("UI started!");
+    editorWriteInfo("Welcome to the Starlight Engine Editor");
 }
 
 void UserInterface::createLayout(const sl::Vec2<sl::u32>& viewport) {
@@ -102,7 +102,7 @@ void UserInterface::initLeftCombo() {
 
 void UserInterface::initMenu() {
     m_menu.addMenu("File").addItem("Exit", [&]() {
-        EDITOR_LOG_INFO("File.Exit presesed, emitting quit event");
+        editorWriteInfo("File.Exit presesed, emitting quit event");
         m_eventProxy.emit<sl::QuitEvent>("UI.File.Exit pressed");
     });
 
@@ -112,14 +112,14 @@ void UserInterface::initMenu() {
       .addItem(
         "Load",
         [&]() {
-            EDITOR_LOG_DEBUG("Requesting scene load: {}", scenePath);
+            editorWriteDebug("Requesting scene load: {}", scenePath);
             m_eventProxy.emit<events::SceneSerialization>(
               events::SceneSerialization::Action::deserialize, scenePath
             );
         }
       )
       .addItem("Save", [&]() {
-          EDITOR_LOG_DEBUG("Requesting scene save: {}", scenePath);
+          editorWriteDebug("Requesting scene save: {}", scenePath);
           m_eventProxy.emit<events::SceneSerialization>(
             events::SceneSerialization::Action::serialize, scenePath
           );

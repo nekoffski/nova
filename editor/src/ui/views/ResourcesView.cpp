@@ -42,7 +42,7 @@ static void renderResourceTab(
         });
 
         if (sl::ui::wasItemClicked()) {
-            EDITOR_LOG_DEBUG("{} selected: {}", name, resources[i].getName());
+            editorWriteDebug("{} selected: {}", name, resources[i].getName());
             sl::EventProxy::get().emit<events::SetResourceUICallback>(
               [render = std::move(render), resource = resources[i]]() {
                   render(resource);

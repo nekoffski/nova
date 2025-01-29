@@ -32,7 +32,7 @@ SceneView::EntitiesTab::EntitiesTab(sl::Scene* scene, Resources& resources) :
 void SceneView::EntitiesTab::render() {
     if (sl::ui::button("Add Entity", sl::ui::parentWidth)) {
         auto& entity = m_scene->addEntity();
-        EDITOR_LOG_INFO("New entity added: {}/{}", entity.getId(), entity.name);
+        editorWriteInfo("New entity added: {}/{}", entity.getId(), entity.name);
     }
 
     sl::ui::separator();
@@ -79,7 +79,7 @@ void SceneView::EntitiesTab::render() {
 void SceneView::EntitiesTab::selectEntity(
   sl::Entity& entity, bool clearComponentCallback
 ) {
-    EDITOR_LOG_DEBUG("Entity selected: {}", entity.name);
+    editorWriteDebug("Entity selected: {}", entity.name);
     m_selectedEntity = &entity;
     sl::EventProxy::get().emit<events::EntitySelected>(
       m_selectedEntity, clearComponentCallback

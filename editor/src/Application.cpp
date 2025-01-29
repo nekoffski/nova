@@ -87,10 +87,10 @@ void Application::initEvents() {
       })
       .add<events::SceneSerialization>([&](const auto& event, auto&& handled) {
           if (event.action == events::SceneSerialization::Action::serialize) {
-              EDITOR_LOG_DEBUG("Serializing scene: {}", event.path);
+              editorWriteDebug("Serializing scene: {}", event.path);
               m_sceneParser.serialize(m_scene, event.path);
           } else {
-              EDITOR_LOG_DEBUG("Deserializing scene: {}", event.path);
+              editorWriteDebug("Deserializing scene: {}", event.path);
               m_scene.clear();
               m_sceneParser.deserialize(m_scene, event.path);
           }

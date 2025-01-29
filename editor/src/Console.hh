@@ -63,8 +63,19 @@ private:
     Logger m_logger;
 };
 
-}  // namespace sle
+template <typename... Args>
+constexpr void editorWriteDebug(const std::string& format, Args&&... args) {
+    sle::Logger::get().debug(format, std::forward<Args>(args)...);
+}
 
-#define EDITOR_LOG_DEBUG(...) sle::Logger::get().debug(__VA_ARGS__)
-#define EDITOR_LOG_INFO(...) sle::Logger::get().info(__VA_ARGS__);
-#define EDITOR_LOG_WARN(...) sle::Logger::get().warning(__VA_ARGS__);
+template <typename... Args>
+constexpr void editorWriteInfo(const std::string& format, Args&&... args) {
+    sle::Logger::get().info(format, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+constexpr void editorWriteWarn(const std::string& format, Args&&... args) {
+    sle::Logger::get().warning(format, std::forward<Args>(args)...);
+}
+
+}  // namespace sle

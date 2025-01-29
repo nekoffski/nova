@@ -8,7 +8,7 @@ namespace sle {
 
 #define ADD_COMPONENT(Component, ...)                                \
     if (m_data.selectedEntity->hasComponent<Component>()) {          \
-        EDITOR_LOG_WARN("Component already added, skipping...");     \
+        editorWriteWarn("Component already added, skipping...");     \
     } else {                                                         \
         m_data.selectedEntity->addComponent<Component>(__VA_ARGS__); \
     }
@@ -60,7 +60,7 @@ void PropertiesView::EntityTab::renderEntityUI() {
         if (ImGui::InputText(
               "##", &m_data.nameBuffer, ImGuiInputTextFlags_EnterReturnsTrue
             )) {
-            EDITOR_LOG_DEBUG("Entity name changed to: {}", m_data.nameBuffer);
+            editorWriteDebug("Entity name changed to: {}", m_data.nameBuffer);
             m_data.selectedEntity->name = m_data.nameBuffer;
         }
         sl::ui::separator();
@@ -73,7 +73,7 @@ void PropertiesView::EntityTab::renderEntityUI() {
         sl::ui::sameLine();
 
         if (sl::ui::button("Add Component", sl::ui::parentWidth)) {
-            EDITOR_LOG_DEBUG(
+            editorWriteDebug(
               "Add component clicked: {}/{}", m_data.selectedEntity->name,
               m_data.selectedComponentIndex
             );
