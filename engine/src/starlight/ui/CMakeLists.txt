@@ -1,6 +1,6 @@
 find_package(fmt REQUIRED)
 
-set(SL_UI_LIBS spdlog dl fmt::fmt  starlight-core starlight-renderer)
+set(SL_UI_LIBS dl fmt::fmt  starlight-core starlight-renderer)
 set(SL_UI_TARGET starlight-ui)
 file(GLOB_RECURSE SL_UI_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
