@@ -86,7 +86,9 @@ void TextureFactory::createDefaults() {
     m_defaultDiffuseMap = create("DefaultDiffuseMap", image);
 }
 
-void serialize(nlohmann::json& j, const ResourceRef<Texture>& v) {}
+void serialize(
+  [[maybe_unused]] nlohmann::json& j, [[maybe_unused]] const ResourceRef<Texture>& v
+) {}
 
 void deserialize(const nlohmann::json& j, ResourceRef<Texture>& v) {
     v = TextureFactory::get().load(j.get<std::string>(), Texture::Type::flat);
