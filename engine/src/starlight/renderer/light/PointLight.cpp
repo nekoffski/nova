@@ -1,7 +1,6 @@
 #include "PointLight.hh"
 
-#include <kc/math/Utils.hpp>
-
+#include "starlight/core/math/Utils.hh"
 #include "starlight/core/Log.hh"
 
 namespace sl {
@@ -34,7 +33,7 @@ void PointLight::generateLODs() {
     m_lods.reserve(targetAttenuations.size());
 
     for (const auto& [attenuation, opacity] : targetAttenuations) {
-        const auto roots = kc::math::solveQuadraticEquation(
+        const auto roots = solveQuadraticEquation(
           m_data.attenuation.x, m_data.attenuation.y,
           m_data.attenuation.z - attenuation
         );

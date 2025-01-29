@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <kc/core/Singleton.hpp>
+#include <starlight/core/Singleton.hh>
 #include <starlight/core/Log.hh>
 #include <fmt/core.h>
 
@@ -15,7 +15,7 @@
 
 namespace sle {
 
-class Logger : public kc::core::Singleton<Logger> {
+class Logger : public sl::Singleton<Logger> {
     enum class Severity { info, debug, warning };
 
 public:

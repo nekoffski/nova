@@ -4,3 +4,6 @@
 [submodule "3rdparty/ImGuizmo"]
 	path = 3rdparty/ImGuizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "3rdparty/stb"]
+	path = 3rdparty/stb
+	url = https://github.com/nekoffski/stb.git

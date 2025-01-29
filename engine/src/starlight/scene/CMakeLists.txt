@@ -1,7 +1,7 @@
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 
-set(SL_SCENE_LIBS dl kc spdlog::spdlog fmt::fmt starlight-core starlight-renderer)
+set(SL_SCENE_LIBS dl spdlog::spdlog fmt::fmt starlight-core starlight-renderer)
 set(SL_SCENE_TARGET starlight-scene)
 file(GLOB_RECURSE SL_SCENE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
