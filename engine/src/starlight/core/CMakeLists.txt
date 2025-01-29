@@ -4,8 +4,9 @@ find_package(glfw3 REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(glm REQUIRED)
 
-set(SL_CORE_LIBS stb dl glfw spdlog::spdlog fmt::fmt Vulkan::Loader vulkan-headers::vulkan-headers nlohmann_json::nlohmann_json)
+set(SL_CORE_LIBS stb dl glfw spdlog::spdlog glm fmt::fmt Vulkan::Loader vulkan-headers::vulkan-headers nlohmann_json::nlohmann_json)
 set(SL_CORE_TARGET starlight-core)
 file(GLOB_RECURSE SL_CORE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
