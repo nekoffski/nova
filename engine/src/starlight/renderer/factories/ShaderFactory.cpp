@@ -19,14 +19,14 @@ static std::optional<std::string> getShaderSource(
 }
 
 static std::vector<Shader::Stage> processStages(
-  const kc::json::Node& root, std::string_view shadersPath, const FileSystem& fs
+  const nlohmann::json& root, std::string_view shadersPath, const FileSystem& fs
 ) {
     std::vector<Shader::Stage> stages;
     stages.reserve(root.size());
 
-    for (auto& stage : root) {
-        const auto file      = getField<std::string>(stage, "file");
-        const auto stageName = getField<std::string>(stage, "stage");
+    for (const auto& stage : root) {
+        const auto file      = stage.at("file").get<std::string>();
+        const auto stageName = stage.at("stage").get<std::string>();
 
         auto source = getShaderSource(shadersPath, file, fs);
         log::expect(source.has_value(), "Could not find source file for: {}", file);
@@ -36,16 +36,15 @@ static std::vector<Shader::Stage> processStages(
     return stages;
 }
 
-static std::vector<Shader::Attribute> processAttributes(const kc::json::Node& root) {
+static std::vector<Shader::Attribute> processAttributes(const nlohmann::json& root) {
     std::vector<Shader::Attribute> attributes;
     attributes.reserve(root.size());
 
     for (auto& attribute : root) {
-        const auto type = Shader::Attribute::typeFromString(
-          getField<std::string>(attribute, "type")
-        );
+        const auto type =
+          Shader::Attribute::typeFromString(attribute.at("type").get<std::string>());
         const auto size = Shader::Attribute::getTypeSize(type);
-        const auto name = getField<std::string>(attribute, "name");
+        const auto name = attribute.at("name").get<std::string>();
 
         attributes.emplace_back(name, type, size);
     }
@@ -54,16 +53,16 @@ static std::vector<Shader::Attribute> processAttributes(const kc::json::Node& ro
 };
 
 static std::vector<Shader::Uniform::Properties> processUniforms(
-  const kc::json::Node& root
+  const nlohmann::json& root
 ) {
     std::vector<Shader::Uniform::Properties> uniforms;
     uniforms.reserve(root.size());
 
     static auto getSize =
-      [](const kc::json::Node& uniform, Shader::Uniform::Type type) -> u64 {
+      [](const nlohmann::json& uniform, Shader::Uniform::Type type) -> u64 {
         if (type == Shader::Uniform::Type::custom) {
-            auto size         = getField<unsigned int>(uniform, "size");
-            auto elementCount = getField<unsigned int>(uniform, "elements");
+            auto size         = uniform.at("size").get<u32>();
+            auto elementCount = uniform.at("elements").get<unsigned int>();
 
             return size * elementCount;
         } else {
@@ -73,11 +72,11 @@ static std::vector<Shader::Uniform::Properties> processUniforms(
 
     for (auto& uniform : root) {
         const auto type =
-          Shader::Uniform::typeFromString(getField<std::string>(uniform, "type"));
+          Shader::Uniform::typeFromString(uniform.at("type").get<std::string>());
 
         const auto size  = getSize(uniform, type);
-        const auto name  = getField<std::string>(uniform, "name");
-        const auto scope = getField<std::string>(uniform, "scope");
+        const auto name  = uniform.at("name").get<std::string>();
+        const auto scope = uniform.at("scope").get<std::string>();
 
         uniforms.emplace_back(name, size, 0, type, Shader::scopeFromString(scope));
     }
@@ -99,22 +98,22 @@ static std::optional<Shader::Properties> loadPropertiesFromFile(
     }
 
     try {
-        auto root = kc::json::loadJson(fs.readFile(fullPath));
+        auto root = nlohmann::json::parse(fs.readFile(fullPath));
         return Shader::Properties{
-            .useInstances = getField<bool>(root, "use-instances"),
-            .useLocals    = getField<bool>(root, "use-local"),
-            .attributes   = processAttributes(getArray(root, "attributes")),
-            .stages       = processStages(getArray(root, "stages"), shadersPath, fs),
-            .uniformProperties = processUniforms(getArray(root, "uniforms")),
+            .useInstances      = root.at("use-instances").get<bool>(),
+            .useLocals         = root.at("use-local").get<bool>(),
+            .attributes        = processAttributes(root.at("attributes")),
+            .stages            = processStages(root.at("stages"), shadersPath, fs),
+            .uniformProperties = processUniforms(root.at("uniforms")),
             .defaultTexture    = defaultTexture,
             .cullMode =
-              cullModeFromString(getFieldOr<std::string>(root, "cullMode", "back")),
+              cullModeFromString(json::getOr<std::string>(root, "cullMode", "back")),
             .polygonMode = polygonModeFromString(
-              getFieldOr<std::string>(root, "polygonMode", "fill")
+              json::getOr<std::string>(root, "polygonMode", "fill")
             )
         };
-    } catch (kc::json::JsonError& e) {
-        log::error("Could not parse shader '{}' file: {}", name, e.asString());
+    } catch (nlohmann::json::parse_error& e) {
+        log::error("Could not parse shader '{}' file: {}", name, e.what());
     }
     return {};
 }

@@ -5,6 +5,24 @@
 
 namespace sl {
 
+void deserialize(const nlohmann::json& j, Config& out) {
+    const auto& window = j.at("window");
+    window.at("width").get_to(out.window.width);
+    window.at("height").get_to(out.window.height);
+    window.at("name").get_to(out.window.name);
+
+    const auto& version = j.at("version");
+    version.at("major").get_to(out.version.major);
+    version.at("minor").get_to(out.version.minor);
+    version.at("build").get_to(out.version.build);
+
+    const auto& paths = j.at("paths");
+    paths.at("textures").get_to(out.paths.textures);
+    paths.at("shaders").get_to(out.paths.shaders);
+    paths.at("materials").get_to(out.paths.materials);
+    paths.at("fonts").get_to(out.paths.fonts);
+}
+
 std::optional<Config> Config::fromJson(
   const std::string& path, const FileSystem& fs
 ) {
@@ -14,32 +32,9 @@ std::optional<Config> Config::fromJson(
     }
 
     try {
-        auto root = kc::json::loadJson(fs.readFile(path));
-
-        auto window  = root["window"];
-        auto version = root["version"];
-        auto paths   = root["paths"];
-
-        return Config{
-            .window = { 
-                .width  = getField<u32>(window, "width"),
-                .height = getField<u32>(window, "height"),
-                .name   = getField<std::string>(window, "name"), 
-            },
-            .version = {
-                .major = getField<u32>(version, "major"),
-                .minor = getField<u32>(version, "minor"),
-                .build = getField<u32>(version, "build"),
-            },
-            .paths = {
-                .textures = getField<std::string>(paths, "textures"),
-                .shaders = getField<std::string>(paths, "shaders"),
-                .materials = getField<std::string>(paths, "materials"),
-                .fonts = getField<std::string>(paths, "fonts")
-            }
-        };
-    } catch (const kc::json::JsonError& e) {
-        log::error("Could not parse config file '{}' - {}", path, e.asString());
+        return nlohmann::json::parse(fs.readFile(path)).get<Config>();
+    } catch (const nlohmann::json::parse_error& e) {
+        log::error("Could not parse config file '{}' - {}", path, e.what());
     }
     return {};
 }

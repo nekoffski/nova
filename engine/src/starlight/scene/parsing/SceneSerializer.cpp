@@ -9,7 +9,7 @@ void SceneSerializer::serialize(
   Scene& scene, const std::string& path, const FileSystem& fs
 ) {
     log::debug("Serializing scene: {}", path);
-    kc::json::Node root;
+    nlohmann::json root;
 
     root["ts"] = getTimeString("%Y-%m-%d %H:%M:%S");
 
@@ -20,16 +20,16 @@ void SceneSerializer::serialize(
     }
 
     scene.forEachEntity([&](auto& entity) {
-        root["entities"].append(parseEntity(entity));
+        root["entities"].push_back(parseEntity(entity));
     });
 
-    const auto buffer = kc::json::toString(root);
-    fs.writeFile(path, buffer, kc::core::FileSystem::WritePolicy::override);
+    const auto buffer = root.dump();
+    fs.writeFile(path, buffer, FileSystem::WritePolicy::override);
     log::info("Scene successfully saved to: {}", path);
 }
 
-kc::json::Node SceneSerializer::parseEntity(Entity& entity) {
-    kc::json::Node node;
+nlohmann::json SceneSerializer::parseEntity(Entity& entity) {
+    nlohmann::json node;
     log::debug("Processing entity: {}", entity.name);
     node["name"] = entity.name;
 

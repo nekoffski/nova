@@ -24,7 +24,7 @@ public:
       const Material::Properties& properties = Material::Properties::createDefault()
     );
     ResourceRef<Material> load(
-      const std::string& name, const FileSystem& fs = fileSystem
+      const std::string& name, const FileSystem& fs = FileSystem::getDefault()
     );
     ResourceRef<Material> getDefault();
 

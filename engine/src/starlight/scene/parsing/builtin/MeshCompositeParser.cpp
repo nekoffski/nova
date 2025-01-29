@@ -7,8 +7,8 @@ namespace sl {
 
 std::string MeshCompositeSerializer::getName() const { return "MeshComposite"; }
 
-kc::json::Node MeshCompositeSerializer::serialize(MeshComposite& component) const {
-    kc::json::Node json;
+nlohmann::json MeshCompositeSerializer::serialize(MeshComposite& component) const {
+    nlohmann::json json;
 
     // just root for now
     auto& root = component.getRoot();
@@ -22,10 +22,10 @@ kc::json::Node MeshCompositeSerializer::serialize(MeshComposite& component) cons
 std::string MeshCompositeDeserializer::getName() const { return "MeshComposite"; }
 
 void MeshCompositeDeserializer::deserialize(
-  Entity& entity, const kc::json::Node& json
+  Entity& entity, const nlohmann::json& json
 ) const {
-    auto mesh     = getMesh(json["mesh"].as<std::string>());
-    auto material = getMaterial(json["material"].as<std::string>());
+    auto mesh     = getMesh(json.at("mesh").get<std::string>());
+    auto material = getMaterial(json.at("material").get<std::string>());
 
     entity.addComponent<MeshComposite>(mesh, material);
 }

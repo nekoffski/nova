@@ -6,12 +6,11 @@ std::string DirectionalLightSerializer::getName() const {
     return "DirectionalLight";
 }
 
-kc::json::Node DirectionalLightSerializer::serialize(DirectionalLight& component
+nlohmann::json DirectionalLightSerializer::serialize(DirectionalLight& component
 ) const {
-    kc::json::Node json;
-
-    addJsonField(json, "color", component.color);
-    addJsonField(json, "direction", component.direction);
+    nlohmann::json json;
+    json["color"]     = component.color;
+    json["direction"] = component.direction;
 
     return json;
 }
@@ -21,10 +20,10 @@ std::string DirectionalLightDeserializer::getName() const {
 }
 
 void DirectionalLightDeserializer::deserialize(
-  Entity& entity, const kc::json::Node& json
+  Entity& entity, const nlohmann::json& json
 ) const {
     entity.addComponent<DirectionalLight>(
-      getField<Vec4<f32>>(json, "color"), getField<Vec3<f32>>(json, "direction")
+      json.at("color").get<Vec4<f32>>(), json.at("direction").get<Vec3<f32>>()
     );
 }
 

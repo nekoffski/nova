@@ -29,7 +29,7 @@ public:
     }
 
 private:
-    void parseEntity(Scene& scene, const kc::json::Node& node);
+    void parseEntity(Scene& scene, const nlohmann::json& node);
 
     Deserializers m_deserializers;
 };

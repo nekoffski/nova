@@ -10,7 +10,7 @@ namespace sl {
 
 struct Config {
     static std::optional<Config> fromJson(
-      const std::string& path, const FileSystem& fs = fileSystem
+      const std::string& path, const FileSystem& fs = FileSystem::getDefault()
     );
 
     struct Window {

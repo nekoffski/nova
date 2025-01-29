@@ -77,6 +77,8 @@ bool contains(const Container<T, Allocator>& container, const T& value) {
     return std::find(container.begin(), container.end(), value) != container.end();
 }
 
+std::vector<std::string> split(const std::string& input, char separator);
+
 template <typename Allocator, template <typename, typename> typename Container>
 bool contains(
   const Container<const char*, Allocator>& container, const char* const& value

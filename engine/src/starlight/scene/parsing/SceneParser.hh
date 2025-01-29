@@ -10,12 +10,14 @@ public:
     explicit SceneParser();
 
     void serialize(
-      Scene& scene, const std::string& path, const FileSystem& fs = fileSystem
+      Scene& scene, const std::string& path,
+      const FileSystem& fs = FileSystem::getDefault()
     );
 
     // TODO: return optional<Scene> instead of getting it as an input argument
     void deserialize(
-      Scene& scene, const std::string& path, const FileSystem& fs = fileSystem
+      Scene& scene, const std::string& path,
+      const FileSystem& fs = FileSystem::getDefault()
     );
 
 private:

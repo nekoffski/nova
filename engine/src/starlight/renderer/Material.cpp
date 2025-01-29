@@ -74,31 +74,19 @@ std::optional<Material::Properties> Material::Properties::fromFile(
     }
 
     try {
-        const auto root = kc::json::loadJson(fs.readFile(path));
+        const auto root = nlohmann::json::parse(fs.readFile(path));
 
         auto props = Properties::createDefault();
 
-        auto& textureManager = TextureFactory::get();
-
-        getOptField<Vec4<f32>>(root, "diffuse-color", [&](const auto& value) {
-            props.diffuseColor = value;
-        });
-        getOptField<std::string>(root, "diffuse-map", [&](const auto& value) {
-            props.diffuseMap = textureManager.load(value, Texture::Type::flat);
-        });
-        getOptField<std::string>(root, "specular-map", [&](const auto& value) {
-            props.specularMap = textureManager.load(value, Texture::Type::flat);
-        });
-        getOptField<std::string>(root, "normal-map", [&](const auto& value) {
-            props.normalMap = textureManager.load(value, Texture::Type::flat);
-        });
-        getOptField<float>(root, "shininess", [&](const auto& value) {
-            props.shininess = value;
-        });
+        json::getIfExists(root, "diffuse-color", props.diffuseColor);
+        json::getIfExists(root, "diffuse-map", props.diffuseMap);
+        json::getIfExists(root, "specular-map", props.specularMap);
+        json::getIfExists(root, "normal-map", props.normalMap);
+        json::getIfExists(root, "shininess", props.shininess);
 
         return props;
-    } catch (kc::json::JsonError& e) {
-        log::error("Could not parse material '{}' file: {}", path, e.asString());
+    } catch (const nlohmann::json::parse_error& e) {
+        log::error("Could not parse material '{}' file: {}", path, e.what());
     }
     return {};
 }

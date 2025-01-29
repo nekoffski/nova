@@ -1,5 +1,6 @@
 #pragma once
 
+#include "starlight/core/Json.hh"
 #include "starlight/core/Resource.hh"
 #include "starlight/core/Singleton.hh"
 #include "starlight/renderer/gpu/Device.hh"
@@ -50,5 +51,8 @@ private:
     const std::string m_texturesPath;
     Device& m_device;
 };
+
+void serialize(nlohmann::json& j, const ResourceRef<Texture>& v);
+void deserialize(const nlohmann::json& j, ResourceRef<Texture>& v);
 
 }  // namespace sl

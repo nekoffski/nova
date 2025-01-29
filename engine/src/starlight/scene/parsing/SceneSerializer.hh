@@ -29,7 +29,7 @@ public:
     }
 
 private:
-    kc::json::Node parseEntity(Entity& entity);
+    nlohmann::json parseEntity(Entity& entity);
 
     Serializers m_serializers;
 };

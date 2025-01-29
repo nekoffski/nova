@@ -11,10 +11,10 @@ void SceneDeserializer::deserialize(
 ) {
     log::debug("Deserializing scene: {}", path);
     log::expect(fs.isFile(path), "Scene file does not exist");
-    auto root = kc::json::loadJson(fs.readFile(path));
+    auto root = nlohmann::json::parse(fs.readFile(path));
 
-    if (root.isMember("skybox")) {
-        const auto skybox = root["skybox"].as<std::string>();
+    if (json::hasField(root, "skybox")) {
+        const auto skybox = root["skybox"].get<std::string>();
         log::debug("Found skybox: {}", skybox);
         scene.skybox = sl::SkyboxFactory::get().load(skybox);
     }
@@ -25,14 +25,15 @@ void SceneDeserializer::deserialize(
     log::info("Scene successfully loaded: {}", path);
 }
 
-void SceneDeserializer::parseEntity(Scene& scene, const kc::json::Node& node) {
-    const auto entityName = node["name"].as<std::string>();
+void SceneDeserializer::parseEntity(Scene& scene, const nlohmann::json& node) {
+    const auto entityName = node["name"].get<std::string>();
     log::debug("Processing entity: {}", entityName);
 
     auto& entity           = scene.addEntity(entityName);
     const auto& components = node["components"];
 
-    for (const auto& componentName : components.getMemberNames()) {
+    for (const auto& [componentName, body] :
+         components.get<nlohmann::json::object_t>()) {
         log::debug("Processing component: {}", componentName);
         if (auto it = m_deserializers.find(componentName);
             it != m_deserializers.end()) {

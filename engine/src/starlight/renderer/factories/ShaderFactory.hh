@@ -14,7 +14,7 @@ public:
     explicit ShaderFactory(const std::string& path, Device& device);
 
     ResourceRef<Shader> load(
-      const std::string& name, const FileSystem& fs = fileSystem
+      const std::string& name, const FileSystem& fs = FileSystem::getDefault()
     );
 
 private:

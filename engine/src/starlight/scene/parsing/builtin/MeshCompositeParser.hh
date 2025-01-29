@@ -9,13 +9,13 @@ namespace sl {
 
 struct MeshCompositeSerializer : ComponentSerializer<MeshComposite> {
     std::string getName() const override;
-    kc::json::Node serialize(MeshComposite& component) const override;
+    nlohmann::json serialize(MeshComposite& component) const override;
 };
 
 class MeshCompositeDeserializer : public ComponentDeserializer {
 public:
     std::string getName() const override;
-    void deserialize(Entity& entity, const kc::json::Node& json) const override;
+    void deserialize(Entity& entity, const nlohmann::json& json) const override;
 
 private:
     ResourceRef<Mesh> getMesh(const std::string& name) const;

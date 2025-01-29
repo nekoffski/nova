@@ -11,9 +11,9 @@ function(add_test_file TEST_FILE MODULE)
     message("\t-> ${TEST_EXE_NAME}")
     add_executable(${TEST_EXE_NAME} ${TEST_FILE})
 
-    target_link_libraries(${TEST_EXE_NAME} PUBLIC ${GTEST_LINK} ${SL_LIBS})
+    target_link_libraries(${TEST_EXE_NAME} PUBLIC ${GTEST_LINK} starlight-${MODULE})
     target_include_directories(${TEST_EXE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${SL_INCLUDE} ${MOCK_INCLUDE})
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_EXE_NAME})
+    add_test(NAME ${MODULE}.${TEST_NAME} COMMAND ${TEST_EXE_NAME})
 endfunction()
 
 file(GLOB TEST_MODULES LIST_DIRECTORIES true ${CMAKE_CURRENT_SOURCE_DIR}/*)
