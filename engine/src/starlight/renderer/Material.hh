@@ -23,26 +23,20 @@ class Material : public NonMovable, public Identificable<Material> {
     inline static auto defaultShininess    = 32.0f;
 
 public:
-    struct Properties {
-        static std::optional<Properties> fromFile(
-          const std::string& path, const FileSystem& fs
-        );
+    struct Textures {
+        ResourceRef<Texture> diffuse;
+        ResourceRef<Texture> specular;
+        ResourceRef<Texture> normal;
 
+        std::vector<Texture*> asArray();
+    };
+
+    struct Properties {
         static Properties createDefault();
 
         Vec4<f32> diffuseColor;
-        ResourceRef<Texture> diffuseMap;
-        ResourceRef<Texture> specularMap;
-        ResourceRef<Texture> normalMap;
+        Textures textures;
         float shininess;
-    };
-
-    struct Textures {
-        ResourceRef<Texture> diffuseMap;
-        ResourceRef<Texture> specularMap;
-        ResourceRef<Texture> normalMap;
-
-        std::vector<Texture*> asArray();
     };
 
     explicit Material(const Properties& props);

@@ -74,7 +74,7 @@ void ResourcesView::renderMaterialsTab() {
       [&]() { return m_resources.addMaterial(); },
       [&](auto& material) { m_materialUI.render(material); },
       [&](auto& material, const auto width) {
-          m_resources.getImageHandle(material->getTextures().diffuseMap)
+          m_resources.getImageHandle(material->getTextures().diffuse)
             .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
       }
     );
