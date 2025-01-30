@@ -27,33 +27,33 @@ void MaterialUI::render(sl::ResourceRef<sl::Material> material) {
     ImGui::SliderFloat("##shininess", &material->shininess, 0.0f, 64.0f);
 
     sl::ui::combo(
-      "Diffuse map", materialTextures.diffuseMap.getName(), textures,
+      "Diffuse map", materialTextures.diffuse.getName(), textures,
       [&](auto& texture) {
-          materialTextures.diffuseMap = texture;
-          textureChanged              = true;
+          materialTextures.diffuse = texture;
+          textureChanged           = true;
       }
     );
-    m_resources.getImageHandle(materialTextures.diffuseMap)
+    m_resources.getImageHandle(materialTextures.diffuse)
       .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
 
     sl::ui::combo(
-      "Specular map", materialTextures.specularMap.getName(), textures,
+      "Specular map", materialTextures.specular.getName(), textures,
       [&](auto& texture) {
-          materialTextures.specularMap = texture;
-          textureChanged               = true;
+          materialTextures.specular = texture;
+          textureChanged            = true;
       }
     );
-    m_resources.getImageHandle(materialTextures.specularMap)
+    m_resources.getImageHandle(materialTextures.specular)
       .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
 
     sl::ui::combo(
-      "Normal map", materialTextures.normalMap.getName(), textures,
+      "Normal map", materialTextures.normal.getName(), textures,
       [&](auto& texture) {
-          materialTextures.normalMap = texture;
-          textureChanged             = true;
+          materialTextures.normal = texture;
+          textureChanged          = true;
       }
     );
-    m_resources.getImageHandle(materialTextures.normalMap)
+    m_resources.getImageHandle(materialTextures.normal)
       .show({ width, width }, { 0, 0 }, { 1.0f, 1.0f });
 
     if (textureChanged) {

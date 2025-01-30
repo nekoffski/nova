@@ -26,6 +26,7 @@ Mesh::Mesh(const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer) :
 }
 
 Mesh::~Mesh() {
+    // TODO
     // m_vertexBuffer.free(m_memoryLayout.vertexBufferRange);
     // m_indexBuffer.free(m_memoryLayout.indexBufferRange);
 }

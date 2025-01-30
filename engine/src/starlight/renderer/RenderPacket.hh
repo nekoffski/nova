@@ -24,7 +24,7 @@ struct RenderPacket {
     std::vector<PointLight> pointLights;
     std::vector<DirectionalLight> directionalLights;
     std::vector<RenderEntity> entities;
-    std::vector<Texture*> shadowMaps;  // TODO: static array instead
+    std::vector<Texture*> shadowMaps;
     u64 frameNumber;
 };
 

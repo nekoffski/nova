@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     std::signal(SIGINT, []([[maybe_unused]] int) { isRunning = false; });
 
     sl::Context context{ *config };
-    auto& window     = context.getWindow();
+    // auto& window     = context.getWindow();
     auto& eventProxy = sl::EventProxy::get();
 
     eventProxy.pushEventHandler<sl::KeyEvent>([&](auto& event) {
@@ -51,46 +51,47 @@ int main(int argc, char** argv) {
     });
 
     sl::Renderer renderer{ context };
-    sl::RenderGraph renderGraph{ renderer };
 
-    UI ui{};
+    // sl::RenderGraph renderGraph{ renderer };
 
-    sl::Vec2<sl::f32> viewportOffset{ 0.0f, 0.0f };
+    // UI ui{};
 
-    renderGraph.addRenderPass<sl::SkyboxRenderPass>(viewportOffset);
-    renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
-    renderGraph.addRenderPass<sl::WorldRenderPass>(viewportOffset);
-    renderGraph.addRenderPass<sl::GridRenderPass>(viewportOffset);
-    renderGraph.addRenderPass<sl::UIRenderPass>(ui);
+    // sl::Vec2<sl::f32> viewportOffset{ 0.0f, 0.0f };
 
-    const auto viewportSize = window.getFramebufferSize();
+    // renderGraph.addRenderPass<sl::SkyboxRenderPass>(viewportOffset);
+    // renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
+    // renderGraph.addRenderPass<sl::WorldRenderPass>(viewportOffset);
+    // renderGraph.addRenderPass<sl::GridRenderPass>(viewportOffset);
+    // renderGraph.addRenderPass<sl::UIRenderPass>(ui);
 
-    sl::EulerCamera camera(
-      sl::EulerCamera::Properties{
-        .target       = sl::Vec3<sl::f32>{ 0.0f },
-        .radius       = 5.0f,
-        .viewportSize = viewportSize,
-      },
-      eventProxy
-    );
+    // const auto viewportSize = window.getFramebufferSize();
 
-    sl::Scene scene{ window, &camera };
-    scene.skybox = sl::SkyboxFactory::get().load("skybox2/skybox");
+    // sl::EulerCamera camera(
+    //   sl::EulerCamera::Properties{
+    //     .target       = sl::Vec3<sl::f32>{ 0.0f },
+    //     .radius       = 5.0f,
+    //     .viewportSize = viewportSize,
+    //   },
+    //   eventProxy
+    // );
 
-    auto& entity = scene.addEntity();
-    entity.addComponent<sl::MeshComposite>(
-      sl::MeshFactory::get().getCube(),
-      sl::MaterialFactory::get().load("Builtin.Material.Test")
-    );
+    // sl::Scene scene{ window, &camera };
+    // scene.skybox = sl::SkyboxFactory::get().load("skybox2/skybox");
 
-    while (isRunning) {
-        context.beginFrame([&](float deltaTime) {
-            auto renderPacket = scene.getRenderPacket();
-            renderGraph.render(renderPacket);
+    // auto& entity = scene.addEntity();
+    // entity.addComponent<sl::MeshComposite>(
+    //   sl::MeshFactory::get().getCube(),
+    //   sl::MaterialFactory::get().load("Builtin.Material.Test")
+    // );
 
-            camera.update(deltaTime);
-        });
-    }
+    // while (isRunning) {
+    //     context.beginFrame([&](float deltaTime) {
+    //         auto renderPacket = scene.getRenderPacket();
+    //         renderGraph.render(renderPacket);
+
+    //         camera.update(deltaTime);
+    //     });
+    // }
 
     sl::log::info("Sandbox exited");
     return 0;

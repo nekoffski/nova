@@ -21,12 +21,39 @@ ResourceRef<Material> MaterialFactory::create(const Material::Properties& proper
     return store(UniquePointer<Material>::create(properties));
 }
 
+std::optional<Material::Properties> loadProperties(
+  const std::string& path, const FileSystem& fs
+) {
+    log::trace("Loading material properties file: {}", path);
+
+    if (not fs.isFile(path)) {
+        log::error("Could not find file: '{}'", path);
+        return {};
+    }
+
+    try {
+        const auto root = nlohmann::json::parse(fs.readFile(path));
+        auto props      = Material::Properties::createDefault();
+
+        json::getIfExists(root, "diffuse-color", props.diffuseColor);
+        json::getIfExists(root, "diffuse-map", props.textures.diffuse);
+        json::getIfExists(root, "specular-map", props.textures.specular);
+        json::getIfExists(root, "normal-map", props.textures.normal);
+        json::getIfExists(root, "shininess", props.shininess);
+
+        return props;
+    } catch (const nlohmann::json::parse_error& e) {
+        log::error("Could not parse material '{}' file: {}", path, e.what());
+    }
+    return {};
+}
+
 ResourceRef<Material> MaterialFactory::load(
   const std::string& name, const FileSystem& fs
 ) {
     const auto fullPath = fmt::format("{}/{}.json", m_materialsPath, name);
 
-    if (auto properties = Material::Properties::fromFile(fullPath, fs); properties)
+    if (auto properties = loadProperties(fullPath, fs); properties)
         return store(name, UniquePointer<Material>::create(*properties));
 
     log::warn("Could not load material config for '{}'", name);

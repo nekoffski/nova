@@ -10,8 +10,7 @@ namespace sl {
 
 Material::Material(const Properties& props) :
     shininess(props.shininess), diffuseColor(props.diffuseColor),
-    m_renderFrameNumber(0),
-    m_textures{ props.diffuseMap, props.specularMap, props.normalMap } {
+    m_renderFrameNumber(0), m_textures(props.textures) {
     m_instance.emplace(m_textures.asArray());
     log::trace("Creating Material");
 }
@@ -20,7 +19,7 @@ Material::~Material() { log::trace("Destroying Material: {}", getId()); }
 
 bool Material::isTransparent() const {
     return isFlagEnabled(
-      m_textures.diffuseMap->getImageData().flags, Texture::Flags::transparent
+      m_textures.diffuse->getImageData().flags, Texture::Flags::transparent
     );
 }
 
@@ -33,9 +32,9 @@ void Material::applyUniforms(
           commandBuffer, m_instance->getId(shader), imageIndex,
           [&](Shader::UniformProxy& proxy) {
               proxy.set("diffuseColor", diffuseColor);
-              proxy.set("diffuseTexture", m_textures.diffuseMap);
-              proxy.set("specularTexture", m_textures.specularMap);
-              proxy.set("normalTexture", m_textures.normalMap);
+              proxy.set("diffuseTexture", m_textures.diffuse);
+              proxy.set("specularTexture", m_textures.specular);
+              proxy.set("normalTexture", m_textures.normal);
               proxy.set("shininess", shininess);
           }
         );
@@ -54,47 +53,21 @@ void Material::setTextures(const Material::Textures& textures) {
 Material::Properties Material::Properties::createDefault() {
     auto& textureManager = TextureFactory::get();
 
+    // clang-format off
     return Properties{
         .diffuseColor = defaultDiffuseColor,
-        .diffuseMap   = textureManager.getDefaultDiffuseMap(),
-        .specularMap  = textureManager.getDefaultSpecularMap(),
-        .normalMap    = textureManager.getDefaultNormalMap(),
-        .shininess    = defaultShininess
+        .textures {
+            .diffuse  = textureManager.getDefaultDiffuseMap(),
+            .specular = textureManager.getDefaultSpecularMap(),
+            .normal   = textureManager.getDefaultNormalMap(),
+        },
+        .shininess = defaultShininess
     };
-}
-
-std::optional<Material::Properties> Material::Properties::fromFile(
-  const std::string& path, const FileSystem& fs
-) {
-    log::trace("Loading material properties file: {}", path);
-
-    if (not fs.isFile(path)) {
-        log::error("Could not find file: '{}'", path);
-        return {};
-    }
-
-    try {
-        const auto root = nlohmann::json::parse(fs.readFile(path));
-
-        auto props = Properties::createDefault();
-
-        json::getIfExists(root, "diffuse-color", props.diffuseColor);
-        json::getIfExists(root, "diffuse-map", props.diffuseMap);
-        json::getIfExists(root, "specular-map", props.specularMap);
-        json::getIfExists(root, "normal-map", props.normalMap);
-        json::getIfExists(root, "shininess", props.shininess);
-
-        return props;
-    } catch (const nlohmann::json::parse_error& e) {
-        log::error("Could not parse material '{}' file: {}", path, e.what());
-    }
-    return {};
+    // clang-format on
 }
 
 std::vector<Texture*> Material::Textures::asArray() {
-    return std::vector<Texture*>{
-        diffuseMap.get(), specularMap.get(), normalMap.get()
-    };
+    return std::vector<Texture*>{ diffuse.get(), specular.get(), normal.get() };
 }
 
 }  // namespace sl
