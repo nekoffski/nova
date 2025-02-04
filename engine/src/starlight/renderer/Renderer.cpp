@@ -40,6 +40,7 @@ Renderer::Renderer(Context& context) :
     m_indexBuffer(createIndexBuffer(*m_device)), m_currentFrame(0u),
     m_maxFramesInFlight(m_swapchain->getImageCount()), m_frameNumber(0u),
     m_shaderFactory(m_config.paths.shaders, *m_device),
+    m_shaderProgramFactory(m_config.paths.shaders),
     m_textureFactory(m_config.paths.textures, *m_device),
     m_materialFactory(m_config.paths.materials),
     m_meshFactory(*m_vertexBuffer, *m_indexBuffer),
