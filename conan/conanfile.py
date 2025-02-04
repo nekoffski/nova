@@ -11,7 +11,8 @@ requirements = [
     "benchmark/1.9.0",
     "boost/1.86.0",
     "nlohmann_json/3.11.3",
-    "glm/cci.20230113"
+    "glm/cci.20230113",
+    "spirv-cross/cci.20211113"
 ]
 
 

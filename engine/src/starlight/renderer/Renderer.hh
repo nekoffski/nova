@@ -19,6 +19,7 @@
 #include "factories/SkyboxFactory.hh"
 #include "factories/MeshFactory.hh"
 #include "factories/MaterialFactory.hh"
+#include "factories/ShaderProgramFactory.hh"
 
 namespace sl {
 
@@ -76,6 +77,7 @@ private:
 
     // factories
     ShaderFactory m_shaderFactory;
+    ShaderProgramFactory m_shaderProgramFactory;
     TextureFactory m_textureFactory;
     MaterialFactory m_materialFactory;
     MeshFactory m_meshFactory;

@@ -11,11 +11,7 @@
 
 namespace sl {
 
-template <typename T>
-requires std::constructible_from<T, std::string_view>
-T fromString(std::string_view str) {
-    return T{ str };
-}
+template <typename T> T fromString(std::string_view str) { return T{ str }; }
 
 template <typename T>
 requires HasToString<T>

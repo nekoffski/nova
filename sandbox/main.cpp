@@ -52,6 +52,9 @@ int main(int argc, char** argv) {
 
     sl::Renderer renderer{ context };
 
+    const auto shaderName = "Builtin.Shader.Material";
+    auto shaderProgram    = sl::ShaderProgramFactory::get().load(shaderName);
+
     // sl::RenderGraph renderGraph{ renderer };
 
     // UI ui{};
