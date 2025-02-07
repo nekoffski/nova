@@ -16,13 +16,10 @@ public:
 
     Texture* getCubeMap();
 
-    void applyUniforms(
-      ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex
-    );
+    void applyUniforms(Shader& shader, CommandBuffer& commandBuffer, u32 imageIndex);
 
 private:
     ResourceRef<Texture> m_cubeMap;
-    LocalPointer<Shader::Instance> m_instance;
 };
 
 }  // namespace sl

@@ -2,6 +2,8 @@
 
 #include "starlight/core/Resource.hh"
 #include "starlight/core/Singleton.hh"
+#include "starlight/core/FileSystem.hh"
+
 #include "starlight/renderer/gpu/Shader.hh"
 #include "starlight/renderer/gpu/Device.hh"
 

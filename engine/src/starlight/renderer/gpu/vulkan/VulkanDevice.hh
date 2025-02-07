@@ -120,7 +120,8 @@ public:
     UniquePointer<Buffer> createBuffer(const Buffer::Properties& props) override;
 
     UniquePointer<Pipeline> createPipeline(
-      Shader& shader, RenderPassBackend& renderPass
+      Shader& shader, RenderPassBackend& renderPass,
+      const Pipeline::Properties& props
     ) override;
 
     UniquePointer<Shader> createShader(const Shader::Properties& props) override;

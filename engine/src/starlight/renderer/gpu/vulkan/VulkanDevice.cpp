@@ -89,11 +89,11 @@ UniquePointer<Shader> VulkanDevice::createShader(const Shader::Properties& props
 }
 
 UniquePointer<Pipeline> VulkanDevice::createPipeline(
-  Shader& shader, RenderPassBackend& renderPass
+  Shader& shader, RenderPassBackend& renderPass, const Pipeline::Properties& props
 ) {
     return UniquePointer<VulkanPipeline>::create(
-      logical.handle, allocator, shader,
-      static_cast<VulkanRenderPassBackend&>(renderPass)
+      *this, static_cast<VulkanShader&>(shader),
+      static_cast<VulkanRenderPassBackend&>(renderPass), props
     );
 }
 

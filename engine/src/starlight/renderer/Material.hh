@@ -11,7 +11,7 @@
 
 #include "fwd.hh"
 #include "starlight/renderer/gpu/Shader.hh"
-#include "gpu/Shader.hh"
+#include "gpu/ShaderDataBinder.hh"
 #include "gpu/Texture.hh"
 
 namespace sl {
@@ -44,7 +44,7 @@ public:
 
     bool isTransparent() const;
     void applyUniforms(
-      ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex,
+      ShaderDataBinder::Setter& shader, CommandBuffer& commandBuffer, u32 imageIndex,
       const u64 renderFrameNumber
     );
 
@@ -56,9 +56,7 @@ public:
 
 private:
     u64 m_renderFrameNumber;
-
     Textures m_textures;
-    LocalPointer<Shader::Instance> m_instance;
 };
 
 }  // namespace sl

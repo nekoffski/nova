@@ -18,10 +18,9 @@ SPIRVParser::SPIRVParser(const std::string& spirv) :
     ),
     m_resources(m_compiler.get_shader_resources()) {}
 
-std::optional<SPIRVParser::Output> SPIRVParser::process(
-  ShaderProgram::Stage::Type stage
+std::optional<SPIRVParser::Output> SPIRVParser::process(Shader::Stage::Type stage
 ) && {
-    if (stage == ShaderProgram::Stage::Type::vertex) processInputs();
+    if (stage == Shader::Stage::Type::vertex) processInputs();
 
     processUniforms();
     processSamplers();
@@ -30,37 +29,35 @@ std::optional<SPIRVParser::Output> SPIRVParser::process(
     return m_output;
 }
 
-static std::pair<ShaderProgram::DataType, u64> getTypeInfo(
-  const spirv_cross::SPIRType& type
+static std::pair<Shader::DataType, u64> getTypeInfo(const spirv_cross::SPIRType& type
 ) {
     // Align vec3 to 16 bytes (std140 / std430 rules)
-    if (type.columns == 4) return { ShaderProgram::DataType::mat4, 64u };
-    if (type.vecsize == 2) return { ShaderProgram::DataType::vec2, 8u };
-    if (type.vecsize == 3) return { ShaderProgram::DataType::vec3, 16u };
-    if (type.vecsize == 4) return { ShaderProgram::DataType::vec4, 16u };
+    if (type.columns == 4) return { Shader::DataType::mat4, 64u };
+    if (type.vecsize == 2) return { Shader::DataType::vec2, 8u };
+    if (type.vecsize == 3) return { Shader::DataType::vec3, 16u };
+    if (type.vecsize == 4) return { Shader::DataType::vec4, 16u };
 
     switch (type.basetype) {
         case spirv_cross::SPIRType::Float:
-            return { ShaderProgram::DataType::f32, 4u };
+            return { Shader::DataType::f32, 4u };
         case spirv_cross::SPIRType::Int:
-            return { ShaderProgram::DataType::i32, 4u };
+            return { Shader::DataType::i32, 4u };
         case spirv_cross::SPIRType::UInt:
-            return { ShaderProgram::DataType::u32, 4u };
+            return { Shader::DataType::u32, 4u };
         case spirv_cross::SPIRType::Boolean:
-            return { ShaderProgram::DataType::boolean, 1u };
+            return { Shader::DataType::boolean, 1u };
         default:
-            return { ShaderProgram::DataType::custom, 0u };
+            return { Shader::DataType::custom, 0u };
     }
 };
 
 void SPIRVParser::processInputs() {
     for (auto& res : m_resources.stage_inputs) {
-        const auto location =
-          m_compiler.get_decoration(res.id, spv::DecorationLocation);
         const auto [type, size] = getTypeInfo(m_compiler.get_type(res.type_id));
 
-        m_output.attributes.push_back(ShaderProgram::Attribute{
-          .location = location,
+        m_output.attributes.push_back(Shader::InputAttribute{
+          .location = m_compiler.get_decoration(res.id, spv::DecorationLocation),
+          .offset   = m_compiler.get_decoration(res.id, spv::DecorationOffset),
           .type     = type,
           .size     = size,
           .name     = res.name,
@@ -68,9 +65,8 @@ void SPIRVParser::processInputs() {
     }
 }
 
-static ShaderProgram::Uniform::Scope getScope(u32 set) {
-    return set == 0 ? ShaderProgram::Uniform::Scope::global
-                    : ShaderProgram::Uniform::Scope::local;
+static Shader::Uniform::Scope getScope(u32 set) {
+    return set == 0 ? Shader::Uniform::Scope::global : Shader::Uniform::Scope::local;
 }
 
 void SPIRVParser::processUniforms() {
@@ -87,7 +83,7 @@ void SPIRVParser::processUniforms() {
             const auto [internalType, _] =
               getTypeInfo(m_compiler.get_type(type.member_types[i]));
 
-            m_output.uniforms.push_back(ShaderProgram::Uniform{
+            m_output.uniforms.push_back(Shader::Uniform{
               .offset = m_compiler.get_member_decoration(
                 res.base_type_id, i, spv::DecorationOffset
               ),
@@ -108,13 +104,13 @@ void SPIRVParser::processPushConstants() {
             const auto [internalType, _] =
               getTypeInfo(m_compiler.get_type(type.member_types[i]));
 
-            m_output.uniforms.push_back(ShaderProgram::Uniform{
+            m_output.uniforms.push_back(Shader::Uniform{
               .offset = m_compiler.get_member_decoration(
                 res.base_type_id, i, spv::DecorationOffset
               ),
               .type  = internalType,
               .size  = m_compiler.get_declared_struct_member_size(type, i),
-              .scope = ShaderProgram::Uniform::Scope::pushConstant,
+              .scope = Shader::Uniform::Scope::pushConstant,
               .name  = m_compiler.get_member_name(res.base_type_id, i),
             });
         }
@@ -128,9 +124,9 @@ void SPIRVParser::processSamplers() {
           "SPIRV binding for samplers must be equal to 1"
         );
 
-        m_output.uniforms.push_back(ShaderProgram::Uniform{
+        m_output.uniforms.push_back(Shader::Uniform{
           .offset = m_compiler.get_decoration(res.id, spv::DecorationLocation),
-          .type   = ShaderProgram::DataType::sampler,
+          .type   = Shader::DataType::sampler,
           .size   = 0u,
           .scope  = getScope(
             m_compiler.get_decoration(res.id, spv::DecorationDescriptorSet)

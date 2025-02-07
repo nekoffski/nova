@@ -6,20 +6,20 @@
 #include <spirv_cross/spirv_glsl.hpp>
 
 #include "starlight/core/FileSystem.hh"
-#include "starlight/renderer/gpu/ShaderProgram.hh"
+#include "starlight/renderer/gpu/Shader.hh"
 
 namespace sl {
 
 class SPIRVParser {
 public:
     struct Output {
-        std::vector<ShaderProgram::Attribute> attributes;
-        std::vector<ShaderProgram::Uniform> uniforms;
+        std::vector<Shader::InputAttribute> attributes;
+        std::vector<Shader::Uniform> uniforms;
     };
 
     explicit SPIRVParser(const std::string& spirv);
 
-    std::optional<Output> process(ShaderProgram::Stage::Type stage) &&;
+    std::optional<Output> process(Shader::Stage::Type stage) &&;
 
 private:
     void processInputs();
@@ -32,7 +32,7 @@ private:
     Output m_output;
 };
 
-std::optional<ShaderProgram::Properties> parseShaderProgram(
+std::optional<Shader::Properties> parseShader(
   const std::string& basePath, const FileSystem& fs
 );
 

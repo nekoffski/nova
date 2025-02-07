@@ -31,7 +31,8 @@ public:
     virtual UniquePointer<Buffer> createBuffer(const Buffer::Properties& props) = 0;
 
     virtual UniquePointer<Pipeline> createPipeline(
-      Shader& shader, RenderPassBackend& renderPass
+      Shader& shader, RenderPassBackend& renderPass,
+      const Pipeline::Properties& props = Pipeline::Properties::createDefault()
     ) = 0;
 
     virtual UniquePointer<Shader> createShader(const Shader::Properties& props) = 0;
