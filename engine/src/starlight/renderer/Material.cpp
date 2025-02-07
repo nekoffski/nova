@@ -11,7 +11,6 @@ namespace sl {
 Material::Material(const Properties& props) :
     shininess(props.shininess), diffuseColor(props.diffuseColor),
     m_renderFrameNumber(0), m_textures(props.textures) {
-    m_instance.emplace(m_textures.asArray());
     log::trace("Creating Material");
 }
 
@@ -24,20 +23,20 @@ bool Material::isTransparent() const {
 }
 
 void Material::applyUniforms(
-  ResourceRef<Shader> shader, CommandBuffer& commandBuffer, u32 imageIndex,
-  const u64 renderFrameNumber
+  ShaderDataBinder::Setter& uniformSetter, CommandBuffer& commandBuffer,
+  u32 imageIndex, const u64 renderFrameNumber
 ) {
     if (m_renderFrameNumber != renderFrameNumber) {
-        shader->setInstanceUniforms(
-          commandBuffer, m_instance->getId(shader), imageIndex,
-          [&](Shader::UniformProxy& proxy) {
-              proxy.set("diffuseColor", diffuseColor);
-              proxy.set("diffuseTexture", m_textures.diffuse);
-              proxy.set("specularTexture", m_textures.specular);
-              proxy.set("normalTexture", m_textures.normal);
-              proxy.set("shininess", shininess);
-          }
-        );
+        // shader.setLocalUniforms(
+        //   commandBuffer, m_shaderUniformOffset, imageIndex,
+        //   [&](Shader::UniformProxy& proxy) {
+        //       proxy.set("diffuseColor", diffuseColor);
+        //       proxy.set("diffuseTexture", m_textures.diffuse);
+        //       proxy.set("specularTexture", m_textures.specular);
+        //       proxy.set("normalTexture", m_textures.normal);
+        //       proxy.set("shininess", shininess);
+        //   }
+        // );
         m_renderFrameNumber = renderFrameNumber;
     }
 }
@@ -46,8 +45,6 @@ const Material::Textures& Material::getTextures() const { return m_textures; }
 
 void Material::setTextures(const Material::Textures& textures) {
     m_textures = textures;
-    m_instance.clear();
-    m_instance.emplace(m_textures.asArray());
 }
 
 Material::Properties Material::Properties::createDefault() {

@@ -1,144 +1,117 @@
 #include "ShaderFactory.hh"
 
-#include "starlight/core/Json.hh"
+#include "shader/SPIRVParser.hh"
 
-#include "TextureFactory.hh"
+#include <ranges>
 
 namespace sl {
 
-static std::optional<std::string> getShaderSource(
-  std::string_view shadersPath, std::string_view name, const FileSystem& fs
-) {
-    const auto fullPath = fmt::format("{}/{}", shadersPath, name);
-
-    if (not fs.isFile(fullPath)) {
-        log::warn("Could not find shader file '{}'", fullPath);
-        return {};
-    }
-    return fs.readFile(fullPath);
-}
-
-static std::vector<Shader::Stage> processStages(
-  const nlohmann::json& root, std::string_view shadersPath, const FileSystem& fs
-) {
-    std::vector<Shader::Stage> stages;
-    stages.reserve(root.size());
-
-    for (const auto& stage : root) {
-        const auto file      = stage.at("file").get<std::string>();
-        const auto stageName = stage.at("stage").get<std::string>();
-
-        auto source = getShaderSource(shadersPath, file, fs);
-        log::expect(source.has_value(), "Could not find source file for: {}", file);
-
-        stages.emplace_back(Shader::Stage::typeFromString(stageName), *source);
-    }
-    return stages;
-}
-
-static std::vector<Shader::Attribute> processAttributes(const nlohmann::json& root) {
-    std::vector<Shader::Attribute> attributes;
-    attributes.reserve(root.size());
-
-    for (auto& attribute : root) {
-        const auto type =
-          Shader::Attribute::typeFromString(attribute.at("type").get<std::string>());
-        const auto size = Shader::Attribute::getTypeSize(type);
-        const auto name = attribute.at("name").get<std::string>();
-
-        attributes.emplace_back(name, type, size);
-    }
-
-    return attributes;
+static const std::vector<std::pair<std::string, Shader::Stage::Type>>
+  acceptedExtensions = {
+      { "frag", Shader::Stage::Type::fragment },
+      { "vert", Shader::Stage::Type::vertex   },
+      { "geom", Shader::Stage::Type::geometry },
+      { "comp", Shader::Stage::Type::compute  },
 };
 
-static std::vector<Shader::Uniform::Properties> processUniforms(
-  const nlohmann::json& root
-) {
-    std::vector<Shader::Uniform::Properties> uniforms;
-    uniforms.reserve(root.size());
+static void sortMembers(Shader::Properties& props) {
+    std::ranges::sort(props.inputAttributes, [](auto& lhs, auto& rhs) -> bool {
+        return lhs.location < rhs.location;
+    });
 
-    static auto getSize =
-      [](const nlohmann::json& uniform, Shader::Uniform::Type type) -> u64 {
-        if (type == Shader::Uniform::Type::custom) {
-            auto size         = uniform.at("size").get<u32>();
-            auto elementCount = uniform.at("elements").get<unsigned int>();
+    std::ranges::sort(props.uniforms, [](auto& lhs, auto& rhs) -> bool {
+        if (lhs.scope == rhs.scope) {
+            if (lhs.type == Shader::DataType::sampler) return false;
+            if (rhs.type == Shader::DataType::sampler) return true;
 
-            return size * elementCount;
-        } else {
-            return Shader::Uniform::getTypeSize(type);
+            return lhs.offset < rhs.offset;
         }
-    };
+        return lhs.scope < rhs.scope;
+    });
 
-    for (auto& uniform : root) {
-        const auto type =
-          Shader::Uniform::typeFromString(uniform.at("type").get<std::string>());
+    props.uniforms.erase(
+      std::unique(
+        props.uniforms.begin(), props.uniforms.end(),
+        [](auto& lhs, auto& rhs) -> bool {
+            return lhs.name == rhs.name && lhs.scope == rhs.scope;
+        }
+      ),
+      props.uniforms.end()
+    );
+}
 
-        const auto size  = getSize(uniform, type);
-        const auto name  = uniform.at("name").get<std::string>();
-        const auto scope = uniform.at("scope").get<std::string>();
+static void logShaderProperties(const Shader::Properties& props) {
+    log::debug("Shader parsed");
+    log::debug("\tStages:");
+    for (u32 i = 0u; auto& stage : props.stages)
+        log::debug("\t\t{:02}. {}", i++, stage);
 
-        uniforms.emplace_back(name, size, 0, type, Shader::scopeFromString(scope));
+    log::debug("\tInput attributes:");
+    for (u32 i = 0u; auto& attribute : props.inputAttributes)
+        log::debug("\t\t{:02}. {}", i++, attribute);
+
+    log::debug("\tUnforms:");
+    for (u32 i = 0u; auto& uniform : props.uniforms)
+        log::debug("\t\t{:02}. {}", i++, uniform);
+}
+
+std::optional<Shader::Properties> parseShader(
+  const std::string& basePath, const FileSystem& fs
+) {
+    Shader::Properties props;
+    log::debug("Processing shader program: '{}'", basePath);
+
+    for (const auto& [extension, type] : acceptedExtensions) {
+        const auto stagePath = fmt::format("{}.{}.spv", basePath, extension);
+        if (fs.isFile(stagePath)) {
+            log::debug(
+              "Found {} stage for '{}' shader, will try to process", type, basePath
+            );
+            const auto source = fs.readFile(stagePath);
+            if (auto output = SPIRVParser{ source }.process(type); not output) {
+                log::warn("Could not parse shader stage: {}", stagePath);
+                return {};
+            } else {
+                props.stages.push_back(Shader::Stage{
+                  .fullPath   = stagePath,
+                  .sourceCode = source,
+                  .type       = type,
+                });
+
+                std::ranges::move(
+                  output->attributes, std::back_inserter(props.inputAttributes)
+                );
+                std::ranges::move(
+                  output->uniforms, std::back_inserter(props.uniforms)
+                );
+            }
+        }
     }
 
-    return uniforms;
-};
-
-static std::optional<Shader::Properties> loadPropertiesFromFile(
-  std::string_view name, Texture* defaultTexture, std::string_view shadersPath,
-  const FileSystem& fs
-) {
-    const auto fullPath = fmt::format("{}/{}.json", shadersPath, name);
-
-    log::trace("Loading shader config file: {}", fullPath);
-
-    if (not fs.isFile(fullPath)) {
-        log::error("Could not find file: '{}'", fullPath);
+    if (props.stages.empty()) {
+        log::warn("Could not parse shader, no stages found");
         return {};
     }
 
-    try {
-        auto root = nlohmann::json::parse(fs.readFile(fullPath));
-        return Shader::Properties{
-            .useInstances      = root.at("use-instances").get<bool>(),
-            .useLocals         = root.at("use-local").get<bool>(),
-            .attributes        = processAttributes(root.at("attributes")),
-            .stages            = processStages(root.at("stages"), shadersPath, fs),
-            .uniformProperties = processUniforms(root.at("uniforms")),
-            .defaultTexture    = defaultTexture,
-            .cullMode =
-              cullModeFromString(json::getOr<std::string>(root, "cullMode", "back")),
-            .polygonMode = polygonModeFromString(
-              json::getOr<std::string>(root, "polygonMode", "fill")
-            )
-        };
-    } catch (nlohmann::json::parse_error& e) {
-        log::error("Could not parse shader '{}' file: {}", name, e.what());
-    }
+    sortMembers(props);
+    logShaderProperties(props);
+
+    return props;
+}
+
+ResourceRef<Shader> ShaderFactory::load(
+  const std::string& name, const FileSystem& fs
+) {
+    const auto basePath = fmt::format("{}/{}", m_shadersPath, name);
+
+    if (auto properties = parseShader(basePath, fs); properties)
+        return store(name, m_device.createShader(*properties));
+
+    log::warn("Could not parse shader properties");
     return {};
 }
 
 ShaderFactory::ShaderFactory(const std::string& path, Device& device) :
     ResourceFactory("Shader"), m_shadersPath(path), m_device(device) {}
-
-ResourceRef<Shader> ShaderFactory::load(
-  const std::string& name, const FileSystem& fs
-) {
-    if (auto resource = find(name); resource) {
-        log::trace("Shader '{}' found, returning from cache", name);
-        return resource;
-    }
-
-    const auto properties = loadPropertiesFromFile(
-      name, TextureFactory::get().getDefaultDiffuseMap(), m_shadersPath, fs
-    );
-
-    if (not properties) {
-        log::warn("Could not load properties from '{}/{}'", m_shadersPath, name);
-        return nullptr;
-    }
-
-    return store(name, m_device.createShader(*properties));
-}
 
 }  // namespace sl

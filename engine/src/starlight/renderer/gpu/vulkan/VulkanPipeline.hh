@@ -3,68 +3,33 @@
 #include <span>
 #include <vector>
 
-#include "starlight/core/Log.hh"
 #include "starlight/core/Core.hh"
 
 #include "Vulkan.hh"
-
-#include "VulkanCommandBuffer.hh"
-#include "VulkanRenderPassBackend.hh"
-
-#include "starlight/core/math/Vertex.hh"
+#include "fwd.hh"
 
 #include "starlight/renderer/gpu/Pipeline.hh"
 #include "starlight/renderer/gpu/fwd.hh"
 
 namespace sl::vk {
 
-// TODO: REFACTOR
-
 class VulkanPipeline : public Pipeline {
 public:
-    struct Properties {
-        uint32_t stride;
-        std::vector<VkVertexInputAttributeDescription> vertexAttributes;
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-        std::vector<VkPipelineShaderStageCreateInfo> stages;
-        std::vector<Range> pushConstantRanges;
-        VkViewport viewport;
-        VkRect2D scissor;
-        VkPolygonMode polygonMode;
-        bool depthTestEnabled;
-        CullMode cullMode;
-    };
-
     explicit VulkanPipeline(
-      VkDevice device, Allocator* allocator, Shader& shader,
-      VulkanRenderPassBackend& renderPass
+      VulkanDevice& device, VulkanShader& shader,
+      VulkanRenderPassBackend& renderPass, const Properties& props
     );
 
-    ~VulkanPipeline() override {
-        vkDeviceWaitIdle(m_device);
+    ~VulkanPipeline() override;
 
-        log::trace("vkDestroyPipeline: {}", static_cast<void*>(m_handle));
-        vkDestroyPipeline(m_device, m_handle, m_allocator);
+    void bind(CommandBuffer& commandBuffer) override;
 
-        log::trace("vkDestroyPipelineLayout: {}", static_cast<void*>(m_layout));
-        vkDestroyPipelineLayout(m_device, m_layout, m_allocator);
-    }
-
-    void bind(CommandBuffer& commandBuffer) override {
-        vkCmdBindPipeline(
-          static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle(),
-          VK_PIPELINE_BIND_POINT_GRAPHICS, m_handle
-        );
-    }
-
-    VkPipelineLayout getLayout() const { return m_layout; }
+    VkPipelineLayout getLayout() const;
 
 private:
-    VkDevice m_device;
-    Allocator* m_allocator;
-
-    VkPipelineLayout m_layout = VK_NULL_HANDLE;
-    VkPipeline m_handle       = VK_NULL_HANDLE;
+    VulkanDevice& m_device;
+    VkPipelineLayout m_layout;
+    VkPipeline m_handle;
 };
 
 }  // namespace sl::vk

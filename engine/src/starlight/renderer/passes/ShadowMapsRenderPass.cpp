@@ -60,14 +60,14 @@ void ShadowMapsRenderPass::render(
         Vec3<f32>(0.0f, 1.0f, 0.0f)
       );
 
-    m_shader->setGlobalUniforms(
+    m_shaderDataBinder->setGlobalUniforms(
       commandBuffer, imageIndex,
-      [&](Shader::UniformProxy& proxy) { proxy.set("depthMVP", depthMVP); }
+      [&](auto& setter) { setter.set("depthMVP", depthMVP); }
     );
 
     for (auto& [worldTransform, mesh, _] : packet.entities) {
-        m_shader->setLocalUniforms(commandBuffer, [&](Shader::UniformProxy& proxy) {
-            proxy.set("model", worldTransform);
+        m_shaderDataBinder->setPushContants(commandBuffer, [&](auto& setter) {
+            setter.set("model", worldTransform);
         });
         drawMesh(*mesh, commandBuffer);
     }

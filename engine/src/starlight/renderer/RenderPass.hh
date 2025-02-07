@@ -13,7 +13,7 @@
 #include "gpu/Texture.hh"
 #include "gpu/CommandBuffer.hh"
 #include "gpu/RenderPassBackend.hh"
-#include "gpu/Pipeline.hh"
+#include "gpu/Shader.hh"
 
 #include "fwd.hh"
 #include "starlight/renderer/fwd.hh"
@@ -69,13 +69,15 @@ public:
       u64 frameNumber
     );
 
-protected:
-    void drawMesh(Mesh& mesh, CommandBuffer& buffer);
-
+private:
     ResourceRef<Shader> m_shader;
     UniquePointer<Pipeline> m_pipeline;
 
-private:
+protected:
+    UniquePointer<ShaderDataBinder> m_shaderDataBinder;
+
+    void drawMesh(Mesh& mesh, CommandBuffer& buffer);
+
     virtual void render(
       RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
       u64 frameNumber

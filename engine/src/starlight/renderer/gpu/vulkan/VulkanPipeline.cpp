@@ -1,220 +1,267 @@
 #include "VulkanPipeline.hh"
 
+#include <array>
+
+#include "VulkanDevice.hh"
+#include "VulkanRenderPassBackend.hh"
 #include "VulkanShader.hh"
+#include "VulkanCommandBuffer.hh"
 
 namespace sl::vk {
 
+static VkCullModeFlagBits toVk(CullMode mode) {
+    switch (mode) {
+        case CullMode::none:
+            return VK_CULL_MODE_NONE;
+        case CullMode::front:
+            return VK_CULL_MODE_FRONT_BIT;
+        case CullMode::frontAndBack:
+            return VK_CULL_MODE_FRONT_AND_BACK;
+        case CullMode::back:
+        default:
+            return VK_CULL_MODE_BACK_BIT;
+    }
+};
+
+static VkPolygonMode toVk(PolygonMode mode) {
+    switch (mode) {
+        case PolygonMode::fill:
+            return VK_POLYGON_MODE_FILL;
+        case PolygonMode::line:
+            return VK_POLYGON_MODE_LINE;
+        case PolygonMode::point:
+            return VK_POLYGON_MODE_POINT;
+    }
+    log::panic("Unespected polygon mode: {}", fmt::underlying(mode));
+};
+
 VulkanPipeline::VulkanPipeline(
-  VkDevice device, Allocator* allocator, Shader& shader,
-  VulkanRenderPassBackend& renderPass
-) : m_device(device), m_allocator(allocator) {
+  VulkanDevice& device, VulkanShader& shader, VulkanRenderPassBackend& renderPass,
+  const Properties& props
+) : m_device(device), m_layout(VK_NULL_HANDLE), m_handle(VK_NULL_HANDLE) {
+    // ViewportState
     VkPipelineViewportStateCreateInfo viewportState;
     clearMemory(&viewportState);
 
-    auto props = static_cast<VulkanShader&>(shader).getPipelineProperties();
+    VkViewport viewport;
+    viewport.x        = 0.0f;
+    viewport.y        = static_cast<float>(props.viewport.size.w);
+    viewport.width    = static_cast<float>(props.viewport.size.w);
+    viewport.height   = -static_cast<float>(props.viewport.size.h);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    VkRect2D scissor;
+    scissor.offset.x      = props.scissor.offset.x;
+    scissor.offset.y      = props.scissor.offset.y;
+    scissor.extent.width  = props.scissor.size.w;
+    scissor.extent.height = props.scissor.size.h;
 
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
-    viewportState.pViewports    = &props.viewport;
+    viewportState.pViewports    = &viewport;
     viewportState.scissorCount  = 1;
-    viewportState.pScissors     = &props.scissor;
+    viewportState.pScissors     = &scissor;
 
-    // rasterizer
+    // Rasterizer
     VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo;
     clearMemory(&rasterizerCreateInfo);
     rasterizerCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-
-    static const auto getCullMode = [](CullMode mode) {
-        switch (mode) {
-            case CullMode::none:
-                return VK_CULL_MODE_NONE;
-            case CullMode::front:
-                return VK_CULL_MODE_FRONT_BIT;
-            case CullMode::frontAndBack:
-                return VK_CULL_MODE_FRONT_AND_BACK;
-            case CullMode::back:
-            default:
-                return VK_CULL_MODE_BACK_BIT;
-        }
-    };
-
     rasterizerCreateInfo.depthClampEnable        = false;
     rasterizerCreateInfo.rasterizerDiscardEnable = false;
-    rasterizerCreateInfo.polygonMode             = props.polygonMode;
+    rasterizerCreateInfo.polygonMode             = toVk(props.polygonMode);
     rasterizerCreateInfo.lineWidth               = 1.0f;
-    rasterizerCreateInfo.cullMode                = getCullMode(props.cullMode);
+    rasterizerCreateInfo.cullMode                = toVk(props.cullMode);
     rasterizerCreateInfo.frontFace               = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizerCreateInfo.depthBiasEnable         = false;
     rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
     rasterizerCreateInfo.depthBiasClamp          = 0.0f;
     rasterizerCreateInfo.depthBiasSlopeFactor    = 0.0f;
 
-    // Multisampling.
-    VkPipelineMultisampleStateCreateInfo multisampling_create_info;
-    clearMemory(&multisampling_create_info);
-    multisampling_create_info.sType =
+    // Multisampling
+    VkPipelineMultisampleStateCreateInfo multisamplingCreateInfo;
+    clearMemory(&multisamplingCreateInfo);
+    multisamplingCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling_create_info.sampleShadingEnable   = VK_FALSE;
-    multisampling_create_info.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
-    multisampling_create_info.minSampleShading      = 1.0f;
-    multisampling_create_info.pSampleMask           = 0;
-    multisampling_create_info.alphaToCoverageEnable = VK_FALSE;
-    multisampling_create_info.alphaToOneEnable      = VK_FALSE;
+    multisamplingCreateInfo.sampleShadingEnable   = VK_FALSE;
+    multisamplingCreateInfo.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
+    multisamplingCreateInfo.minSampleShading      = 1.0f;
+    multisamplingCreateInfo.pSampleMask           = 0;
+    multisamplingCreateInfo.alphaToCoverageEnable = VK_FALSE;
+    multisamplingCreateInfo.alphaToOneEnable      = VK_FALSE;
 
-    // Depth and stencil testing.
-    VkPipelineDepthStencilStateCreateInfo depth_stencil;
-    clearMemory(&depth_stencil);
-    depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    // Depth and stencil testing
+    VkPipelineDepthStencilStateCreateInfo dephStencilCreateInfo;
+    clearMemory(&dephStencilCreateInfo);
+    dephStencilCreateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 
     if (props.depthTestEnabled) {
-        depth_stencil.depthTestEnable       = VK_TRUE;
-        depth_stencil.depthWriteEnable      = VK_TRUE;
-        depth_stencil.depthCompareOp        = VK_COMPARE_OP_LESS;
-        depth_stencil.depthBoundsTestEnable = VK_FALSE;
-        depth_stencil.stencilTestEnable     = VK_FALSE;
+        dephStencilCreateInfo.depthTestEnable       = VK_TRUE;
+        dephStencilCreateInfo.depthWriteEnable      = VK_TRUE;
+        dephStencilCreateInfo.depthCompareOp        = VK_COMPARE_OP_LESS;
+        dephStencilCreateInfo.depthBoundsTestEnable = VK_FALSE;
+        dephStencilCreateInfo.stencilTestEnable     = VK_FALSE;
     }
 
-    VkPipelineColorBlendAttachmentState color_blend_attachment_state;
-    clearMemory(&color_blend_attachment_state);
-    color_blend_attachment_state.blendEnable         = VK_TRUE;
-    color_blend_attachment_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-    color_blend_attachment_state.dstColorBlendFactor =
+    VkPipelineColorBlendAttachmentState colorBlendAttachmentState;
+    clearMemory(&colorBlendAttachmentState);
+    colorBlendAttachmentState.blendEnable         = VK_TRUE;
+    colorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachmentState.dstColorBlendFactor =
       VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    color_blend_attachment_state.colorBlendOp        = VK_BLEND_OP_ADD;
-    color_blend_attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-    color_blend_attachment_state.dstAlphaBlendFactor =
+    colorBlendAttachmentState.colorBlendOp        = VK_BLEND_OP_ADD;
+    colorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachmentState.dstAlphaBlendFactor =
       VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    color_blend_attachment_state.alphaBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
 
-    color_blend_attachment_state.colorWriteMask =
+    colorBlendAttachmentState.colorWriteMask =
       VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT
       | VK_COLOR_COMPONENT_A_BIT;
 
-    VkPipelineColorBlendStateCreateInfo color_blend_state_create_info;
-    clearMemory(&color_blend_state_create_info);
-    color_blend_state_create_info.sType =
+    VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
+    clearMemory(&colorBlendStateCreateInfo);
+    colorBlendStateCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    color_blend_state_create_info.logicOpEnable   = VK_FALSE;
-    color_blend_state_create_info.logicOp         = VK_LOGIC_OP_COPY;
-    color_blend_state_create_info.attachmentCount = 1;
-    color_blend_state_create_info.pAttachments    = &color_blend_attachment_state;
+    colorBlendStateCreateInfo.logicOpEnable   = VK_FALSE;
+    colorBlendStateCreateInfo.logicOp         = VK_LOGIC_OP_COPY;
+    colorBlendStateCreateInfo.attachmentCount = 1;
+    colorBlendStateCreateInfo.pAttachments    = &colorBlendAttachmentState;
 
     // Dynamic state
-    const uint32_t dynamic_state_count                 = 3;
-    VkDynamicState dynamic_states[dynamic_state_count] = {
+    static constexpr u32 dynamicStateCount                      = 3;
+    std::array<VkDynamicState, dynamicStateCount> dynamicStates = {
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_LINE_WIDTH,
     };
 
-    VkPipelineDynamicStateCreateInfo dynamic_state_create_info;
-    clearMemory(&dynamic_state_create_info);
-    dynamic_state_create_info.sType =
+    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo;
+    clearMemory(&dynamicStateCreateInfo);
+    dynamicStateCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamic_state_create_info.dynamicStateCount = dynamic_state_count;
-    dynamic_state_create_info.pDynamicStates    = dynamic_states;
+    dynamicStateCreateInfo.dynamicStateCount = dynamicStates.size();
+    dynamicStateCreateInfo.pDynamicStates    = dynamicStates.data();
 
     // Vertex input
-    VkVertexInputBindingDescription binding_description;
-    clearMemory(&binding_description);
-    binding_description.binding   = 0;  // Binding index
-    binding_description.stride    = props.stride;
-    binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    VkVertexInputBindingDescription bindingDescription;
+    clearMemory(&bindingDescription);
+    bindingDescription.binding   = 0;  // Binding index
+    bindingDescription.stride    = shader.getInputAttributesStride();
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     // Attributes
-    VkPipelineVertexInputStateCreateInfo vertex_input_info;
-    clearMemory(&vertex_input_info);
-    vertex_input_info.sType =
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+    clearMemory(&vertexInputInfo);
+    vertexInputInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertex_input_info.vertexBindingDescriptionCount = 1;
-    vertex_input_info.pVertexBindingDescriptions    = &binding_description;
-    vertex_input_info.vertexAttributeDescriptionCount =
-      props.vertexAttributes.size();
-    vertex_input_info.pVertexAttributeDescriptions = props.vertexAttributes.data();
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions    = &bindingDescription;
+
+    auto vertexAttributes = shader.getInputAttributesDescriptions();
+
+    vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributes.size();
+    vertexInputInfo.pVertexAttributeDescriptions    = vertexAttributes.data();
 
     // Input assembly
-    VkPipelineInputAssemblyStateCreateInfo input_assembly;
-    clearMemory(&input_assembly);
-    input_assembly.sType =
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
+    clearMemory(&inputAssemblyCreateInfo);
+    inputAssemblyCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    input_assembly.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    input_assembly.primitiveRestartEnable = VK_FALSE;
+    inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
     // VulkanPipeline layout
-    VkPipelineLayoutCreateInfo pipeline_layout_create_info;
-    clearMemory(&pipeline_layout_create_info);
-    pipeline_layout_create_info.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+    clearMemory(&pipelineLayoutCreateInfo);
+    pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-    VkPushConstantRange push_constant;
-    clearMemory(&push_constant);
+    VkPushConstantRange pushConstantRange;
+    clearMemory(&pushConstantRange);
 
-    if (const auto pushConstantRangeCount = props.pushConstantRanges.size();
-        pushConstantRangeCount > 0) {
-        log::expect(
-          pushConstantRangeCount <= 32,
-          "Push constant range count {} exceeds maximum 32", pushConstantRangeCount
-        );
-
-        u64 totalSize = 0u;
-
-        for (const auto& range : props.pushConstantRanges) {
-            log::trace("Push constant range: {}-{}", range.offset, range.size);
-            totalSize += range.size;
-        }
-
-        push_constant.stageFlags =
+    if (const auto pushConstantsSize = shader.getPushContantsSize();
+        pushConstantsSize > 0) {
+        pushConstantRange.stageFlags =
           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-        push_constant.offset = 0u;
-        push_constant.size   = totalSize;
+        pushConstantRange.offset = 0u;
+        pushConstantRange.size   = pushConstantsSize;
 
-        pipeline_layout_create_info.pushConstantRangeCount = 1;
-        pipeline_layout_create_info.pPushConstantRanges    = &push_constant;
+        pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+        pipelineLayoutCreateInfo.pPushConstantRanges    = &pushConstantRange;
     }
 
     // Descriptor set layouts
-    pipeline_layout_create_info.setLayoutCount = props.descriptorSetLayouts.size();
-    pipeline_layout_create_info.pSetLayouts    = props.descriptorSetLayouts.data();
-
-    // for (int i = 0; i < pipeline_layout_create_info.setLayoutCount; ++i) {
-    // }
+    auto descriptorSetLayouts               = shader.getDescriptorSetLayouts();
+    pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
+    pipelineLayoutCreateInfo.pSetLayouts    = descriptorSetLayouts.data();
 
     // Create the pipeline layout.
     log::expect(vkCreatePipelineLayout(
-      m_device, &pipeline_layout_create_info, m_allocator, &m_layout
+      m_device.logical.handle, &pipelineLayoutCreateInfo, m_device.allocator,
+      &m_layout
     ));
     log::trace("vkCreatePipelineLayout: {}", static_cast<void*>(m_layout));
 
     // VulkanPipeline create
-    VkGraphicsPipelineCreateInfo pipeline_create_info;
-    clearMemory(&pipeline_create_info);
-    pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipeline_create_info.stageCount          = props.stages.size();
-    pipeline_create_info.pStages             = props.stages.data();
-    pipeline_create_info.pVertexInputState   = &vertex_input_info;
-    pipeline_create_info.pInputAssemblyState = &input_assembly;
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo;
+    clearMemory(&pipelineCreateInfo);
+    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
-    pipeline_create_info.pViewportState      = &viewportState;
-    pipeline_create_info.pRasterizationState = &rasterizerCreateInfo;
-    pipeline_create_info.pMultisampleState   = &multisampling_create_info;
-    pipeline_create_info.pDepthStencilState =
-      props.depthTestEnabled ? &depth_stencil : nullptr;
-    pipeline_create_info.pColorBlendState   = &color_blend_state_create_info;
-    pipeline_create_info.pDynamicState      = &dynamic_state_create_info;
-    pipeline_create_info.pTessellationState = 0;
+    auto stages = shader.getPipelineStageInfos();
 
-    pipeline_create_info.layout = m_layout;
+    pipelineCreateInfo.stageCount          = stages.size();
+    pipelineCreateInfo.pStages             = stages.data();
+    pipelineCreateInfo.pVertexInputState   = &vertexInputInfo;
+    pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
 
-    pipeline_create_info.renderPass         = renderPass.getHandle();
-    pipeline_create_info.subpass            = 0;
-    pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
-    pipeline_create_info.basePipelineIndex  = -1;
+    pipelineCreateInfo.pViewportState      = &viewportState;
+    pipelineCreateInfo.pRasterizationState = &rasterizerCreateInfo;
+    pipelineCreateInfo.pMultisampleState   = &multisamplingCreateInfo;
+    pipelineCreateInfo.pDepthStencilState =
+      props.depthTestEnabled ? &dephStencilCreateInfo : nullptr;
+    pipelineCreateInfo.pColorBlendState   = &colorBlendStateCreateInfo;
+    pipelineCreateInfo.pDynamicState      = &dynamicStateCreateInfo;
+    pipelineCreateInfo.pTessellationState = 0;
+
+    pipelineCreateInfo.layout = m_layout;
+
+    pipelineCreateInfo.renderPass         = renderPass.getHandle();
+    pipelineCreateInfo.subpass            = 0;
+    pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+    pipelineCreateInfo.basePipelineIndex  = -1;
 
     log::expect(vkCreateGraphicsPipelines(
-      m_device, VK_NULL_HANDLE, 1, &pipeline_create_info, m_allocator, &m_handle
+      m_device.logical.handle, VK_NULL_HANDLE, 1, &pipelineCreateInfo,
+      m_device.allocator, &m_handle
     ));
     log::trace("vkCreateGraphicsPipelines: {}", static_cast<void*>(m_handle));
 }
+
+VulkanPipeline::~VulkanPipeline() {
+    m_device.waitIdle();
+
+    if (m_handle) {
+        log::trace("vkDestroyPipeline: {}", static_cast<void*>(m_handle));
+        vkDestroyPipeline(m_device.logical.handle, m_handle, m_device.allocator);
+    }
+
+    if (m_layout) {
+        log::trace("vkDestroyPipelineLayout: {}", static_cast<void*>(m_layout));
+        vkDestroyPipelineLayout(
+          m_device.logical.handle, m_layout, m_device.allocator
+        );
+    }
+}
+
+void VulkanPipeline::bind(CommandBuffer& commandBuffer) {
+    vkCmdBindPipeline(
+      static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle(),
+      VK_PIPELINE_BIND_POINT_GRAPHICS, m_handle
+    );
+}
+
+VkPipelineLayout VulkanPipeline::getLayout() const { return m_layout; }
 
 }  // namespace sl::vk

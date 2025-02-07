@@ -79,7 +79,6 @@ void RenderPass::run(
     m_renderPassBackend->run(
       commandBuffer, imageIndex,
       [&](CommandBuffer& commandBuffer, u32 imageIndex) {
-          m_shader->bindPipeline(*m_pipeline);
           m_pipeline->bind(commandBuffer);
           render(packet, commandBuffer, imageIndex, frameNumber);
       }
@@ -96,7 +95,6 @@ void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     m_renderPassBackend =
       device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
     m_pipeline = device.createPipeline(*m_shader, *m_renderPassBackend);
-    m_shader->bindPipeline(*m_pipeline);
 }
 
 void RenderPass::drawMesh(Mesh& mesh, CommandBuffer& commandBuffer) {
@@ -113,7 +111,7 @@ void RenderPass::drawMesh(Mesh& mesh, CommandBuffer& commandBuffer) {
     });
 
     commandBuffer.execute(DrawIndexedCommand{
-      .indexCount = (u32)memoryLayout.indexCount,
+      .indexCount = static_cast<u32>(memoryLayout.indexCount),
     });
 }
 

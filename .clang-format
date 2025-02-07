@@ -124,7 +124,7 @@ ObjCBreakBeforeNestedBlockParam: true
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
 PenaltyBreakAssignment: 10
-PenaltyBreakBeforeFirstCallParameter: 10
+PenaltyBreakBeforeFirstCallParameter: 100
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
 PenaltyBreakOpenParenthesis: 0

@@ -2,11 +2,13 @@
 
 #include <string>
 
+#include "starlight/core/FileSystem.hh"
 #include "starlight/core/Resource.hh"
 #include "starlight/core/Id.hh"
 #include "starlight/core/memory/Memory.hh"
-#include "starlight/renderer/Material.hh"
 #include "starlight/core/Singleton.hh"
+
+#include "starlight/renderer/Material.hh"
 
 namespace sl {
 

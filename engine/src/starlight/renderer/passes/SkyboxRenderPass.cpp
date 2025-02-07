@@ -1,6 +1,5 @@
 #include "SkyboxRenderPass.hh"
 
-#include "starlight/renderer/factories/ShaderFactory.hh"
 #include "starlight/renderer/factories/SkyboxFactory.hh"
 #include "starlight/renderer/factories/MeshFactory.hh"
 
@@ -29,16 +28,19 @@ void SkyboxRenderPass::render(
     if (not skybox) return;
 
     auto camera = packet.camera;
-    m_shader->setGlobalUniforms(commandBuffer, imageIndex, [&](auto& proxy) {
-        auto viewMatrix  = camera->getViewMatrix();
-        viewMatrix[3][0] = 0.0f;
-        viewMatrix[3][1] = 0.0f;
-        viewMatrix[3][2] = 0.0f;
+    m_shaderDataBinder->setGlobalUniforms(
+      commandBuffer, imageIndex,
+      [&](auto& setter) {
+          auto viewMatrix  = camera->getViewMatrix();
+          viewMatrix[3][0] = 0.0f;
+          viewMatrix[3][1] = 0.0f;
+          viewMatrix[3][2] = 0.0f;
 
-        proxy.set("view", viewMatrix);
-        proxy.set("projection", camera->getProjectionMatrix());
-    });
-    skybox->applyUniforms(m_shader, commandBuffer, imageIndex);
+          setter.set("view", viewMatrix);
+          setter.set("projection", camera->getProjectionMatrix());
+      }
+    );
+    // skybox->applyUniforms(*m_shader, commandBuffer, imageIndex);
 
     drawMesh(*MeshFactory::get().getCube(), commandBuffer);
 }

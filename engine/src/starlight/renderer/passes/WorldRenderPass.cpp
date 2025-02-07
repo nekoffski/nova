@@ -38,9 +38,9 @@ void WorldRenderPass::render(
     auto camera               = packet.camera;
     const auto cameraPosition = camera->getPosition();
 
-    m_shader->setGlobalUniforms(
+    m_shaderDataBinder->setGlobalUniforms(
       commandBuffer, imageIndex,
-      [&](Shader::UniformProxy& proxy) {
+      [&](auto& setter) {
           auto depthMVP =
             math::ortho<float>(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 20.0f)
             * math::lookAt(
@@ -48,13 +48,13 @@ void WorldRenderPass::render(
               Vec3<f32>(0.0f, 1.0f, 0.0f)
             );
 
-          proxy.set("view", camera->getViewMatrix());
-          proxy.set("projection", camera->getProjectionMatrix());
-          proxy.set("depthMVP", depthMVP);
-          proxy.set("viewPosition", cameraPosition);
-          proxy.set("ambientColor", ambientColor);
-          proxy.set("renderMode", static_cast<int>(RenderMode::standard));
-          proxy.set("shadowMap", packet.shadowMaps[0]);
+          setter.set("view", camera->getViewMatrix());
+          setter.set("projection", camera->getProjectionMatrix());
+          setter.set("depthMVP", depthMVP);
+          setter.set("viewPosition", cameraPosition);
+          setter.set("ambientColor", ambientColor);
+          setter.set("renderMode", static_cast<int>(RenderMode::standard));
+          setter.set("shadowMap", packet.shadowMaps[0]);
 
           const auto pointLightCount = packet.pointLights.size();
 
@@ -63,16 +63,16 @@ void WorldRenderPass::render(
                 packet.pointLights,
                 [](const auto& light) { return light.getShaderData(); }
               );
-              proxy.set("pointLights", shaderBulk);
+              setter.set("pointLights", shaderBulk);
           }
 
           const auto directionalLightCount = packet.directionalLights.size();
 
           if (directionalLightCount > 0)
-              proxy.set("directionalLights", packet.directionalLights);
+              setter.set("directionalLights", packet.directionalLights);
 
-          proxy.set("pointLightCount", &pointLightCount);
-          proxy.set("directionalLightCount", &directionalLightCount);
+          setter.set("pointLightCount", &pointLightCount);
+          setter.set("directionalLightCount", &directionalLightCount);
       }
     );
 
@@ -106,9 +106,11 @@ void WorldRenderPass::render(
     transparentGeometries.clear();
 
     for (auto& [mesh, material, model, _] : meshes) {
-        material->applyUniforms(m_shader, commandBuffer, imageIndex, frameNumber);
-        m_shader->setLocalUniforms(commandBuffer, [&](Shader::UniformProxy& proxy) {
-            proxy.set("model", model);
+        // material->applyUniforms(*m_shader, commandBuffer, imageIndex,
+        // frameNumber);
+
+        m_shaderDataBinder->setPushContants(commandBuffer, [&](auto& setter) {
+            setter.set("model", model);
         });
 
         drawMesh(*mesh, commandBuffer);
