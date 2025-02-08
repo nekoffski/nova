@@ -32,49 +32,47 @@ struct MeshRenderData {
 };
 
 void WorldRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
+  [[maybe_unused]] u64 frameNumber
 ) {
     Vec4<f32> ambientColor(0.05f, 0.05f, 0.05f, 1.0f);
     auto camera               = packet.camera;
     const auto cameraPosition = camera->getPosition();
 
-    m_shaderDataBinder->setGlobalUniforms(
-      commandBuffer, imageIndex,
-      [&](auto& setter) {
-          auto depthMVP =
-            math::ortho<float>(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 20.0f)
-            * math::lookAt(
-              -packet.directionalLights[0].direction, Vec3<f32>(0.0f, 0.0f, 0.0f),
-              Vec3<f32>(0.0f, 1.0f, 0.0f)
+    setGlobalUniforms(commandBuffer, imageIndex, [&](auto& setter) {
+        auto depthMVP =
+          math::ortho<float>(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 20.0f)
+          * math::lookAt(
+            -packet.directionalLights[0].direction, Vec3<f32>(0.0f, 0.0f, 0.0f),
+            Vec3<f32>(0.0f, 1.0f, 0.0f)
+          );
+
+        setter.set("view", camera->getViewMatrix());
+        setter.set("projection", camera->getProjectionMatrix());
+        setter.set("depthMVP", depthMVP);
+        setter.set("viewPosition", cameraPosition);
+        setter.set("ambientColor", ambientColor);
+        setter.set("renderMode", static_cast<int>(RenderMode::standard));
+        setter.set("shadowMap", packet.shadowMaps[0]);
+
+        const auto pointLightCount = packet.pointLights.size();
+
+        if (pointLightCount > 0) {
+            const auto shaderBulk = transform<PointLight::ShaderData>(
+              packet.pointLights,
+              [](const auto& light) { return light.getShaderData(); }
             );
+            setter.set("pointLights", shaderBulk);
+        }
 
-          setter.set("view", camera->getViewMatrix());
-          setter.set("projection", camera->getProjectionMatrix());
-          setter.set("depthMVP", depthMVP);
-          setter.set("viewPosition", cameraPosition);
-          setter.set("ambientColor", ambientColor);
-          setter.set("renderMode", static_cast<int>(RenderMode::standard));
-          setter.set("shadowMap", packet.shadowMaps[0]);
+        const auto directionalLightCount = packet.directionalLights.size();
 
-          const auto pointLightCount = packet.pointLights.size();
+        if (directionalLightCount > 0)
+            setter.set("directionalLights", packet.directionalLights);
 
-          if (pointLightCount > 0) {
-              const auto shaderBulk = transform<PointLight::ShaderData>(
-                packet.pointLights,
-                [](const auto& light) { return light.getShaderData(); }
-              );
-              setter.set("pointLights", shaderBulk);
-          }
-
-          const auto directionalLightCount = packet.directionalLights.size();
-
-          if (directionalLightCount > 0)
-              setter.set("directionalLights", packet.directionalLights);
-
-          setter.set("pointLightCount", &pointLightCount);
-          setter.set("directionalLightCount", &directionalLightCount);
-      }
-    );
+        setter.set("pointLightCount", &pointLightCount);
+        setter.set("directionalLightCount", &directionalLightCount);
+    });
 
     std::vector<MeshRenderData> meshes;
     std::vector<MeshRenderData> transparentGeometries;
@@ -85,9 +83,8 @@ void WorldRenderPass::render(
         if (material->isTransparent()) {
             auto center         = worldTransform * mesh->getExtent().center;
             auto cameraDistance = glm::distance2(cameraPosition, center);
-            transparentGeometries.emplace_back(
-              mesh, material, worldTransform, cameraDistance
-            );
+            transparentGeometries
+              .emplace_back(mesh, material, worldTransform, cameraDistance);
         } else {
             meshes.emplace_back(mesh, material, worldTransform);
         }
@@ -109,10 +106,7 @@ void WorldRenderPass::render(
         // material->applyUniforms(*m_shader, commandBuffer, imageIndex,
         // frameNumber);
 
-        m_shaderDataBinder->setPushContants(commandBuffer, [&](auto& setter) {
-            setter.set("model", model);
-        });
-
+        setPushConstant(commandBuffer, "model", model);
         drawMesh(*mesh, commandBuffer);
     }
 }

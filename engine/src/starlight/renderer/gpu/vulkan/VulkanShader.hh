@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <optional>
 
 #include "starlight/renderer/gpu/Shader.hh"
 
@@ -10,9 +11,11 @@
 namespace sl::vk {
 
 class VulkanShader : public Shader {
-    static constexpr u8 maxStages = 3;
-
-    struct Module {};
+    struct Bindings {
+        u8 count = 0u;
+        std::optional<u8> ubo;
+        std::optional<u8> sampler;
+    };
 
 public:
     using PipelineStageInfos = std::vector<VkPipelineShaderStageCreateInfo>;
@@ -30,14 +33,19 @@ public:
     const std::vector<VkDescriptorSetLayout>& getDescriptorSetLayouts() const;
     const std::vector<VkShaderModule> getModules() const;
 
+    const Bindings& getDescriptorSetBindings(Uniform::Scope scope) const;
+
 private:
     void prepareAttributeDescriptions();
     void createDescriptorSetLayouts();
+    void createDescriptorSetLayout(Uniform::Scope scope);
 
     void processStages();
     void processStage(const Shader::Stage& stage);
 
     VulkanDevice& m_device;
+
+    std::array<Bindings, descriptorSetCount> m_descriptorSetsBindings;
 
     std::vector<VkShaderModule> m_modules;
     PipelineStageInfos m_pipelineStageInfos;

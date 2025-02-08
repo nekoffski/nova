@@ -21,10 +21,8 @@ static void sortMembers(Shader::Properties& props) {
 
     std::ranges::sort(props.uniforms, [](auto& lhs, auto& rhs) -> bool {
         if (lhs.scope == rhs.scope) {
-            if (lhs.type == Shader::DataType::sampler) return false;
-            if (rhs.type == Shader::DataType::sampler) return true;
-
-            return lhs.offset < rhs.offset;
+            if (lhs.binding == rhs.binding) return lhs.offset < rhs.offset;
+            return lhs.binding < rhs.binding;
         }
         return lhs.scope < rhs.scope;
     });

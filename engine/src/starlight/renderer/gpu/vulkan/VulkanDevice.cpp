@@ -17,6 +17,7 @@
 #include "VulkanRenderPassBackend.hh"
 #include "VulkanPipeline.hh"
 #include "VulkanBuffer.hh"
+#include "VulkanShaderDataBinder.hh"
 
 namespace sl::vk {
 
@@ -94,6 +95,13 @@ UniquePointer<Pipeline> VulkanDevice::createPipeline(
     return UniquePointer<VulkanPipeline>::create(
       *this, static_cast<VulkanShader&>(shader),
       static_cast<VulkanRenderPassBackend&>(renderPass), props
+    );
+}
+
+UniquePointer<ShaderDataBinder> VulkanDevice::createShaderDataBinder(Shader& shader
+) {
+    return UniquePointer<VulkanShaderDataBinder>::create(
+      *this, static_cast<VulkanShader&>(shader)
     );
 }
 

@@ -8,6 +8,7 @@
 
 #include "Queue.hh"
 #include "Shader.hh"
+#include "ShaderDataBinder.hh"
 #include "CommandBuffer.hh"
 #include "Texture.hh"
 #include "RenderPassBackend.hh"
@@ -33,6 +34,9 @@ public:
     virtual UniquePointer<Pipeline> createPipeline(
       Shader& shader, RenderPassBackend& renderPass,
       const Pipeline::Properties& props = Pipeline::Properties::createDefault()
+    ) = 0;
+
+    virtual UniquePointer<ShaderDataBinder> createShaderDataBinder(Shader& shader
     ) = 0;
 
     virtual UniquePointer<Shader> createShader(const Shader::Properties& props) = 0;

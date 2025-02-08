@@ -11,9 +11,18 @@
 namespace sl {
 
 class Shader : public NonMovable, public Identificable<Shader> {
-    static constexpr u8 uniformScopes = 3;
+    static constexpr u32 uniformScopes = 3u;
 
 public:
+    static constexpr u32 maxStages         = 3u;
+    static constexpr u32 maxGlobalTextures = 32u;
+    static constexpr u32 maxLocalTextures  = 32u;
+    static constexpr u32 maxAttributes     = 16u;
+
+    static constexpr u32 descriptorSetCount = 2;
+    static constexpr u32 uboGlobalSet       = 0u;
+    static constexpr u32 uboLocalSet        = 1u;
+
     enum class DataType : u8 {
         vec2,
         vec3,
@@ -43,13 +52,27 @@ public:
         enum class Scope : u8 { global = 0, local, pushConstant };
 
         u32 offset;
+        u32 binding;
         DataType type;
         u64 size;
         Scope scope;
         std::string name;
     };
 
-    using Uniforms = std::unordered_map<std::string, const Uniform*>;
+    class Uniforms {
+        friend class Shader;
+
+    public:
+        using UniformsMap = std::unordered_map<std::string, const Uniform*>;
+
+        const Uniform* get(Uniform::Scope scope, const std::string& name) const;
+        const UniformsMap& get(Uniform::Scope scope) const;
+
+    private:
+        void add(const Uniform*);
+
+        std::array<UniformsMap, uniformScopes> m_uniformLut;
+    };
 
     struct Stage {
         enum class Type : u8 { vertex, fragment, compute, geometry };
@@ -72,17 +95,24 @@ public:
 
     u64 getInputAttributesStride() const;
     u64 getPushContantsSize() const;
+    u64 getLocalUboSize() const;
+    u64 getGlobalUboSize() const;
 
-    const Uniforms& getUniforms(Uniform::Scope scope) const;
+    const Uniforms& getUniforms() const;
 
-private:
-    std::array<Uniforms, uniformScopes> m_uniformLut;
+protected:
+    Uniforms m_uniforms;
 
     void processInputAttributes();
     void processUniforms();
 
     u64 m_inputAttributesStride;
     u64 m_pushConstantsSize;
+
+    u32 m_localSamplerCount;
+    u32 m_globalSamplerCount;
+    u64 m_localUboSize;
+    u64 m_globalUboSize;
 };
 
 template <> Shader::DataType fromString<Shader::DataType>(std::string_view str);
