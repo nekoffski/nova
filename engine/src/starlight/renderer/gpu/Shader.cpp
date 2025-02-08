@@ -4,33 +4,101 @@
 
 namespace sl {
 
-Shader::Shader(const Properties& properties
-) : properties(properties), m_inputAttributesStride(0u), m_pushConstantsSize(0u) {
+Shader::Shader(const Properties& properties) :
+    properties(properties), m_inputAttributesStride(0u), m_pushConstantsSize(0u),
+    m_globalSamplerCount(0u), m_localSamplerCount(0u), m_localUboSize(0u),
+    m_globalUboSize(0u) {
+    const auto stageCount = properties.stages.size();
+    log::expect(
+      stageCount <= maxStages, "Max shader stages ({}) exceed: {}", maxStages,
+      stageCount
+    );
+
     processInputAttributes();
     processUniforms();
 }
 
 void Shader::processInputAttributes() {
+    const auto attributeCount = properties.inputAttributes.size();
+    log::expect(
+      attributeCount < maxAttributes, "Max attribute count ({}) exceed: {}",
+      maxAttributes, attributeCount
+    );
+
     for (auto& attribute : properties.inputAttributes)
         m_inputAttributesStride += attribute.size;
 }
 
+const Shader::Uniform* Shader::Uniforms::get(
+  Uniform::Scope scope, const std::string& name
+) const {
+    const auto& map   = get(scope);
+    const auto record = map.find(name);
+    return record != map.end() ? record->second : nullptr;
+}
+
+const Shader::Uniforms::UniformsMap& Shader::Uniforms::get(Uniform::Scope scope
+) const {
+    log::expect(
+      scope <= Uniform::Scope::local, "Invalid uniform scope: {}",
+      fmt::underlying(scope)
+    );
+    return m_uniformLut.at(static_cast<u8>(scope));
+}
+
+void Shader::Uniforms::add(const Uniform* uniform) {
+    log::expect(
+      uniform->scope <= Uniform::Scope::local, "Invalid uniform scope: {}",
+      fmt::underlying(uniform->scope)
+    );
+    m_uniformLut.at(static_cast<u8>(uniform->scope))[uniform->name] = uniform;
+}
+
 void Shader::processUniforms() {
     for (const auto& uniform : properties.uniforms) {
-        m_uniformLut.at(static_cast<u8>(uniform.scope))[uniform.name] = &uniform;
+        m_uniforms.add(&uniform);
+
+        if (uniform.type == DataType::sampler) {
+            if (uniform.scope == Uniform::Scope::global)
+                ++m_globalSamplerCount;
+            else if (uniform.scope == Uniform::Scope::local)
+                ++m_localSamplerCount;
+            else
+                log::panic("PushConstant samplers not supported");
+        } else {
+            if (uniform.scope == Uniform::Scope::global)
+                m_globalUboSize += uniform.size;
+            else if (uniform.scope == Uniform::Scope::local)
+                m_localUboSize += uniform.size;
+        }
 
         if (uniform.scope == Uniform::Scope::pushConstant)
             m_pushConstantsSize += uniform.size;
     }
+
+    log::expect(
+      m_globalSamplerCount < maxGlobalTextures,
+      "Max global sampler count ({}) exceed: {}", maxGlobalTextures,
+      m_globalSamplerCount
+    );
+    log::expect(
+      m_localSamplerCount < maxLocalTextures,
+      "Max local sampler count ({}) exceed: {}", maxLocalTextures,
+      m_localSamplerCount
+    );
+    log::debug(
+      "Shader uniforms stats - global samplers: {}, local samplers: {}, global UBO size: {}b, local UBO size: {}b",
+      m_globalSamplerCount, m_localSamplerCount, m_globalUboSize, m_localUboSize
+    );
 }
 
 u64 Shader::getPushContantsSize() const { return m_pushConstantsSize; }
 
-const Shader::Uniforms& Shader::getUniforms(Uniform::Scope scope) const {
-    const auto index = fmt::underlying(scope);
-    log::expect(index < uniformScopes, "Invalid uniform scope: {}", index);
-    return m_uniformLut.at(index);
-}
+u64 Shader::getLocalUboSize() const { return m_localUboSize; }
+
+u64 Shader::getGlobalUboSize() const { return m_globalUboSize; }
+
+const Shader::Uniforms& Shader::getUniforms() const { return m_uniforms; }
 
 u64 Shader::getInputAttributesStride() const { return m_inputAttributesStride; }
 
@@ -96,8 +164,9 @@ std::string toString(Shader::Stage stage) {
 
 std::string toString(Shader::Uniform uniform) {
     return fmt::format(
-      "Uniform: {:>13} / offset {:04}. / {:04}b / {:7} / '{}'", uniform.scope,
-      uniform.offset, uniform.size, uniform.type, uniform.name
+      "Uniform: {:>13} / binding {:02} / offset {:04}. / {:04}b / {:7} / '{}'",
+      uniform.scope, uniform.binding, uniform.offset, uniform.size, uniform.type,
+      uniform.name
     );
 }
 

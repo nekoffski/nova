@@ -23,13 +23,10 @@ void GridRenderPass::render(
   RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
   [[maybe_unused]] u64 frameNumber
 ) {
-    m_shaderDataBinder->setGlobalUniforms(
-      commandBuffer, imageIndex,
-      [&](ShaderDataBinder::Setter& setter) {
-          setter.set("view", packet.camera->getViewMatrix());
-          setter.set("projection", packet.camera->getProjectionMatrix());
-      }
-    );
+    setGlobalUniforms(commandBuffer, imageIndex, [&](auto& setter) {
+        setter.set("view", packet.camera->getViewMatrix());
+        setter.set("projection", packet.camera->getProjectionMatrix());
+    });
     commandBuffer.execute(DrawCommand{ .vertexCount = 6u });
 }
 

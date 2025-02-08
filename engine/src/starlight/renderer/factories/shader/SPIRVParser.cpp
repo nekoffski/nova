@@ -71,14 +71,7 @@ static Shader::Uniform::Scope getScope(u32 set) {
 
 void SPIRVParser::processUniforms() {
     for (auto& res : m_resources.uniform_buffers) {
-        log::expect(
-          m_compiler.get_decoration(res.id, spv::DecorationBinding) == 0,
-          "Uniform Buffer Objects bindings must be equal to 0"
-        );
-
         auto type = m_compiler.get_type(res.base_type_id);
-        auto set  = m_compiler.get_decoration(res.id, spv::DecorationDescriptorSet);
-
         for (u32 i = 0; i < type.member_types.size(); i++) {
             const auto [internalType, _] =
               getTypeInfo(m_compiler.get_type(type.member_types[i]));
@@ -87,10 +80,13 @@ void SPIRVParser::processUniforms() {
               .offset = m_compiler.get_member_decoration(
                 res.base_type_id, i, spv::DecorationOffset
               ),
-              .type  = internalType,
-              .size  = m_compiler.get_declared_struct_member_size(type, i),
-              .scope = getScope(set),
-              .name  = m_compiler.get_member_name(res.base_type_id, i),
+              .binding = m_compiler.get_decoration(res.id, spv::DecorationBinding),
+              .type    = internalType,
+              .size    = m_compiler.get_declared_struct_member_size(type, i),
+              .scope   = getScope(
+                m_compiler.get_decoration(res.id, spv::DecorationDescriptorSet)
+              ),
+              .name = m_compiler.get_member_name(res.base_type_id, i),
             });
         }
     }
@@ -119,16 +115,12 @@ void SPIRVParser::processPushConstants() {
 
 void SPIRVParser::processSamplers() {
     for (auto& res : m_resources.sampled_images) {
-        log::expect(
-          m_compiler.get_decoration(res.id, spv::DecorationBinding) == 1,
-          "SPIRV binding for samplers must be equal to 1"
-        );
-
         m_output.uniforms.push_back(Shader::Uniform{
-          .offset = m_compiler.get_decoration(res.id, spv::DecorationLocation),
-          .type   = Shader::DataType::sampler,
-          .size   = 0u,
-          .scope  = getScope(
+          .offset  = m_compiler.get_decoration(res.id, spv::DecorationLocation),
+          .binding = m_compiler.get_decoration(res.id, spv::DecorationBinding),
+          .type    = Shader::DataType::sampler,
+          .size    = 0u,
+          .scope   = getScope(
             m_compiler.get_decoration(res.id, spv::DecorationDescriptorSet)
           ),
           .name = res.name,

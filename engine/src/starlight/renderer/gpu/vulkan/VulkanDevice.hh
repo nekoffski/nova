@@ -124,6 +124,8 @@ public:
       const Pipeline::Properties& props
     ) override;
 
+    UniquePointer<ShaderDataBinder> createShaderDataBinder(Shader& shader) override;
+
     UniquePointer<Shader> createShader(const Shader::Properties& props) override;
 
     UniquePointer<CommandBuffer> createCommandBuffer(

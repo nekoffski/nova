@@ -53,6 +53,9 @@ int main(int argc, char** argv) {
     sl::Renderer renderer{ context };
     sl::RenderGraph renderGraph{ renderer };
 
+    auto shader = sl::ShaderFactory::get().load("Builtin.Shader.Material");
+    return 1;
+
     UI ui{};
 
     sl::Vec2<sl::f32> viewportOffset{ 0.0f, 0.0f };

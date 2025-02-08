@@ -46,11 +46,6 @@ VulkanShader::VulkanShader(
   VulkanDevice& device, const Shader::Properties& properties
 ) : Shader(properties), m_device(device) {
     const auto stagesCount = properties.stages.size();
-    log::expect(
-      stagesCount <= maxStages, "Exceed maximum stages count for shader: {} <= {}",
-      stagesCount, maxStages
-    );
-
     m_modules.reserve(stagesCount);
     m_pipelineStageInfos.reserve(stagesCount);
 
@@ -89,7 +84,72 @@ void VulkanShader::prepareAttributeDescriptions() {
     }
 }
 
-void VulkanShader::createDescriptorSetLayouts() {}
+void VulkanShader::createDescriptorSetLayouts() {
+    log::debug("Creating descriptor set layouts");
+    createDescriptorSetLayout(Uniform::Scope::global);
+    createDescriptorSetLayout(Uniform::Scope::local);
+}
+
+void VulkanShader::createDescriptorSetLayout(Uniform::Scope scope) {
+    log::debug("Creating {} descriptor set layout", scope);
+    const auto& uniforms    = m_uniforms.get(scope);
+    const auto uniformCount = uniforms.size();
+
+    auto& bindings = m_descriptorSetsBindings.at(static_cast<u8>(scope));
+    const auto samplerCount =
+      scope == Uniform::Scope::local ? m_localSamplerCount : m_globalSamplerCount;
+
+    std::vector<VkDescriptorSetLayoutBinding> bindingLayouts;
+    bindingLayouts.reserve(2);
+
+    VkDescriptorSetLayoutBinding bindingLayout;
+    bindingLayout.pImmutableSamplers = nullptr;
+    bindingLayout.stageFlags =
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    const auto nonSamplerCount = uniformCount - samplerCount;
+    log::debug("\tNon-sampler uniform count: {:02}", nonSamplerCount);
+
+    if (nonSamplerCount > 0) {
+        bindingLayout.descriptorCount = 1;
+        bindingLayout.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        bindingLayout.binding         = bindings.count;
+
+        bindings.ubo.emplace(bindings.count++);
+        bindingLayouts.push_back(bindingLayout);
+        log::debug("\tUBO binding: {:02}.", bindingLayout.binding);
+    }
+
+    log::debug("\tSampler count: {:02}", samplerCount);
+    if (samplerCount > 0) {
+        bindingLayout.descriptorCount = samplerCount;
+        bindingLayout.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        bindingLayout.binding         = bindings.count;
+
+        bindings.sampler.emplace(bindings.count++);
+        bindingLayouts.push_back(bindingLayout);
+        log::debug("\tSamplers binding: {:02}.", bindingLayout.binding);
+    }
+
+    log::trace(
+      "Creating descriptor set layout {}. bindings: {}",
+      m_descriptorSetLayouts.size() + 1, bindings.count
+    );
+
+    VkDescriptorSetLayoutCreateInfo info;
+    clearMemory(&info);
+    info.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    info.bindingCount = bindings.count;
+    info.pBindings    = bindingLayouts.data();
+
+    VkDescriptorSetLayout layout;
+    log::expect(vkCreateDescriptorSetLayout(
+      m_device.logical.handle, &info, m_device.allocator, &layout
+    ));
+    log::trace("vkCreateDescriptorSetLayout: {}", static_cast<void*>(layout));
+
+    m_descriptorSetLayouts.push_back(layout);
+}
 
 void VulkanShader::processStages() {
     for (const auto& stage : properties.stages) processStage(stage);
@@ -113,15 +173,24 @@ const std::vector<VkShaderModule> VulkanShader::getModules() const {
     return m_modules;
 }
 
+const VulkanShader::Bindings& VulkanShader::getDescriptorSetBindings(
+  Uniform::Scope scope
+) const {
+    log::expect(
+      scope < Uniform::Scope::local, "Invalid descriptor set binding scope: {}",
+      fmt::underlying(scope)
+    );
+    return m_descriptorSetsBindings.at(static_cast<u8>(scope));
+}
+
 void VulkanShader::processStage(const Shader::Stage& stage) {
     const auto& code = stage.sourceCode;
 
     VkShaderModuleCreateInfo moduleCreateInfo;
     clearMemory(&moduleCreateInfo);
     moduleCreateInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    moduleCreateInfo.flags    = toVk(stage.type);
     moduleCreateInfo.pCode    = reinterpret_cast<const u32*>(code.data());
-    moduleCreateInfo.codeSize = code.size() / sizeof(u32);
+    moduleCreateInfo.codeSize = code.size();
 
     VkShaderModule shaderModule = VK_NULL_HANDLE;
 
@@ -142,15 +211,6 @@ void VulkanShader::processStage(const Shader::Stage& stage) {
 }
 
 }  // namespace sl::vk
-
-// constexpr u32 shaderMaxStages           = 8;
-// constexpr u32 shaderMaxGlobalTextures   = 31;
-// constexpr u32 shaderMaxInstanceTextures = 31;
-// constexpr u32 shaderMaxAttributes       = 16;
-// constexpr u32 descSetIndexGlobal        = 0;
-// constexpr u32 descSetIndexInstance      = 1;
-// constexpr u32 bindingIndexUBO           = 0;
-// constexpr u32 bindingIndexSampler       = 1;
 
 // static const std::unordered_map<Shader::Stage::Type, VkShaderStageFlagBits>
 //   VulkanShaderStages = {
@@ -381,7 +441,7 @@ void VulkanShader::processStage(const Shader::Stage& stage) {
 
 //     u32 location                             = 0;
 //     static constexpr int maxGlobalTextures   = 128;  // TODO: configurable
-//     static constexpr int maxInstanceTextures = 128;  // TODO: configurable
+//     static constexpr int maxLocalTextures = 128;  // TODO: configurable
 
 //     if (props.scope == Scope::global) {
 //         const auto globalTextureCount = m_globalTextures.size();
@@ -394,9 +454,9 @@ void VulkanShader::processStage(const Shader::Stage& stage) {
 //         m_globalTextures.push_back(defaultTexture);
 //     } else {
 //         log::expect(
-//           m_instanceTextureCount + 1 <= maxInstanceTextures,
+//           m_instanceTextureCount + 1 <= maxLocalTextures,
 //           "Shader instance texture count {} exceed maximum {}",
-//           m_instanceTextureCount + 1, maxInstanceTextures
+//           m_instanceTextureCount + 1, maxLocalTextures
 //         );
 //         location = m_instanceTextureCount;
 //         ++m_instanceTextureCount;

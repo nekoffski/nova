@@ -72,16 +72,34 @@ public:
 private:
     ResourceRef<Shader> m_shader;
     UniquePointer<Pipeline> m_pipeline;
-
-protected:
     UniquePointer<ShaderDataBinder> m_shaderDataBinder;
-
-    void drawMesh(Mesh& mesh, CommandBuffer& buffer);
 
     virtual void render(
       RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
       u64 frameNumber
     ) = 0;
+
+protected:
+    template <typename T>
+    void setPushConstant(
+      CommandBuffer& commandBuffer, const std::string& name, T&& value
+    ) {
+        m_shaderDataBinder->setPushConstant(
+          *m_pipeline, commandBuffer, name, std::forward<T>(value)
+        );
+    }
+
+    void setGlobalUniforms(
+      CommandBuffer& commandBuffer, u32 imageIndex,
+      ShaderDataBinder::UniformCallback&& callback
+    );
+
+    void setLocalUniforms(
+      CommandBuffer& commandBuffer, u32 id, u32 imageIndex,
+      ShaderDataBinder::UniformCallback&& callback
+    );
+
+    void drawMesh(Mesh& mesh, CommandBuffer& buffer);
 };
 
 }  // namespace sl

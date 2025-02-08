@@ -65,7 +65,9 @@ RenderPassBackend::Properties RenderPassBase::createDefaultProperties(
 RenderPass::RenderPass(
   Renderer& renderer, ResourceRef<Shader> shader, const Vec2<f32>& viewportOffset,
   std::optional<std::string> name
-) : RenderPassBase(renderer, viewportOffset, name), m_shader(shader) {}
+) :
+    RenderPassBase(renderer, viewportOffset, name), m_shader(shader),
+    m_shaderDataBinder(m_renderer.getDevice().createShaderDataBinder(*m_shader)) {}
 
 void RenderPass::run(
   RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
@@ -95,6 +97,24 @@ void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     m_renderPassBackend =
       device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
     m_pipeline = device.createPipeline(*m_shader, *m_renderPassBackend);
+}
+
+void RenderPass::setLocalUniforms(
+  CommandBuffer& commandBuffer, u32 id, u32 imageIndex,
+  ShaderDataBinder::UniformCallback&& callback
+) {
+    m_shaderDataBinder->setLocalUniforms(
+      *m_pipeline, commandBuffer, imageIndex, id, std::move(callback)
+    );
+}
+
+void RenderPass::setGlobalUniforms(
+  CommandBuffer& commandBuffer, u32 imageIndex,
+  ShaderDataBinder::UniformCallback&& callback
+) {
+    m_shaderDataBinder->setGlobalUniforms(
+      *m_pipeline, commandBuffer, imageIndex, std::move(callback)
+    );
 }
 
 void RenderPass::drawMesh(Mesh& mesh, CommandBuffer& commandBuffer) {
