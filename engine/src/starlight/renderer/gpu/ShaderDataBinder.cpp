@@ -36,32 +36,38 @@ const Shader::Uniform& ShaderDataBinder::Setter::getUniform(
 ShaderDataBinder::ShaderDataBinder(Shader& shader) :
     m_uniforms(shader.getUniforms()),
     m_globalSetter(
-      [&](const auto& u, const void* v) { setGlobalUniform(u, v); },
-      [&](const auto& u, const Texture* v) { setGlobalSampler(u, v); },
+      [&](const auto& uniform, const void* value) {
+          setGlobalUniform(uniform, value);
+      },
+      [&](const auto& uniform, const Texture* value) {
+          setGlobalSampler(uniform, value);
+      },
       m_uniforms.get(Shader::Uniform::Scope::global)
-    ),
-    m_localSetter(
-      [&](const auto& u, const void* v) { setLocalUniform(u, v); },
-      [&](const auto& u, const Texture* v) { setLocalSampler(u, v); },
-      m_uniforms.get(Shader::Uniform::Scope::local)
     ) {}
 
 void ShaderDataBinder::setGlobalUniforms(
   Pipeline& pipeline, CommandBuffer& commandBuffer, u32 imageIndex,
   UniformCallback&& callback
 ) {
-    bindGlobalDescriptor();
     callback(m_globalSetter);
-    updateGlobalDescriptor(commandBuffer, imageIndex, pipeline);
+    updateGlobalDescriptorSet(commandBuffer, imageIndex, pipeline);
 }
 
 void ShaderDataBinder::setLocalUniforms(
   Pipeline& pipeline, CommandBuffer& commandBuffer, u32 id, u32 imageIndex,
   UniformCallback&& callback
 ) {
-    bindLocalDescriptor(id);
-    callback(m_localSetter);
-    updateLocalDescriptor(commandBuffer, imageIndex, pipeline);
+    Setter localSetter{
+        [&](const auto& uniform, const void* value) {
+            setLocalUniform(uniform, id, value);
+        },
+        [&](const auto& uniform, const Texture* value) {
+            setLocalSampler(uniform, id, value);
+        },
+        m_uniforms.get(Shader::Uniform::Scope::local)
+    };
+    callback(localSetter);
+    updateLocalDescriptorSet(commandBuffer, id, imageIndex, pipeline);
 }
 
 }  // namespace sl

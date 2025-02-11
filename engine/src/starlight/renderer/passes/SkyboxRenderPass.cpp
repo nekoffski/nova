@@ -13,10 +13,18 @@ SkyboxRenderPass::SkyboxRenderPass(
       "SkyboxRenderPass"
     ) {}
 
-RenderPassBackend::Properties SkyboxRenderPass::createProperties(
+RenderPassBackend::Properties SkyboxRenderPass::createRenderPassProperties(
   [[maybe_unused]] bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
-    return createDefaultProperties(Attachment::swapchainColor, ClearFlags::color);
+    return generateRenderPassProperties(
+      Attachment::swapchainColor, ClearFlags::color
+    );
+}
+
+Pipeline::Properties SkyboxRenderPass::createPipelineProperties() {
+    auto props     = RenderPass::createPipelineProperties();
+    props.cullMode = CullMode::front;
+    return props;
 }
 
 void SkyboxRenderPass::render(
@@ -36,8 +44,8 @@ void SkyboxRenderPass::render(
 
         setter.set("view", viewMatrix);
         setter.set("projection", camera->getProjectionMatrix());
+        setter.set("cubeMap", skybox->getCubeMap());
     });
-    // skybox->applyUniforms(*m_shader, commandBuffer, imageIndex);
 
     drawMesh(*MeshFactory::get().getCube(), commandBuffer);
 }

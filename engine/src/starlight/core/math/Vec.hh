@@ -1,7 +1,6 @@
 #pragma once
 
 #include "starlight/core/Core.hh"
-#include "starlight/core/Utils.hh"
 
 #include "Glm.hh"
 
@@ -125,23 +124,4 @@ const Vec3<f32> worldUp    = Vec3<f32>{ 0.0f, 1.0f, 0.0f };
 const Vec3<f32> worldRight = Vec3<f32>{ 1.0f, 0.0f, 0.0 };
 const Vec3<f32> worldFront = Vec3<f32>{ 0.0f, 0.0f, 1.0f };
 
-std::string toString(const Vec2<f32>& vector);
-std::string toString(const Vec3<f32>& vector);
-std::string toString(const Vec4<f32>& vector);
-
 }  // namespace sl
-
-namespace glm {
-
-inline std::string toString(const vec4& v) { return sl::toString(v); }
-inline std::string toString(const vec3& v) { return sl::toString(v); }
-inline std::string toString(const vec2& v) { return sl::toString(v); }
-
-template <typename T>
-requires sl::HasToString<T>
-std::ostream& operator<<(std::ostream& stream, const T& value) {
-    stream << toString(value);
-    return stream;
-}
-
-}  // namespace glm

@@ -13,7 +13,7 @@ Pipeline::Properties Pipeline::Properties::createDefault() {
         .viewport         = { origin, size },
         .scissor          = { origin, size },
         .polygonMode      = PolygonMode::fill,
-        .cullMode         = CullMode::front,
+        .cullMode         = CullMode::back,
         .depthTestEnabled = true,
     };
 }

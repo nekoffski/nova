@@ -8,7 +8,7 @@ sl::UIRenderPass::UIRenderPass(Renderer& renderer, UI& ui) :
     RenderPassBase(renderer, { 0.0f, 0.0f }, "UIRenderPass"), m_ui(ui) {}
 
 void UIRenderPass::init(bool hasPreviousPass, bool hasNextPass) {
-    const auto props = createProperties(hasPreviousPass, hasNextPass);
+    const auto props = createRenderPassProperties(hasPreviousPass, hasNextPass);
     auto& device     = m_renderer.getDevice();
 
     m_renderPassBackend.clear();
@@ -29,10 +29,10 @@ void UIRenderPass::run(
     m_renderPassBackend->run(commandBuffer, imageIndex, [&] { m_ui.render(); });
 }
 
-RenderPassBackend::Properties UIRenderPass::createProperties(
+RenderPassBackend::Properties UIRenderPass::createRenderPassProperties(
   bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
-    return createDefaultProperties(
+    return generateRenderPassProperties(
       Attachment::swapchainColor,
       hasPreviousPass ? ClearFlags::none : ClearFlags::color,
       RenderPassBackend::Type::ui

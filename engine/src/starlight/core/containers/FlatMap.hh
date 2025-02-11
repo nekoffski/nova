@@ -3,7 +3,7 @@
 #include "starlight/core/Core.hh"
 #include "starlight/core/Concepts.hh"
 
-#include "StableVector.hh"
+#include "StaticVector.hh"
 
 namespace sl {
 
@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    StableVector<Record> m_buffer;
+    StaticVector<Record> m_buffer;
 };
 
 }  // namespace sl

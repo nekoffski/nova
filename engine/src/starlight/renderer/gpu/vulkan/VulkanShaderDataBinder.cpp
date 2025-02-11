@@ -14,42 +14,271 @@ VulkanShaderDataBinder::VulkanShaderDataBinder(
     ShaderDataBinder(shader), m_device(device), m_shader(shader),
     m_descriptorPool(VK_NULL_HANDLE), m_globalUboStride(0u), m_localUboStride(0u),
     m_globalUboOffset(0u), m_uniformBufferView(nullptr),
-    m_globalDescriptorSets(maxFramesInFlight, VK_NULL_HANDLE) {
+    m_globalDescriptorSets(maxFramesInFlight, VK_NULL_HANDLE),
+    m_globalTextures(shader.getGlobalSamplerCount(), nullptr) {
     createDescriptorPool();
     createUniformBuffer();
 }
 
-u32 VulkanShaderDataBinder::acquireLocalDescriptor() { return u32(); }
+VulkanShaderDataBinder::~VulkanShaderDataBinder() {
+    m_device.waitIdle();
 
-void VulkanShaderDataBinder::releaseLocalDescriptor(u32 id) {}
+    log::expect(vkFreeDescriptorSets(
+      m_device.logical.handle, m_descriptorPool, maxFramesInFlight,
+      m_globalDescriptorSets.data()
+    ));
 
-void VulkanShaderDataBinder::bindLocalDescriptor(u32 id) {}
+    for (auto& localSet : m_localDescriptorSets) {
+        if (localSet) {
+            log::expect(vkFreeDescriptorSets(
+              m_device.logical.handle, m_descriptorPool, maxFramesInFlight,
+              localSet->descriptorSets.data()
+            ));
+        }
+    }
+    vkDestroyDescriptorPool(
+      m_device.logical.handle, m_descriptorPool, m_device.allocator
+    );
+}
 
-void VulkanShaderDataBinder::bindGlobalDescriptor() {}
+u32 VulkanShaderDataBinder::acquireLocalDescriptorSet() {
+    auto localSet = findFreeLocalDescriptorSet();
+    localSet->textures.resize(m_shader.getLocalSamplerCount(), nullptr);
 
-void VulkanShaderDataBinder::updateGlobalDescriptor(
+    if (auto localUboSize = m_shader.getLocalUboSize(); localUboSize > 0u) {
+        auto allocatedRange = m_uniformBuffer->allocate(localUboSize);
+        log::expect(
+          allocatedRange.has_value(), "Could not allocate space for local UBO"
+        );
+
+        localSet->offset = allocatedRange->offset;
+        log::debug("Allocated offset={} for instance resources", localSet->offset);
+    } else {
+        log::debug("No uniforms in local UBO, not allocating memory");
+    }
+
+    const auto& bindings =
+      m_shader.getDescriptorSetBindings(Shader::Uniform::Scope::local);
+
+    if (bindings.count > 0) {
+        auto descriptorSetLayouts = m_shader.getDescriptorSetLayouts();
+
+        std::vector<VkDescriptorSetLayout> globalLayouts(
+          maxFramesInFlight, descriptorSetLayouts[Shader::uboLocalSet]
+        );
+
+        VkDescriptorSetAllocateInfo allocateInfo;
+        clearMemory(&allocateInfo);
+        allocateInfo.sType          = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocateInfo.descriptorPool = m_descriptorPool;
+        allocateInfo.descriptorSetCount = maxFramesInFlight;
+        allocateInfo.pSetLayouts        = globalLayouts.data();
+
+        log::expect(vkAllocateDescriptorSets(
+          m_device.logical.handle, &allocateInfo, localSet->descriptorSets.data()
+        ));
+        log::trace("vkAllocateDescriptorSets");
+        for (auto& descriptorSet : localSet->descriptorSets)
+            log::trace("\t {}", static_cast<void*>(descriptorSet));
+    }
+    return localSet->id;
+}
+
+void VulkanShaderDataBinder::releaseLocalDescriptorSet(u32 id) {
+    auto& localSet = m_localDescriptorSets[id];
+
+    log::debug("Releaseing local descriptor set: {}", id);
+    log::expect(localSet, "Local descriptor set with id {} not found", id);
+
+    m_device.waitIdle();
+
+    log::trace("vkFreeDescriptorSets");
+    for (auto& descriptorSet : localSet->descriptorSets)
+        log::trace("\t {}", static_cast<void*>(descriptorSet));
+
+    log::expect(vkFreeDescriptorSets(
+      m_device.logical.handle, m_descriptorPool, maxFramesInFlight,
+      localSet->descriptorSets.data()
+    ));
+
+    m_uniformBuffer->free(Range{
+      .offset = localSet->offset,
+      .size   = m_localUboStride,
+    });
+
+    localSet.clear();
+}
+
+void VulkanShaderDataBinder::updateGlobalDescriptorSet(
   CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline
-) {}
+) {
+    VkDescriptorBufferInfo bufferInfo;
+    bufferInfo.buffer = m_uniformBuffer->getHandle();
+    bufferInfo.offset = m_globalUboOffset;
+    bufferInfo.range  = m_globalUboStride;
 
-void VulkanShaderDataBinder::updateLocalDescriptor(
-  CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline
-) {}
+    VkWriteDescriptorSet uboWrite;
+    clearMemory(&uboWrite);
+    uboWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    uboWrite.dstSet          = m_globalDescriptorSets[imageIndex];
+    uboWrite.dstBinding      = 0;
+    uboWrite.dstArrayElement = 0;
+    uboWrite.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboWrite.descriptorCount = 1;
+    uboWrite.pBufferInfo     = &bufferInfo;
+
+    std::array<VkWriteDescriptorSet, Shader::descriptorSetCount> descriptorWrites;
+    descriptorWrites[0] = uboWrite;
+
+    std::vector<VkDescriptorImageInfo> imageInfos;
+    if (auto n = m_shader.getGlobalSamplerCount(); n > 0) {
+        imageInfos.reserve(m_globalTextures.size());
+        for (const auto& texture : m_globalTextures) {
+            imageInfos.emplace_back(
+              texture->getSampler(), texture->getView(),
+              texture->getLayout()  // TODO: transition layout?
+            );
+
+            VkWriteDescriptorSet samplerDescriptor;
+            clearMemory(&samplerDescriptor);
+            samplerDescriptor.sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            samplerDescriptor.dstSet     = m_globalDescriptorSets[imageIndex];
+            samplerDescriptor.dstBinding = 1;
+            samplerDescriptor.descriptorType =
+              VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerDescriptor.descriptorCount = imageInfos.size();
+            samplerDescriptor.pImageInfo      = imageInfos.data();
+            descriptorWrites[1]               = samplerDescriptor;
+        }
+    }
+
+    const auto bindingCount =
+      m_shader.getDescriptorSetBindings(Shader::Uniform::Scope::global).count;
+    vkUpdateDescriptorSets(
+      m_device.logical.handle, bindingCount, descriptorWrites.data(), 0, 0
+    );
+
+    auto globalDescriptor = &m_globalDescriptorSets[imageIndex];
+
+    vkCmdBindDescriptorSets(
+      static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle(),
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      static_cast<VulkanPipeline&>(pipeline).getLayout(), 0, 1, globalDescriptor, 0,
+      0
+    );
+}
+
+void VulkanShaderDataBinder::updateLocalDescriptorSet(
+  CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline
+) {
+    const auto localDescriptor = m_localDescriptorSets[id].get();
+
+    std::array<VkWriteDescriptorSet, Shader::descriptorSetCount> descriptorWrites;
+    VkDescriptorBufferInfo bufferInfo;
+
+    u32 descriptorCount = 0;
+    u32 descriptorIndex = 0;
+
+    // 0 - uniform buffer
+    const auto samplerCount    = m_shader.getLocalSamplerCount();
+    const auto nonSamplerCount = m_shader.getLocalUniformCount();
+
+    if (nonSamplerCount > 0) {
+        bufferInfo.buffer = m_uniformBuffer->getHandle();
+        bufferInfo.offset = localDescriptor->offset;
+        bufferInfo.range  = m_localUboStride;
+
+        VkWriteDescriptorSet uboDescriptor;
+        clearMemory(&uboDescriptor);
+        uboDescriptor.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        uboDescriptor.dstSet          = localDescriptor->descriptorSets[imageIndex];
+        uboDescriptor.dstBinding      = descriptorIndex;
+        uboDescriptor.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboDescriptor.pBufferInfo     = &bufferInfo;
+        uboDescriptor.descriptorCount = 1;
+
+        descriptorWrites[descriptorCount++] = uboDescriptor;
+        descriptorIndex++;
+    }
+
+    std::vector<VkDescriptorImageInfo> imageInfos;
+    if (samplerCount > 0) {
+        // iterate samplers
+        imageInfos.reserve(samplerCount);
+        for (const auto& texture : localDescriptor->textures) {
+            imageInfos.emplace_back(
+              texture->getSampler(), texture->getView(), texture->getLayout()
+            );
+        }
+
+        VkWriteDescriptorSet samplerDescriptor;
+        clearMemory(&samplerDescriptor);
+        samplerDescriptor.sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        samplerDescriptor.dstSet     = localDescriptor->descriptorSets[imageIndex];
+        samplerDescriptor.dstBinding = descriptorIndex;
+        samplerDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerDescriptor.descriptorCount   = samplerCount;
+        samplerDescriptor.pImageInfo        = imageInfos.data();
+        descriptorWrites[descriptorCount++] = samplerDescriptor;
+    }
+
+    if (descriptorCount > 0) {
+        vkUpdateDescriptorSets(
+          m_device.logical.handle, descriptorCount, descriptorWrites.data(), 0, 0
+        );
+    }
+
+    vkCmdBindDescriptorSets(
+      static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle(),
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      static_cast<VulkanPipeline&>(pipeline).getLayout(), 1, 1,
+      &localDescriptor->descriptorSets[imageIndex], 0, 0
+    );
+}
 
 void VulkanShaderDataBinder::setGlobalUniform(
   const Shader::Uniform& uniform, const void* value
-) {}
+) {
+    setUniform(
+      Range{
+        .offset = m_globalUboOffset + uniform.offset,
+        .size   = uniform.size,
+      },
+      value
+    );
+}
+
+void VulkanShaderDataBinder::setLocalUniform(
+  const Shader::Uniform& uniform, u32 id, const void* value
+) {
+    setUniform(
+      Range{
+        .offset = m_localDescriptorSets[id]->offset + uniform.offset,
+        .size   = uniform.size,
+      },
+      value
+    );
+}
+
+void VulkanShaderDataBinder::setUniform(const Range& range, const void* value) {
+    void* address =
+      static_cast<void*>(static_cast<char*>(m_uniformBufferView) + range.offset);
+    std::memcpy(address, value, range.size);
+}
 
 void VulkanShaderDataBinder::setGlobalSampler(
   const Shader::Uniform& uniform, const Texture* value
-) {}
+) {
+    m_globalTextures[uniform.offset] = static_cast<const VulkanTexture*>(value);
+}
 
 void VulkanShaderDataBinder::setLocalSampler(
-  const Shader::Uniform& uniform, const Texture* value
-) {}
-
-void VulkanShaderDataBinder::setLocalUniform(
-  const Shader::Uniform& uniform, const void* value
-) {}
+  const Shader::Uniform& uniform, u32 id, const Texture* value
+) {
+    auto& localDescriptor = m_localDescriptorSets[id];
+    localDescriptor->textures[uniform.binding - 1] =
+      static_cast<const VulkanTexture*>(value);
+}
 
 void VulkanShaderDataBinder::setPushConstant(
   const Shader::Uniform& uniform, const void* value, CommandBuffer& commandBuffer,
@@ -102,8 +331,8 @@ void VulkanShaderDataBinder::createUniformBuffer() {
         : MemoryProperty::undefined;
 
     // TODO: read from config
-    static constexpr u64 maxLocals = 1024;
-    const auto totalBufferSize = m_globalUboStride + (m_localUboStride * maxLocals);
+    const auto totalBufferSize =
+      m_globalUboStride + (m_localUboStride * maxLocalDescriptorSets);
 
     Buffer::Properties bufferProps{
         .size = totalBufferSize,
@@ -125,8 +354,7 @@ void VulkanShaderDataBinder::createUniformBuffer() {
     log::expect(
       allocatedRange.has_value(), "Could not allocate global UBO from uniform buffer"
     );
-    m_globalUboOffset = allocatedRange->offset;
-
+    m_globalUboOffset   = allocatedRange->offset;
     m_uniformBufferView = m_uniformBuffer->lockMemory();
 
     const auto& bindings =
@@ -154,5 +382,19 @@ void VulkanShaderDataBinder::createUniformBuffer() {
             log::trace("\t {}", static_cast<void*>(descriptorSet));
     }
 }
+
+VulkanShaderDataBinder::LocalDescriptorSet*
+  VulkanShaderDataBinder::findFreeLocalDescriptorSet() {
+    for (u64 i = 0u; i < maxLocalDescriptorSets; ++i)
+        if (auto& slot = m_localDescriptorSets[i]; not slot)
+            return slot.emplace(i, m_shader.getLocalSamplerCount());
+    log::panic("Could not find free local descriptor set");
+}
+
+VulkanShaderDataBinder::LocalDescriptorSet::LocalDescriptorSet(
+  u32 id, u32 textureCount
+) :
+    id(id), offset(0u), descriptorSets({ VK_NULL_HANDLE }),
+    textures(textureCount, nullptr) {}
 
 }  // namespace sl::vk

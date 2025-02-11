@@ -20,7 +20,7 @@ private:
       u64 frameNumber
     ) override;
 
-    RenderPassBackend::Properties createProperties(
+    RenderPassBackend::Properties createRenderPassProperties(
       bool hasPreviousPass, bool hasNextPass
     ) override;
 

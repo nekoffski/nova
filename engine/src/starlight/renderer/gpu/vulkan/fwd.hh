@@ -10,7 +10,7 @@ class VulkanShader;
 class VulkanPipeline;
 class VulkanBuffer;
 class VulkanTexture;
-class VulkanTextureLoader;
+class VulkanTextureBase;
 class VulkanQueue;
 class VulkanFence;
 class VulkanSemaphore;

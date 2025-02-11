@@ -10,10 +10,10 @@ GridRenderPass::GridRenderPass(Renderer& renderer, const Vec2<f32>& viewportOffs
       "GridRenderPass"
     ) {}
 
-RenderPassBackend::Properties GridRenderPass::createProperties(
+RenderPassBackend::Properties GridRenderPass::createRenderPassProperties(
   bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
-    return createDefaultProperties(
+    return generateRenderPassProperties(
       Attachment::swapchainColor | Attachment::depth,
       hasPreviousPass ? ClearFlags::none : ClearFlags::depth
     );

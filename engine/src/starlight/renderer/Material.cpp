@@ -10,7 +10,7 @@ namespace sl {
 
 Material::Material(const Properties& props) :
     shininess(props.shininess), diffuseColor(props.diffuseColor),
-    m_renderFrameNumber(0), m_textures(props.textures) {
+    textures(props.textures), m_renderFrameNumber(0) {
     log::trace("Creating Material");
 }
 
@@ -18,33 +18,14 @@ Material::~Material() { log::trace("Destroying Material: {}", getId()); }
 
 bool Material::isTransparent() const {
     return isFlagEnabled(
-      m_textures.diffuse->getImageData().flags, Texture::Flags::transparent
+      textures.diffuse->getImageData().flags, Texture::Flags::transparent
     );
 }
 
-void Material::applyUniforms(
-  ShaderDataBinder::Setter& uniformSetter, CommandBuffer& commandBuffer,
-  u32 imageIndex, const u64 renderFrameNumber
-) {
-    if (m_renderFrameNumber != renderFrameNumber) {
-        // shader.setLocalUniforms(
-        //   commandBuffer, m_shaderUniformOffset, imageIndex,
-        //   [&](Shader::UniformProxy& proxy) {
-        //       proxy.set("diffuseColor", diffuseColor);
-        //       proxy.set("diffuseTexture", m_textures.diffuse);
-        //       proxy.set("specularTexture", m_textures.specular);
-        //       proxy.set("normalTexture", m_textures.normal);
-        //       proxy.set("shininess", shininess);
-        //   }
-        // );
-        m_renderFrameNumber = renderFrameNumber;
-    }
-}
-
-const Material::Textures& Material::getTextures() const { return m_textures; }
+const Material::Textures& Material::getTextures() const { return this->textures; }
 
 void Material::setTextures(const Material::Textures& textures) {
-    m_textures = textures;
+    this->textures = textures;
 }
 
 Material::Properties Material::Properties::createDefault() {

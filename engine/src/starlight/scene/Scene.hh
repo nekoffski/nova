@@ -42,7 +42,7 @@ public:
 
 private:
     ComponentManager m_componentManager;
-    StableVector<Entity> m_entities;
+    StaticVector<Entity> m_entities;
 };
 
 }  // namespace sl

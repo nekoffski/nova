@@ -5,6 +5,7 @@
 #include "starlight/renderer/Core.hh"
 #include "CommandBuffer.hh"
 #include "Texture.hh"
+#include "Swapchain.hh"
 
 namespace sl {
 

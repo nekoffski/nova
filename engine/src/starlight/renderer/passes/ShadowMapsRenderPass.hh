@@ -9,7 +9,7 @@ public:
     explicit ShadowMapsRenderPass(Renderer& renderer);
 
 private:
-    RenderPassBackend::Properties createProperties(
+    RenderPassBackend::Properties createRenderPassProperties(
       bool hasPreviousPass, bool hasNextPass
     ) override;
 

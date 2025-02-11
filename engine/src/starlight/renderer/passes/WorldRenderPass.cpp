@@ -16,10 +16,10 @@ WorldRenderPass::WorldRenderPass(
       "WorldRenderPass"
     ) {}
 
-RenderPassBackend::Properties WorldRenderPass::createProperties(
+RenderPassBackend::Properties WorldRenderPass::createRenderPassProperties(
   [[maybe_unused]] bool hasPreviousPass, [[maybe_unused]] bool hasNextPass
 ) {
-    return createDefaultProperties(
+    return generateRenderPassProperties(
       Attachment::swapchainColor | Attachment::depth, ClearFlags::depth
     );
 }
@@ -52,7 +52,7 @@ void WorldRenderPass::render(
         setter.set("depthMVP", depthMVP);
         setter.set("viewPosition", cameraPosition);
         setter.set("ambientColor", ambientColor);
-        setter.set("renderMode", static_cast<int>(RenderMode::standard));
+        setter.set("mode", static_cast<int>(RenderMode::standard));
         setter.set("shadowMap", packet.shadowMaps[0]);
 
         const auto pointLightCount = packet.pointLights.size();
@@ -103,9 +103,16 @@ void WorldRenderPass::render(
     transparentGeometries.clear();
 
     for (auto& [mesh, material, model, _] : meshes) {
-        // material->applyUniforms(*m_shader, commandBuffer, imageIndex,
-        // frameNumber);
-
+        setLocalUniforms(
+          commandBuffer, getLocalDescriporSetId(material->getId()), imageIndex,
+          [&](auto& setter) {
+              setter.set("diffuseColor", material->diffuseColor);
+              setter.set("diffuseMap", material->textures.diffuse.get());
+              setter.set("specularMap", material->textures.specular.get());
+              setter.set("normalMap", material->textures.normal.get());
+              setter.set("shininess", material->shininess);
+          }
+        );
         setPushConstant(commandBuffer, "model", model);
         drawMesh(*mesh, commandBuffer);
     }

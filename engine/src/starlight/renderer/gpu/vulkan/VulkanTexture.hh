@@ -48,6 +48,8 @@ public:
     void resize(u32 width, u32 height) override;
     void write(std::span<u8> pixels, CommandBuffer* buffer = nullptr) override;
 
+    VkImageLayout getLayout() const;
+
 private:
     void create();
     void destroy();
@@ -63,6 +65,7 @@ private:
     );
 
     VkDeviceMemory m_memory;
+    VkImageLayout m_layout;
 };
 
 class VulkanSwapchainTexture : public VulkanTextureBase {
