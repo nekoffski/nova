@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include "starlight/core/containers/StableVector.hh"
+#include "starlight/core/containers/StaticVector.hh"
 
 #include <vector>
 
@@ -24,7 +24,7 @@ static void emplace_std_vector(benchmark::State& state) {
 
 static void emplace_stable_vector(benchmark::State& state) {
     const auto n = state.range(0);
-    sl::StableVector<Foo> c{ static_cast<sl::u64>(n) };
+    sl::StaticVector<Foo> c{ static_cast<sl::u64>(n) };
 
     for (auto _ : state) {
         for (int i = 0; i < n; ++i) {

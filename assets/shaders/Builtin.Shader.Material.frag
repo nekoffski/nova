@@ -37,13 +37,11 @@ layout (set = 1, binding = 0) uniform LocalUBO {
     float shininess;
 } localUBO;
 
-const int diffuseMap  = 0;
-const int specularMap = 1;
-const int normalMap   = 2;
-
 const float epsilon = 0.00001;
 
-layout (set = 1, binding = 1) uniform sampler2D textures[3];
+layout (set = 1, binding = 1) uniform sampler2D diffuseMap;
+layout (set = 1, binding = 2) uniform sampler2D specularMap;
+layout (set = 1, binding = 3) uniform sampler2D normalMap;
 
 layout (location = 0) flat in int renderMode; // flat indicates that it's not gonna be interpolated between vertices
 
@@ -67,9 +65,9 @@ vec4 calculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
     vec3 halfDirection = normalize(viewDirection + direction);
     float specularFactor = pow(max(dot(halfDirection, normal), epsilon), localUBO.shininess);
 
-    vec4 diffuseTextureSample = texture(textures[diffuseMap], dto.textureCoordinates);
+    vec4 diffuseTextureSample = texture(diffuseMap, dto.textureCoordinates);
     vec4 specularTextureSample = vec4(texture(
-        textures[specularMap], dto.textureCoordinates).rgb, diffuseTextureSample.a);
+        specularMap, dto.textureCoordinates).rgb, diffuseTextureSample.a);
 
     vec4 ambient = vec4(vec3(localUBO.diffuseColor * dto.ambient), 1.0);
     vec4 diffuse = vec4(vec3(light.color * diffuseFactor), 1.0);
@@ -98,9 +96,9 @@ vec4 calculatePointLight(PointLight light, vec3 normal, vec3 fragmentPosition, v
     vec4 specular = light.color * spec;
 
     if (renderMode == 0) {
-        vec4 diffuseTextureSample = texture(textures[diffuseMap], dto.textureCoordinates);
+        vec4 diffuseTextureSample = texture(diffuseMap, dto.textureCoordinates);
         vec4 specularTextureSample = vec4(texture(
-            textures[specularMap], dto.textureCoordinates).rgb, diffuseTextureSample.a);
+            specularMap, dto.textureCoordinates).rgb, diffuseTextureSample.a);
 
         diffuse *= diffuseTextureSample;
         ambient *= diffuseTextureSample;
@@ -118,13 +116,13 @@ void main() {
         vec3 bitangent = cross(dto.normal, dto.tangent.xyz) * dto.tangent.w;
 
         TBN = mat3(tangent, bitangent, normal);
-        vec3 localNormal = 2.0 * texture(textures[normalMap], dto.textureCoordinates).rgb - 1.0;
+        vec3 localNormal = 2.0 * texture(normalMap, dto.textureCoordinates).rgb - 1.0;
         normal = normalize(TBN * localNormal);
     }
 
     if (renderMode == 0 || renderMode == 1) {
         vec3 viewDirection = normalize(dto.viewPosition - dto.fragmentPosition);
-        outColor = dto.ambient * texture(textures[diffuseMap], dto.textureCoordinates);
+        outColor = dto.ambient * texture(diffuseMap, dto.textureCoordinates);
 
         for (int i = 0; i < globalUBO.directionalLightCount; ++i) {
             DirectionalLight light = globalUBO.directionalLights[i];

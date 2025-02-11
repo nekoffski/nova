@@ -99,22 +99,19 @@ public:
         );
     }
 
-    virtual u32 acquireLocalDescriptor()        = 0;
-    virtual void releaseLocalDescriptor(u32 id) = 0;
+    virtual u32 acquireLocalDescriptorSet()        = 0;
+    virtual void releaseLocalDescriptorSet(u32 id) = 0;
 
-private:
-    virtual void bindGlobalDescriptor()      = 0;
-    virtual void bindLocalDescriptor(u32 id) = 0;
-
-    virtual void updateGlobalDescriptor(
+protected:
+    virtual void updateGlobalDescriptorSet(
       CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline
     ) = 0;
-    virtual void updateLocalDescriptor(
-      CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline
+    virtual void updateLocalDescriptorSet(
+      CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline
     ) = 0;
 
     virtual void setLocalSampler(
-      const Shader::Uniform& uniform, const Texture* value
+      const Shader::Uniform& uniform, u32 id, const Texture* value
     ) = 0;
 
     virtual void setGlobalSampler(
@@ -122,7 +119,7 @@ private:
     ) = 0;
 
     virtual void setLocalUniform(
-      const Shader::Uniform& uniform, const void* value
+      const Shader::Uniform& uniform, u32 id, const void* value
     ) = 0;
 
     virtual void setGlobalUniform(
@@ -135,9 +132,7 @@ private:
     ) = 0;
 
     const Shader::Uniforms& m_uniforms;
-
     Setter m_globalSetter;
-    Setter m_localSetter;
 };
 
 }  // namespace sl

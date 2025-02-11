@@ -2,6 +2,7 @@
 
 #include <fmt/core.h>
 
+#include "starlight/core/LazyEvaluator.hh"
 #include "starlight/renderer/Renderer.hh"
 
 namespace sl {
@@ -29,7 +30,7 @@ Rect2<u32> RenderPassBase::getViewport() {
     };
 }
 
-RenderPassBackend::Properties RenderPassBase::createDefaultProperties(
+RenderPassBackend::Properties RenderPassBase::generateRenderPassProperties(
   Attachment attachments, ClearFlags clearFlags, RenderPassBackend::Type type
 ) {
     RenderPassBackend::Properties props;
@@ -62,6 +63,10 @@ RenderPassBackend::Properties RenderPassBase::createDefaultProperties(
     return props;
 }
 
+Pipeline::Properties RenderPassBase::createPipelineProperties() {
+    return Pipeline::Properties::createDefault();
+}
+
 RenderPass::RenderPass(
   Renderer& renderer, ResourceRef<Shader> shader, const Vec2<f32>& viewportOffset,
   std::optional<std::string> name
@@ -88,7 +93,7 @@ void RenderPass::run(
 }
 
 void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
-    const auto props = createProperties(hasPreviousPass, hasNextPass);
+    const auto props = createRenderPassProperties(hasPreviousPass, hasNextPass);
     auto& device     = m_renderer.getDevice();
 
     m_renderPassBackend.clear();
@@ -96,7 +101,9 @@ void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
 
     m_renderPassBackend =
       device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
-    m_pipeline = device.createPipeline(*m_shader, *m_renderPassBackend);
+    m_pipeline = device.createPipeline(
+      *m_shader, *m_renderPassBackend, createPipelineProperties()
+    );
 }
 
 void RenderPass::setLocalUniforms(
@@ -104,8 +111,16 @@ void RenderPass::setLocalUniforms(
   ShaderDataBinder::UniformCallback&& callback
 ) {
     m_shaderDataBinder->setLocalUniforms(
-      *m_pipeline, commandBuffer, imageIndex, id, std::move(callback)
+      *m_pipeline, commandBuffer, id, imageIndex, std::move(callback)
     );
+}
+
+u32 RenderPass::getLocalDescriporSetId(u32 id) {
+    const auto [it, _] = m_localDescriptorSets.try_emplace(
+      id,
+      lazyEvaluate([&] { return m_shaderDataBinder->acquireLocalDescriptorSet(); })
+    );
+    return it->second;
 }
 
 void RenderPass::setGlobalUniforms(

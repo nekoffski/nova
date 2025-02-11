@@ -43,20 +43,16 @@ public:
     ~Material();
 
     bool isTransparent() const;
-    void applyUniforms(
-      ShaderDataBinder::Setter& shader, CommandBuffer& commandBuffer, u32 imageIndex,
-      const u64 renderFrameNumber
-    );
 
     const Textures& getTextures() const;
     void setTextures(const Textures& textures);
 
     float shininess;
     Vec4<f32> diffuseColor;
+    Textures textures;
 
 private:
     u64 m_renderFrameNumber;
-    Textures m_textures;
 };
 
 }  // namespace sl

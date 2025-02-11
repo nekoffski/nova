@@ -10,9 +10,9 @@
 
 namespace sl {
 
-template <typename T> class StableVector {
+template <typename T> class StaticVector {
 public:
-    explicit StableVector(u64 capacity
+    explicit StaticVector(u64 capacity
     ) : m_capacity(capacity), m_buffer(m_capacity) {
         for (u64 i = 0; i < capacity; ++i) m_freeSlots.push(i);
     }

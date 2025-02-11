@@ -18,9 +18,10 @@ public:
         emplace(std::forward<Args>(args)...);
     }
 
-    template <typename... Args> void emplace(Args&&... args) {
+    template <typename... Args> T* emplace(Args&&... args) {
         clear();
         m_pointer = new ((T*)m_buffer.data()) T(std::forward<Args>(args)...);
+        return m_pointer;
     }
 
     T* get() { return m_pointer; }

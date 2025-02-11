@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <optional>
+#include <unordered_map>
 
 #include "starlight/core/Core.hh"
 #include "starlight/core/math/Core.hh"
@@ -38,12 +39,14 @@ public:
 protected:
     virtual Rect2<u32> getViewport();
 
-    RenderPassBackend::Properties createDefaultProperties(
+    RenderPassBackend::Properties generateRenderPassProperties(
       Attachment attachments, ClearFlags clearFlags = ClearFlags::none,
       RenderPassBackend::Type type = RenderPassBackend::Type::normal
     );
 
-    virtual RenderPassBackend::Properties createProperties(
+    virtual Pipeline::Properties createPipelineProperties();
+
+    virtual RenderPassBackend::Properties createRenderPassProperties(
       bool hasPreviousPass, bool hasNextPass
     ) = 0;
 
@@ -74,12 +77,16 @@ private:
     UniquePointer<Pipeline> m_pipeline;
     UniquePointer<ShaderDataBinder> m_shaderDataBinder;
 
+    std::unordered_map<u32, u32> m_localDescriptorSets;
+
     virtual void render(
       RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
       u64 frameNumber
     ) = 0;
 
 protected:
+    u32 getLocalDescriporSetId(u32 id);
+
     template <typename T>
     void setPushConstant(
       CommandBuffer& commandBuffer, const std::string& name, T&& value

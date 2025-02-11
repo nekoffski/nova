@@ -38,6 +38,14 @@ static void sortMembers(Shader::Properties& props) {
     );
 }
 
+static void calculateOffsets(Shader::Properties& props) {
+    u64 offset = 0u;
+    for (auto& attribute : props.inputAttributes) {
+        attribute.offset = offset;
+        offset += attribute.size;
+    }
+}
+
 static void logShaderProperties(const Shader::Properties& props) {
     log::debug("Shader parsed");
     log::debug("\tStages:");
@@ -92,6 +100,7 @@ std::optional<Shader::Properties> parseShader(
     }
 
     sortMembers(props);
+    calculateOffsets(props);
     logShaderProperties(props);
 
     return props;

@@ -146,7 +146,9 @@ VkSampler VulkanTextureBase::getSampler() const { return m_sampler; }
 
 VulkanTexture::VulkanTexture(
   VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
-) : VulkanTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE) {
+) :
+    VulkanTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE),
+    m_layout(VK_IMAGE_LAYOUT_GENERAL) {
     log::trace("Creating vulkan texture: {}", getId());
     create();
 }
@@ -272,7 +274,10 @@ void VulkanTexture::write(std::span<u8> pixels, CommandBuffer* commandBuffer) {
         };
         execute(commandBuffer.get());
     }
+    m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
+
+VkImageLayout VulkanTexture::getLayout() const { return m_layout; }
 
 void VulkanTexture::create() {
     createImage();
@@ -286,7 +291,6 @@ void VulkanTexture::destroy() {
     log::trace("Destroying vulkan texture: {}", getId());
     auto device    = m_device.logical.handle;
     auto allocator = m_device.allocator;
-
     m_device.waitIdle();
 
     if (m_sampler) {
@@ -333,7 +337,6 @@ void VulkanTexture::allocateAndBindMemory() {
       m_device.logical.handle, &memoryAllocateInfo, m_device.allocator, &m_memory
     ));
     log::trace("vkAllocateMemory: {}", static_cast<void*>(m_memory));
-
     log::expect(vkBindImageMemory(m_device.logical.handle, m_image, m_memory, 0));
 }
 
