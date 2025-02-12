@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
     renderGraph.addRenderPass<sl::WorldRenderPass>(viewportOffset);
     renderGraph.addRenderPass<sl::GridRenderPass>(viewportOffset);
-    renderGraph.addRenderPass<sl::UIRenderPass>(ui);
+    // renderGraph.addRenderPass<sl::UIRenderPass>(ui);
 
     const auto viewportSize = window.getFramebufferSize();
 

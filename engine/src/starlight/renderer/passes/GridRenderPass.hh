@@ -13,6 +13,8 @@ private:
       bool hasPreviousPass, bool hasNextPass
     ) override;
 
+    Pipeline::Properties createPipelineProperties() override;
+
     void render(
       RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
       u64 frameNumber

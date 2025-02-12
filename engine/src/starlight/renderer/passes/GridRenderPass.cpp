@@ -19,6 +19,12 @@ RenderPassBackend::Properties GridRenderPass::createRenderPassProperties(
     );
 }
 
+Pipeline::Properties GridRenderPass::createPipelineProperties() {
+    auto props     = RenderPass::createPipelineProperties();
+    props.cullMode = CullMode::none;
+    return props;
+}
+
 void GridRenderPass::render(
   RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
   [[maybe_unused]] u64 frameNumber
