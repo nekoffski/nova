@@ -63,7 +63,7 @@ u32 VulkanShaderDataBinder::acquireLocalDescriptorSet() {
     if (bindings.count > 0) {
         auto descriptorSetLayouts = m_shader.getDescriptorSetLayouts();
 
-        std::vector<VkDescriptorSetLayout> globalLayouts(
+        std::vector<VkDescriptorSetLayout> localLayouts(
           maxFramesInFlight, descriptorSetLayouts[Shader::uboLocalSet]
         );
 
@@ -72,7 +72,7 @@ u32 VulkanShaderDataBinder::acquireLocalDescriptorSet() {
         allocateInfo.sType          = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocateInfo.descriptorPool = m_descriptorPool;
         allocateInfo.descriptorSetCount = maxFramesInFlight;
-        allocateInfo.pSetLayouts        = globalLayouts.data();
+        allocateInfo.pSetLayouts        = localLayouts.data();
 
         log::expect(vkAllocateDescriptorSets(
           m_device.logical.handle, &allocateInfo, localSet->descriptorSets.data()
@@ -173,11 +173,8 @@ void VulkanShaderDataBinder::updateLocalDescriptorSet(
 ) {
     const auto localDescriptor = m_localDescriptorSets[id].get();
 
-    std::array<VkWriteDescriptorSet, Shader::descriptorSetCount> descriptorWrites;
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
     VkDescriptorBufferInfo bufferInfo;
-
-    u32 descriptorCount = 0;
-    u32 descriptorIndex = 0;
 
     // 0 - uniform buffer
     const auto samplerCount    = m_shader.getLocalSamplerCount();
@@ -192,39 +189,38 @@ void VulkanShaderDataBinder::updateLocalDescriptorSet(
         clearMemory(&uboDescriptor);
         uboDescriptor.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         uboDescriptor.dstSet          = localDescriptor->descriptorSets[imageIndex];
-        uboDescriptor.dstBinding      = descriptorIndex;
+        uboDescriptor.dstBinding      = descriptorWrites.size();
         uboDescriptor.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         uboDescriptor.pBufferInfo     = &bufferInfo;
         uboDescriptor.descriptorCount = 1;
 
-        descriptorWrites[descriptorCount++] = uboDescriptor;
-        descriptorIndex++;
+        descriptorWrites.push_back(uboDescriptor);
     }
 
     std::vector<VkDescriptorImageInfo> imageInfos;
-    if (samplerCount > 0) {
-        // iterate samplers
-        imageInfos.reserve(samplerCount);
-        for (const auto& texture : localDescriptor->textures) {
-            imageInfos.emplace_back(
-              texture->getSampler(), texture->getView(), texture->getLayout()
-            );
-        }
+    imageInfos.reserve(samplerCount);
+
+    for (const auto& texture : localDescriptor->textures) {
+        imageInfos.emplace_back(
+          texture->getSampler(), texture->getView(), texture->getLayout()
+        );
 
         VkWriteDescriptorSet samplerDescriptor;
         clearMemory(&samplerDescriptor);
         samplerDescriptor.sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         samplerDescriptor.dstSet     = localDescriptor->descriptorSets[imageIndex];
-        samplerDescriptor.dstBinding = descriptorIndex;
+        samplerDescriptor.dstBinding = descriptorWrites.size();
         samplerDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerDescriptor.descriptorCount   = samplerCount;
-        samplerDescriptor.pImageInfo        = imageInfos.data();
-        descriptorWrites[descriptorCount++] = samplerDescriptor;
+        samplerDescriptor.descriptorCount = 1;
+        samplerDescriptor.pImageInfo      = &imageInfos.back();
+
+        descriptorWrites.push_back(samplerDescriptor);
     }
 
-    if (descriptorCount > 0) {
+    if (descriptorWrites.size() > 0) {
         vkUpdateDescriptorSets(
-          m_device.logical.handle, descriptorCount, descriptorWrites.data(), 0, 0
+          m_device.logical.handle, descriptorWrites.size(), descriptorWrites.data(),
+          0, 0
         );
     }
 
