@@ -34,34 +34,36 @@ public:
     void releaseLocalDescriptorSet(u32 id) override;
 
 private:
-    void updateGlobalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline
-    ) override;
-    void updateLocalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline
+    void bindGlobalDescriptorSet(
+      CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline, bool update
     ) override;
 
-    void updateDescriptorSet(
+    void bindLocalDescriptorSet(
+      CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline,
+      bool update
+    ) override;
+
+    void bindDescriptorSet(
       CommandBuffer& commandBuffer, Pipeline& pipeline,
       VkDescriptorSet& descriptorSet, u64 uniformBufferOffset, u64 stride,
       std::span<const VulkanTexture*> textures, u64 nonSamplerCount,
-      u64 descriptorIndex
+      u64 descriptorIndex, u8& counter
     );
 
-    void setLocalSampler(
+    bool setLocalSampler(
       const Shader::Uniform& uniform, u32 id, const Texture* value
     ) override;
 
-    void setGlobalSampler(const Shader::Uniform& uniform, const Texture* value)
+    bool setGlobalSampler(const Shader::Uniform& uniform, const Texture* value)
       override;
 
-    void setLocalUniform(const Shader::Uniform& uniform, u32 id, const void* value)
+    bool setLocalUniform(const Shader::Uniform& uniform, u32 id, const void* value)
       override;
 
-    void setGlobalUniform(const Shader::Uniform& uniform, const void* value)
+    bool setGlobalUniform(const Shader::Uniform& uniform, const void* value)
       override;
 
-    void setUniform(const Range& range, const void* value);
+    bool setUniform(const Range& range, const void* value);
 
     void setPushConstant(
       const Shader::Uniform& uniform, const void* value,
@@ -78,6 +80,9 @@ private:
     const Shader::DataLayout& m_dataLayout;
 
     VkDescriptorPool m_descriptorPool;
+
+    u8 m_localDescriptorDirtyFrames;
+    u8 m_globalDescriptorDirtyFrames;
 
     u64 m_globalUboStride;
     u64 m_localUboStride;

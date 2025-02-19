@@ -12,6 +12,13 @@
 
 namespace sl {
 
+template <typename T> bool compareAssign(T& lhs, const T& rhs) {
+    if (lhs == rhs) return false;
+
+    lhs = rhs;
+    return true;
+}
+
 constexpr auto into(auto& container) { return std::back_inserter(container); }
 
 template <typename T> T fromString(std::string_view str) { return T{ str }; }

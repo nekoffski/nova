@@ -10,8 +10,8 @@ namespace sl {
 
 Material::Material(const Properties& props) :
     shininess(props.shininess), diffuseColor(props.diffuseColor),
-    textures(props.textures), m_renderFrameNumber(0) {
-    log::trace("Creating Material");
+    textures(props.textures) {
+    log::trace("Creating Material: {}", getId());
 }
 
 Material::~Material() { log::trace("Destroying Material: {}", getId()); }
@@ -20,12 +20,6 @@ bool Material::isTransparent() const {
     return isFlagEnabled(
       textures.diffuse->getImageData().flags, Texture::Flags::transparent
     );
-}
-
-const Material::Textures& Material::getTextures() const { return this->textures; }
-
-void Material::setTextures(const Material::Textures& textures) {
-    this->textures = textures;
 }
 
 Material::Properties Material::Properties::createDefault() {
@@ -42,10 +36,6 @@ Material::Properties Material::Properties::createDefault() {
         .shininess = defaultShininess
     };
     // clang-format on
-}
-
-std::vector<Texture*> Material::Textures::asArray() {
-    return std::vector<Texture*>{ diffuse.get(), specular.get(), normal.get() };
 }
 
 }  // namespace sl

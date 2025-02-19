@@ -12,7 +12,7 @@ void MaterialUI::render(sl::ResourceRef<sl::Material> material) {
     sl::ui::text(ICON_FA_PRESCRIPTION_BOTTLE "  Material - {}", material.getName());
     sl::ui::separator();
 
-    auto materialTextures = material->getTextures();
+    auto materialTextures = material->textures;
     const auto width      = ImGui::GetWindowWidth() / 1.5f;
 
     auto textures = sl::TextureFactory::get().getAll();
@@ -58,7 +58,7 @@ void MaterialUI::render(sl::ResourceRef<sl::Material> material) {
 
     if (textureChanged) {
         sl::TaskQueue::get().callPostFrame([materialTextures, material]() mutable {
-            material->setTextures(materialTextures);
+            material->textures = materialTextures;
         });
     }
 }

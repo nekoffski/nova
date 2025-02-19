@@ -13,6 +13,7 @@ VulkanShaderDataBinder::VulkanShaderDataBinder(
 ) :
     ShaderDataBinder(shader), m_device(device), m_shader(shader),
     m_dataLayout(shader.properties.layout), m_descriptorPool(VK_NULL_HANDLE),
+    m_localDescriptorDirtyFrames(0u), m_globalDescriptorDirtyFrames(0u),
     m_globalUboStride(0u), m_localUboStride(0u), m_globalUboOffset(0u),
     m_uniformBufferView(nullptr),
     m_globalDescriptorSets(maxFramesInFlight, VK_NULL_HANDLE),
@@ -112,58 +113,62 @@ void VulkanShaderDataBinder::releaseLocalDescriptorSet(u32 id) {
     localSet.clear();
 }
 
-void VulkanShaderDataBinder::updateDescriptorSet(
+void VulkanShaderDataBinder::bindDescriptorSet(
   CommandBuffer& commandBuffer, Pipeline& pipeline, VkDescriptorSet& descriptorSet,
   u64 uniformBufferOffset, u64 stride, std::span<const VulkanTexture*> textures,
-  u64 nonSamplerCount, u64 descriptorIndex
+  u64 nonSamplerCount, u64 descriptorIndex, u8& counter
 ) {
-    std::vector<VkWriteDescriptorSet> descriptorWrites;
-    VkDescriptorBufferInfo bufferInfo;
+    if (counter > 0) {
+        counter--;
 
-    if (nonSamplerCount > 0u) {
-        bufferInfo.buffer = m_uniformBuffer->getHandle();
-        bufferInfo.offset = uniformBufferOffset;
-        bufferInfo.range  = stride;
+        std::vector<VkWriteDescriptorSet> descriptorWrites;
+        VkDescriptorBufferInfo bufferInfo;
 
-        VkWriteDescriptorSet uboDescriptor;
-        clearMemory(&uboDescriptor);
-        uboDescriptor.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        uboDescriptor.dstSet          = descriptorSet;
-        uboDescriptor.dstBinding      = descriptorWrites.size();
-        uboDescriptor.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboDescriptor.pBufferInfo     = &bufferInfo;
-        uboDescriptor.descriptorCount = 1;
+        if (nonSamplerCount > 0u) {
+            bufferInfo.buffer = m_uniformBuffer->getHandle();
+            bufferInfo.offset = uniformBufferOffset;
+            bufferInfo.range  = stride;
 
-        descriptorWrites.push_back(uboDescriptor);
+            VkWriteDescriptorSet uboDescriptor;
+            clearMemory(&uboDescriptor);
+            uboDescriptor.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            uboDescriptor.dstSet          = descriptorSet;
+            uboDescriptor.dstBinding      = descriptorWrites.size();
+            uboDescriptor.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uboDescriptor.pBufferInfo     = &bufferInfo;
+            uboDescriptor.descriptorCount = 1;
+
+            descriptorWrites.push_back(uboDescriptor);
+        }
+
+        std::vector<VkDescriptorImageInfo> imageInfos;
+        imageInfos.reserve(textures.size());
+
+        for (const auto& texture : textures) {
+            imageInfos.emplace_back(
+              texture->getSampler(), texture->getView(), texture->getLayout()
+            );
+
+            VkWriteDescriptorSet samplerDescriptor;
+            clearMemory(&samplerDescriptor);
+            samplerDescriptor.sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            samplerDescriptor.dstSet     = descriptorSet;
+            samplerDescriptor.dstBinding = descriptorWrites.size();
+            samplerDescriptor.descriptorType =
+              VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerDescriptor.descriptorCount = 1;
+            samplerDescriptor.pImageInfo      = &imageInfos.back();
+
+            descriptorWrites.push_back(samplerDescriptor);
+        }
+
+        if (descriptorWrites.size() > 0) {
+            vkUpdateDescriptorSets(
+              m_device.logical.handle, descriptorWrites.size(),
+              descriptorWrites.data(), 0, 0
+            );
+        }
     }
-
-    std::vector<VkDescriptorImageInfo> imageInfos;
-    imageInfos.reserve(textures.size());
-
-    for (const auto& texture : textures) {
-        imageInfos.emplace_back(
-          texture->getSampler(), texture->getView(), texture->getLayout()
-        );
-
-        VkWriteDescriptorSet samplerDescriptor;
-        clearMemory(&samplerDescriptor);
-        samplerDescriptor.sType          = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        samplerDescriptor.dstSet         = descriptorSet;
-        samplerDescriptor.dstBinding     = descriptorWrites.size();
-        samplerDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerDescriptor.descriptorCount = 1;
-        samplerDescriptor.pImageInfo      = &imageInfos.back();
-
-        descriptorWrites.push_back(samplerDescriptor);
-    }
-
-    if (descriptorWrites.size() > 0) {
-        vkUpdateDescriptorSets(
-          m_device.logical.handle, descriptorWrites.size(), descriptorWrites.data(),
-          0, 0
-        );
-    }
-
     vkCmdBindDescriptorSets(
       static_cast<VulkanCommandBuffer&>(commandBuffer).getHandle(),
       VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -172,34 +177,40 @@ void VulkanShaderDataBinder::updateDescriptorSet(
     );
 }
 
-void VulkanShaderDataBinder::updateGlobalDescriptorSet(
-  CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline
+void VulkanShaderDataBinder::bindGlobalDescriptorSet(
+  CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline, bool update
 ) {
     const auto nonSamplerCount = m_dataLayout.globalDescriptorSet.nonSamplers.size();
 
-    updateDescriptorSet(
+    if (update) m_globalDescriptorDirtyFrames = maxFramesInFlight;
+
+    bindDescriptorSet(
       commandBuffer, pipeline, m_globalDescriptorSets[imageIndex], m_globalUboOffset,
-      m_globalUboStride, m_globalTextures, nonSamplerCount, Shader::uboGlobalSet
+      m_globalUboStride, m_globalTextures, nonSamplerCount, Shader::uboGlobalSet,
+      m_globalDescriptorDirtyFrames
     );
 }
 
-void VulkanShaderDataBinder::updateLocalDescriptorSet(
-  CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline
+void VulkanShaderDataBinder::bindLocalDescriptorSet(
+  CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline,
+  bool update
 ) {
     const auto localDescriptor = m_localDescriptorSets[id].get();
     const auto nonSamplerCount = m_dataLayout.localDescriptorSet.nonSamplers.size();
 
-    updateDescriptorSet(
+    if (update) m_localDescriptorDirtyFrames = maxFramesInFlight;
+
+    bindDescriptorSet(
       commandBuffer, pipeline, localDescriptor->descriptorSets[imageIndex],
       localDescriptor->offset, m_localUboStride, localDescriptor->textures,
-      nonSamplerCount, Shader::uboLocalSet
+      nonSamplerCount, Shader::uboLocalSet, m_localDescriptorDirtyFrames
     );
 }
 
-void VulkanShaderDataBinder::setGlobalUniform(
+bool VulkanShaderDataBinder::setGlobalUniform(
   const Shader::Uniform& uniform, const void* value
 ) {
-    setUniform(
+    return setUniform(
       Range{
         .offset = m_globalUboOffset + uniform.offset,
         .size   = uniform.size,
@@ -208,10 +219,10 @@ void VulkanShaderDataBinder::setGlobalUniform(
     );
 }
 
-void VulkanShaderDataBinder::setLocalUniform(
+bool VulkanShaderDataBinder::setLocalUniform(
   const Shader::Uniform& uniform, u32 id, const void* value
 ) {
-    setUniform(
+    return setUniform(
       Range{
         .offset = m_localDescriptorSets[id]->offset + uniform.offset,
         .size   = uniform.size,
@@ -220,24 +231,32 @@ void VulkanShaderDataBinder::setLocalUniform(
     );
 }
 
-void VulkanShaderDataBinder::setUniform(const Range& range, const void* value) {
+bool VulkanShaderDataBinder::setUniform(const Range& range, const void* value) {
     void* address =
       static_cast<void*>(static_cast<char*>(m_uniformBufferView) + range.offset);
+
+    if (std::memcmp(address, value, range.size) == 0) [[likely]]
+        return false;
+
     std::memcpy(address, value, range.size);
+    return true;
 }
 
-void VulkanShaderDataBinder::setGlobalSampler(
+bool VulkanShaderDataBinder::setGlobalSampler(
   const Shader::Uniform& uniform, const Texture* value
 ) {
-    m_globalTextures[uniform.offset] = static_cast<const VulkanTexture*>(value);
+    return compareAssign(
+      m_globalTextures[uniform.offset], static_cast<const VulkanTexture*>(value)
+    );
 }
 
-void VulkanShaderDataBinder::setLocalSampler(
+bool VulkanShaderDataBinder::setLocalSampler(
   const Shader::Uniform& uniform, u32 id, const Texture* value
 ) {
-    auto& localDescriptor = m_localDescriptorSets[id];
-    localDescriptor->textures[uniform.offset] =
-      static_cast<const VulkanTexture*>(value);
+    return compareAssign(
+      m_localDescriptorSets[id]->textures[uniform.offset],
+      static_cast<const VulkanTexture*>(value)
+    );
 }
 
 void VulkanShaderDataBinder::setPushConstant(

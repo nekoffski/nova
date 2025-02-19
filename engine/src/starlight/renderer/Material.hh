@@ -27,8 +27,6 @@ public:
         ResourceRef<Texture> diffuse;
         ResourceRef<Texture> specular;
         ResourceRef<Texture> normal;
-
-        std::vector<Texture*> asArray();
     };
 
     struct Properties {
@@ -44,15 +42,9 @@ public:
 
     bool isTransparent() const;
 
-    const Textures& getTextures() const;
-    void setTextures(const Textures& textures);
-
     float shininess;
     Vec4<f32> diffuseColor;
     Textures textures;
-
-private:
-    u64 m_renderFrameNumber;
 };
 
 }  // namespace sl

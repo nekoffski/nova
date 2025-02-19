@@ -43,9 +43,9 @@ class ShaderDataBinder {
 public:
     class Setter {
         using UniformSetter =
-          std::function<void(const Shader::Uniform&, const void*)>;
+          std::function<bool(const Shader::Uniform&, const void*)>;
         using SamplerSetter =
-          std::function<void(const Shader::Uniform&, const Texture*)>;
+          std::function<bool(const Shader::Uniform&, const Texture*)>;
 
     public:
         explicit Setter(
@@ -58,16 +58,19 @@ public:
                  std::remove_pointer_t<std::remove_reference_t<T>>, Texture>)
         void set(const std::string& uniform, T&& value) {
             static constexpr bool isSampler = false;
-            m_uniformSetter(
+            m_updated |= m_uniformSetter(
               getUniform(uniform, isSampler), detail::addressOf(value)
             );
         }
 
         void set(const std::string& uniform, const Texture* value);
+        bool wasUpdated() const;
 
     private:
         const Shader::Uniform& getUniform(const std::string& uniform, bool isSampler)
           const;
+
+        bool m_updated;
 
         UniformSetter m_uniformSetter;
         SamplerSetter m_samplerSetter;
@@ -107,26 +110,27 @@ public:
     virtual void releaseLocalDescriptorSet(u32 id) = 0;
 
 protected:
-    virtual void updateGlobalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline
+    virtual void bindGlobalDescriptorSet(
+      CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline, bool update
     ) = 0;
-    virtual void updateLocalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline
+    virtual void bindLocalDescriptorSet(
+      CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline,
+      bool update
     ) = 0;
 
-    virtual void setLocalSampler(
+    virtual bool setLocalSampler(
       const Shader::Uniform& uniform, u32 id, const Texture* value
     ) = 0;
 
-    virtual void setGlobalSampler(
+    virtual bool setGlobalSampler(
       const Shader::Uniform& uniform, const Texture* value
     ) = 0;
 
-    virtual void setLocalUniform(
+    virtual bool setLocalUniform(
       const Shader::Uniform& uniform, u32 id, const void* value
     ) = 0;
 
-    virtual void setGlobalUniform(
+    virtual bool setGlobalUniform(
       const Shader::Uniform& uniform, const void* value
     ) = 0;
 
@@ -136,7 +140,6 @@ protected:
     ) = 0;
 
     const Shader::DataLayout& m_dataLayout;
-    Setter m_globalSetter;
 };
 
 }  // namespace sl
