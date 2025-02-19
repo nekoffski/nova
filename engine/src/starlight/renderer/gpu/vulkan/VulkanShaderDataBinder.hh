@@ -41,6 +41,13 @@ private:
       CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline
     ) override;
 
+    void updateDescriptorSet(
+      CommandBuffer& commandBuffer, Pipeline& pipeline,
+      VkDescriptorSet descriptorSet, u64 uniformBufferOffset, u64 stride,
+      std::span<const VulkanTexture*> textures, u64 nonSamplerCount,
+      u64 descriptorIndex
+    );
+
     void setLocalSampler(
       const Shader::Uniform& uniform, u32 id, const Texture* value
     ) override;
