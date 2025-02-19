@@ -68,6 +68,7 @@ private:
 
     VulkanDevice& m_device;
     VulkanShader& m_shader;
+    const Shader::DataLayout& m_dataLayout;
 
     VkDescriptorPool m_descriptorPool;
 

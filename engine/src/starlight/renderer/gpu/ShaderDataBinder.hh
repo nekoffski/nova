@@ -50,24 +50,28 @@ public:
     public:
         explicit Setter(
           UniformSetter&& uniformSetter, SamplerSetter&& samplerSetter,
-          const Shader::Uniforms::UniformsMap& uniforms
+          const Shader::DataLayout::DescriptorSet& descriptorLayout
         );
 
         template <typename T>
         requires(not std::is_same_v<
                  std::remove_pointer_t<std::remove_reference_t<T>>, Texture>)
         void set(const std::string& uniform, T&& value) {
-            m_uniformSetter(getUniform(uniform), detail::addressOf(value));
+            static constexpr bool isSampler = false;
+            m_uniformSetter(
+              getUniform(uniform, isSampler), detail::addressOf(value)
+            );
         }
 
         void set(const std::string& uniform, const Texture* value);
 
     private:
-        const Shader::Uniform& getUniform(const std::string& uniform) const;
+        const Shader::Uniform& getUniform(const std::string& uniform, bool isSampler)
+          const;
 
         UniformSetter m_uniformSetter;
         SamplerSetter m_samplerSetter;
-        const Shader::Uniforms::UniformsMap& m_uniforms;
+        const Shader::DataLayout::DescriptorSet& m_descriptorLayout;
     };
 
     explicit ShaderDataBinder(Shader& shader);
@@ -90,12 +94,12 @@ public:
       Pipeline& pipeline, CommandBuffer& commandBuffer, const std::string& name,
       T&& value
     ) {
-        const auto& uniforms = m_uniforms.get(Shader::Uniform::Scope::pushConstant);
+        const auto& uniforms = m_dataLayout.pushConstants.nonSamplers;
         log::expect(
           uniforms.contains(name), "Could not find '{}' push constant", name
         );
         setPushConstant(
-          *uniforms.at(name), detail::addressOf(value), commandBuffer, pipeline
+          uniforms.at(name), detail::addressOf(value), commandBuffer, pipeline
         );
     }
 
@@ -131,7 +135,7 @@ protected:
       CommandBuffer& commandBuffer, Pipeline& pipeline
     ) = 0;
 
-    const Shader::Uniforms& m_uniforms;
+    const Shader::DataLayout& m_dataLayout;
     Setter m_globalSetter;
 };
 

@@ -107,10 +107,10 @@ void WorldRenderPass::render(
           commandBuffer, getLocalDescriporSetId(material->getId()), imageIndex,
           [&](auto& setter) {
               setter.set("diffuseColor", material->diffuseColor);
+              setter.set("shininess", material->shininess);
               setter.set("diffuseMap", material->textures.diffuse.get());
               setter.set("specularMap", material->textures.specular.get());
               setter.set("normalMap", material->textures.normal.get());
-              setter.set("shininess", material->shininess);
           }
         );
         setPushConstant(commandBuffer, "model", model);

@@ -149,7 +149,7 @@ VulkanPipeline::VulkanPipeline(
     VkVertexInputBindingDescription bindingDescription;
     clearMemory(&bindingDescription);
     bindingDescription.binding   = 0;  // Binding index
-    bindingDescription.stride    = shader.getInputAttributesStride();
+    bindingDescription.stride    = shader.properties.layout.inputAttributes.stride;
     bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     // Attributes
@@ -181,7 +181,7 @@ VulkanPipeline::VulkanPipeline(
     VkPushConstantRange pushConstantRange;
     clearMemory(&pushConstantRange);
 
-    if (const auto pushConstantsSize = shader.getPushContantsSize();
+    if (const auto pushConstantsSize = shader.properties.layout.pushConstants.size;
         pushConstantsSize > 0) {
         pushConstantRange.stageFlags =
           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;

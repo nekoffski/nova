@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
@@ -11,7 +12,11 @@
 
 namespace sl {
 
+constexpr auto into(auto& container) { return std::back_inserter(container); }
+
 template <typename T> T fromString(std::string_view str) { return T{ str }; }
+
+std::string spaces(u64 count);
 
 template <typename T>
 requires HasToString<T>

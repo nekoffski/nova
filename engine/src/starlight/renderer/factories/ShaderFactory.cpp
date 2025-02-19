@@ -14,12 +14,8 @@ static const std::vector<std::pair<std::string, Shader::Stage::Type>>
       { "comp", Shader::Stage::Type::compute  },
 };
 
-static void sortMembers(Shader::Properties& props) {
-    std::ranges::sort(props.inputAttributes, [](auto& lhs, auto& rhs) -> bool {
-        return lhs.location < rhs.location;
-    });
-
-    std::ranges::sort(props.uniforms, [](auto& lhs, auto& rhs) -> bool {
+static void removeDuplicates(std::vector<Shader::Uniform>& uniforms) {
+    std::ranges::sort(uniforms, [](auto& lhs, auto& rhs) -> bool {
         if (lhs.scope == rhs.scope) {
             if (lhs.binding == rhs.binding) return lhs.offset < rhs.offset;
             return lhs.binding < rhs.binding;
@@ -27,44 +23,26 @@ static void sortMembers(Shader::Properties& props) {
         return lhs.scope < rhs.scope;
     });
 
-    props.uniforms.erase(
+    uniforms.erase(
       std::unique(
-        props.uniforms.begin(), props.uniforms.end(),
+        uniforms.begin(), uniforms.end(),
         [](auto& lhs, auto& rhs) -> bool {
             return lhs.name == rhs.name && lhs.scope == rhs.scope;
         }
       ),
-      props.uniforms.end()
+      uniforms.end()
     );
-}
-
-static void calculateOffsets(Shader::Properties& props) {
-    u64 offset = 0u;
-    for (auto& attribute : props.inputAttributes) {
-        attribute.offset = offset;
-        offset += attribute.size;
-    }
-}
-
-static void logShaderProperties(const Shader::Properties& props) {
-    log::debug("Shader parsed");
-    log::debug("\tStages:");
-    for (u32 i = 0u; auto& stage : props.stages)
-        log::debug("\t\t{:02}. {}", i++, stage);
-
-    log::debug("\tInput attributes:");
-    for (u32 i = 0u; auto& attribute : props.inputAttributes)
-        log::debug("\t\t{:02}. {}", i++, attribute);
-
-    log::debug("\tUnforms:");
-    for (u32 i = 0u; auto& uniform : props.uniforms)
-        log::debug("\t\t{:02}. {}", i++, uniform);
 }
 
 std::optional<Shader::Properties> parseShader(
   const std::string& basePath, const FileSystem& fs
 ) {
-    Shader::Properties props;
+    std::vector<Shader::Stage> stages;
+    std::vector<Shader::Uniform> uniforms;
+    std::vector<Shader::InputAttribute> attributes;
+
+    stages.reserve(Shader::maxStages);
+
     log::debug("Processing shader program: '{}'", basePath);
 
     for (const auto& [extension, type] : acceptedExtensions) {
@@ -78,32 +56,36 @@ std::optional<Shader::Properties> parseShader(
                 log::warn("Could not parse shader stage: {}", stagePath);
                 return {};
             } else {
-                props.stages.push_back(Shader::Stage{
+                stages.push_back(Shader::Stage{
                   .fullPath   = stagePath,
                   .sourceCode = source,
                   .type       = type,
                 });
 
                 std::ranges::move(
-                  output->attributes, std::back_inserter(props.inputAttributes)
+                  output->attributes, std::back_inserter(attributes)
                 );
-                std::ranges::move(
-                  output->uniforms, std::back_inserter(props.uniforms)
-                );
+                std::ranges::move(output->uniforms, std::back_inserter(uniforms));
             }
         }
     }
 
-    if (props.stages.empty()) {
+    if (stages.empty()) {
         log::warn("Could not parse shader, no stages found");
         return {};
     }
 
-    sortMembers(props);
-    calculateOffsets(props);
-    logShaderProperties(props);
+    removeDuplicates(uniforms);
 
-    return props;
+    Shader::Properties properties{
+        .stages = stages,
+        .layout = Shader::DataLayout{ attributes, uniforms },
+    };
+
+    log::debug("Processed shader:");
+    logObject(properties);
+
+    return properties;
 }
 
 ResourceRef<Shader> ShaderFactory::load(

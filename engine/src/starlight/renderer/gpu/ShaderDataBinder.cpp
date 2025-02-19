@@ -8,25 +8,26 @@ namespace sl {
 
 ShaderDataBinder::Setter::Setter(
   UniformSetter&& uniformSetter, SamplerSetter&& samplerSetter,
-  const Shader::Uniforms::UniformsMap& uniforms
+  const Shader::DataLayout::DescriptorSet& descriptorLayout
 ) :
     m_uniformSetter(std::forward<UniformSetter>(uniformSetter)),
     m_samplerSetter(std::forward<SamplerSetter>(samplerSetter)),
-    m_uniforms(uniforms) {}
+    m_descriptorLayout(descriptorLayout) {}
 
 void ShaderDataBinder::Setter::set(
   const std::string& uniform, const Texture* value
 ) {
-    m_samplerSetter(getUniform(uniform), value);
+    static constexpr bool isSampler = true;
+    m_samplerSetter(getUniform(uniform, isSampler), value);
 }
 
 const Shader::Uniform& ShaderDataBinder::Setter::getUniform(
-  const std::string& uniform
+  const std::string& uniform, bool isSampler
 ) const {
-    log::expect(
-      m_uniforms.contains(uniform), "Could not find '{}' uniform", uniform
-    );
-    return *m_uniforms.at(uniform);
+    const auto& container =
+      isSampler ? m_descriptorLayout.samplers : m_descriptorLayout.nonSamplers;
+    log::expect(container.contains(uniform), "Could not find '{}' uniform", uniform);
+    return container.at(uniform);
 }
 
 /*
@@ -34,7 +35,7 @@ const Shader::Uniform& ShaderDataBinder::Setter::getUniform(
 */
 
 ShaderDataBinder::ShaderDataBinder(Shader& shader) :
-    m_uniforms(shader.getUniforms()),
+    m_dataLayout(shader.properties.layout),
     m_globalSetter(
       [&](const auto& uniform, const void* value) {
           setGlobalUniform(uniform, value);
@@ -42,7 +43,7 @@ ShaderDataBinder::ShaderDataBinder(Shader& shader) :
       [&](const auto& uniform, const Texture* value) {
           setGlobalSampler(uniform, value);
       },
-      m_uniforms.get(Shader::Uniform::Scope::global)
+      m_dataLayout.globalDescriptorSet
     ) {}
 
 void ShaderDataBinder::setGlobalUniforms(
@@ -64,7 +65,7 @@ void ShaderDataBinder::setLocalUniforms(
         [&](const auto& uniform, const Texture* value) {
             setLocalSampler(uniform, id, value);
         },
-        m_uniforms.get(Shader::Uniform::Scope::local)
+        m_dataLayout.localDescriptorSet
     };
     callback(localSetter);
     updateLocalDescriptorSet(commandBuffer, id, imageIndex, pipeline);

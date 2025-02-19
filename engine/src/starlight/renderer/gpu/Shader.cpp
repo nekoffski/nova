@@ -1,120 +1,19 @@
 #include "Shader.hh"
 
+#include <ranges>
 #include <unordered_map>
 
 namespace sl {
 
-Shader::Shader(const Properties& properties) :
-    properties(properties), m_inputAttributesStride(0u), m_pushConstantsSize(0u),
-    m_globalSamplerCount(0u), m_localSamplerCount(0u), m_globalUniformCount(0u),
-    m_localUniformCount(0u), m_localUboSize(0u), m_globalUboSize(0u) {
+Shader::Shader(const Properties& properties) : properties(properties) {
     const auto stageCount = properties.stages.size();
     log::expect(
       stageCount <= maxStages, "Max shader stages ({}) exceed: {}", maxStages,
       stageCount
     );
-
-    processInputAttributes();
-    processUniforms();
 }
 
-void Shader::processInputAttributes() {
-    const auto attributeCount = properties.inputAttributes.size();
-    log::expect(
-      attributeCount < maxAttributes, "Max attribute count ({}) exceed: {}",
-      maxAttributes, attributeCount
-    );
-
-    for (auto& attribute : properties.inputAttributes)
-        m_inputAttributesStride += attribute.size;
-}
-
-const Shader::Uniform* Shader::Uniforms::get(
-  Uniform::Scope scope, const std::string& name
-) const {
-    const auto& map   = get(scope);
-    const auto record = map.find(name);
-    return record != map.end() ? record->second : nullptr;
-}
-
-const Shader::Uniforms::UniformsMap& Shader::Uniforms::get(Uniform::Scope scope
-) const {
-    log::expect(
-      scope <= Uniform::Scope::pushConstant,
-      "Could not get uniform, invalid scope: {}", fmt::underlying(scope)
-    );
-    return m_uniformLut.at(static_cast<u8>(scope));
-}
-
-void Shader::Uniforms::add(const Uniform* uniform) {
-    log::expect(
-      fmt::underlying(uniform->scope) <= fmt::underlying(Uniform::Scope::pushConstant
-      ),
-      "Could not add uniform, invalid scope: {}", fmt::underlying(uniform->scope)
-    );
-    m_uniformLut.at(static_cast<u8>(uniform->scope))[uniform->name] = uniform;
-}
-
-void Shader::processUniforms() {
-    for (const auto& uniform : properties.uniforms) {
-        m_uniforms.add(&uniform);
-
-        if (uniform.type == DataType::sampler) {
-            if (uniform.scope == Uniform::Scope::global)
-                m_globalSamplerCount += uniform.size;
-            else if (uniform.scope == Uniform::Scope::local)
-                m_localSamplerCount += uniform.size;
-            else
-                log::panic("PushConstant samplers not supported");
-        } else {
-            if (uniform.scope == Uniform::Scope::global) {
-                m_globalUboSize += uniform.size;
-                m_globalUniformCount++;
-            } else if (uniform.scope == Uniform::Scope::local) {
-                m_localUboSize += uniform.size;
-                m_localUniformCount++;
-            }
-        }
-
-        if (uniform.scope == Uniform::Scope::pushConstant)
-            m_pushConstantsSize += uniform.size;
-    }
-
-    log::expect(
-      m_globalSamplerCount < maxGlobalTextures,
-      "Max global sampler count ({}) exceed: {}", maxGlobalTextures,
-      m_globalSamplerCount
-    );
-    log::expect(
-      m_localSamplerCount < maxLocalTextures,
-      "Max local sampler count ({}) exceed: {}", maxLocalTextures,
-      m_localSamplerCount
-    );
-    log::debug(
-      "Shader uniforms stats - global samplers: {}, local samplers: {}, global UBO size: {}b, local UBO size: {}b",
-      m_globalSamplerCount, m_localSamplerCount, m_globalUboSize, m_localUboSize
-    );
-}
-
-u64 Shader::getPushContantsSize() const { return m_pushConstantsSize; }
-
-u64 Shader::getLocalUboSize() const { return m_localUboSize; }
-
-u64 Shader::getGlobalUboSize() const { return m_globalUboSize; }
-
-u32 Shader::getLocalSamplerCount() const { return m_localSamplerCount; }
-
-u32 Shader::getGlobalSamplerCount() const { return m_globalSamplerCount; }
-
-u32 Shader::getLocalUniformCount() const { return m_localUniformCount; }
-
-u32 Shader::getGlobalUniformCount() const { return m_globalUniformCount; }
-
-const Shader::Uniforms& Shader::getUniforms() const { return m_uniforms; }
-
-u64 Shader::getInputAttributesStride() const { return m_inputAttributesStride; }
-
-std::string toString(Shader::DataType type) {
+std::string toString(const Shader::DataType& type) {
     switch (type) {
         case Shader::DataType::vec2:
             return "vec2";
@@ -148,7 +47,7 @@ std::string toString(Shader::DataType type) {
     log::panic("Invalid data type: {}", fmt::underlying(type));
 }
 
-std::string toString(Shader::Stage::Type type) {
+std::string toString(const Shader::Stage::Type& type) {
     switch (type) {
         case Shader::Stage::Type::vertex:
             return "VERTEX";
@@ -162,27 +61,25 @@ std::string toString(Shader::Stage::Type type) {
     log::panic("Invalid stage type: {}", fmt::underlying(type));
 }
 
-std::string toString(Shader::InputAttribute attribute) {
+std::string toString(const Shader::InputAttribute& attribute) {
     return fmt::format(
-      "InputAttribute: location {:02}. / offset {:04}. / {:02}b / {:5} / '{}'",
-      attribute.location, attribute.offset, attribute.size, attribute.type,
-      attribute.name
+      "{:02}. / offset {:04}. / {:02}b / {:5} / '{}'", attribute.location,
+      attribute.offset, attribute.size, attribute.type, attribute.name
     );
 }
 
-std::string toString(Shader::Stage stage) {
-    return fmt::format("Stage: {} - {}", stage.type, stage.fullPath);
+std::string toString(const Shader::Stage& stage) {
+    return fmt::format("{} - {}", stage.type, stage.fullPath);
 }
 
-std::string toString(Shader::Uniform uniform) {
+std::string toString(const Shader::Uniform& uniform) {
     return fmt::format(
-      "Uniform: {:>13} / binding {:02} / offset {:04}. / {:04}b / {:7} / '{}'",
-      uniform.scope, uniform.binding, uniform.offset, uniform.size, uniform.type,
-      uniform.name
+      "{} / binding {:02} / offset {:04}. / {:04}b / {:7} / '{}'", uniform.scope,
+      uniform.binding, uniform.offset, uniform.size, uniform.type, uniform.name
     );
 }
 
-std::string toString(Shader::Uniform::Scope scope) {
+std::string toString(const Shader::Uniform::Scope& scope) {
     switch (scope) {
         case Shader::Uniform::Scope::global:
             return "GLOBAL";
@@ -192,6 +89,54 @@ std::string toString(Shader::Uniform::Scope scope) {
             return "PUSH_CONSTANT";
     }
     log::panic("Invalid uniform scope type: {}", fmt::underlying(scope));
+}
+
+void logObject(const Shader::Properties& properties) {
+    log::debug("ShaderProperties {");
+    log::debug("{}Stages:", spaces(2));
+    for (const auto& stage : properties.stages) log::debug("{}{}", spaces(4), stage);
+
+    const auto& layout = properties.layout;
+    log::debug(
+      "{}Input Attributes (total stride - {}b):", spaces(2),
+      layout.inputAttributes.stride
+    );
+    for (const auto& attribute : layout.inputAttributes.fields)
+        log::debug("{}{}", spaces(4), attribute);
+
+    log::debug(
+      "{}Push Constants (total size - {}b):", spaces(2), layout.pushConstants.size
+    );
+    layout.pushConstants.nonSamplers.forEach([](const auto& field) {
+        log::debug("{}{}", spaces(4), field);
+    });
+
+    static auto logDescriptorSet = [](const Shader::DataLayout::DescriptorSet& set) {
+        log::debug("{}Non-Samplers:", spaces(6));
+        set.nonSamplers.forEach([](const auto& field) {
+            log::debug("{}{}", spaces(8), field);
+        });
+
+        log::debug("{}Samplers:", spaces(6));
+        set.samplers.forEach([](const auto& field) {
+            log::debug("{}{}", spaces(8), field);
+        });
+    };
+
+    log::debug("{}Uniforms:", spaces(2));
+    log::debug(
+      "{} Local Descriptor Set (total size - {}b):", spaces(4),
+      layout.localDescriptorSet.size
+    );
+    logDescriptorSet(layout.localDescriptorSet);
+
+    log::debug(
+      "{} Global Descriptor Set (total size - {}b):", spaces(4),
+      layout.globalDescriptorSet.size
+    );
+    logDescriptorSet(layout.globalDescriptorSet);
+
+    log::debug("}");
 }
 
 template <> Shader::DataType fromString<Shader::DataType>(std::string_view str) {
@@ -213,6 +158,57 @@ template <> Shader::DataType fromString<Shader::DataType>(std::string_view str) 
     if (auto it = lut.find(str); it != lut.end()) [[likely]]
         return it->second;
     log::panic("Could not parse Shader::DataType from '{}'", str);
+}
+
+/*
+    Shader::DataLayout
+*/
+
+static void calculateSamplersOffsets(Shader::UniformMap& samplers) {
+    samplers.forEach([index = 0u](Shader::Uniform& sampler) mutable {
+        sampler.offset = index++;
+    });
+}
+
+Shader::DataLayout::DataLayout(
+  std::span<const InputAttribute> attributes, std::span<const Uniform> uniforms
+) {
+    std::ranges::copy(attributes, into(inputAttributes.fields));
+
+    std::ranges::sort(
+      inputAttributes.fields,
+      [](const auto& lhs, const auto& rhs) -> bool {
+          return lhs.location < rhs.location;
+      }
+    );
+
+    for (auto& attribute : inputAttributes.fields) {
+        attribute.offset = inputAttributes.stride;
+        inputAttributes.stride += attribute.size;
+    }
+
+    std::array<DescriptorSet*, 2> lut{ &localDescriptorSet, &globalDescriptorSet };
+
+    auto getDescriptorSet = [&](const auto scope) {
+        return lut[static_cast<u32>(scope == Uniform::Scope::global)];
+    };
+
+    for (const auto& uniform : uniforms) {
+        if (uniform.scope == Uniform::Scope::pushConstant) {
+            pushConstants.nonSamplers.push(uniform);
+            pushConstants.size += uniform.size;
+        } else {
+            auto set = getDescriptorSet(uniform.scope);
+            if (uniform.type == DataType::sampler) {
+                set->samplers.push(uniform);
+            } else {
+                set->nonSamplers.push(uniform);
+                set->size += uniform.size;
+            }
+        }
+    }
+    calculateSamplersOffsets(localDescriptorSet.samplers);
+    calculateSamplersOffsets(globalDescriptorSet.samplers);
 }
 
 }  // namespace sl

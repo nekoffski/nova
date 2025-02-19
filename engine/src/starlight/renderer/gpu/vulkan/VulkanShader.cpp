@@ -73,10 +73,10 @@ VulkanShader::~VulkanShader() {
 }
 
 void VulkanShader::prepareAttributeDescriptions() {
-    const auto attributeCount = properties.inputAttributes.size();
+    const auto attributeCount = properties.layout.inputAttributes.fields.size();
     m_attributeDescriptions.reserve(attributeCount);
 
-    for (const auto& attribute : properties.inputAttributes) {
+    for (const auto& attribute : properties.layout.inputAttributes.fields) {
         VkVertexInputAttributeDescription attributeDescription;
         attributeDescription.location = attribute.location;
         attributeDescription.binding  = 0;
@@ -96,20 +96,24 @@ void VulkanShader::createDescriptorSetLayout(Uniform::Scope scope) {
     log::debug("Creating {} descriptor set layout", scope);
 
     auto& bindings = m_descriptorSetsBindings.at(static_cast<u8>(scope));
-    const auto samplerCount =
-      scope == Uniform::Scope::local ? m_localSamplerCount : m_globalSamplerCount;
 
-    std::vector<VkDescriptorSetLayoutBinding> bindingLayouts;
-    bindingLayouts.reserve(2);
+    const auto& setDescription =
+      scope == Uniform::Scope::local
+        ? properties.layout.localDescriptorSet
+        : properties.layout.globalDescriptorSet;
+
+    const auto samplerCount = setDescription.samplers.size();
 
     VkDescriptorSetLayoutBinding bindingLayout;
     bindingLayout.pImmutableSamplers = nullptr;
     bindingLayout.stageFlags =
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    const auto nonSamplerCount =
-      (scope == Uniform::Scope::local) ? m_localUniformCount : m_globalUniformCount;
+    const auto nonSamplerCount = setDescription.nonSamplers.size();
     log::debug("\tNon-sampler uniform count: {:02}", nonSamplerCount);
+
+    std::vector<VkDescriptorSetLayoutBinding> bindingLayouts;
+    bindingLayouts.reserve(nonSamplerCount + 1);
 
     if (nonSamplerCount > 0) {
         bindingLayout.descriptorCount = 1;
@@ -124,7 +128,7 @@ void VulkanShader::createDescriptorSetLayout(Uniform::Scope scope) {
     log::debug("\tSampler count: {:02}", samplerCount);
 
     for (u64 i = 0; i < samplerCount; ++i) {
-        bindingLayout.descriptorCount = samplerCount;
+        bindingLayout.descriptorCount = 1;
         bindingLayout.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         bindingLayout.binding         = bindings.count;
 

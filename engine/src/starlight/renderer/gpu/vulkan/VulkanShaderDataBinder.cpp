@@ -12,10 +12,11 @@ VulkanShaderDataBinder::VulkanShaderDataBinder(
   VulkanDevice& device, VulkanShader& shader
 ) :
     ShaderDataBinder(shader), m_device(device), m_shader(shader),
-    m_descriptorPool(VK_NULL_HANDLE), m_globalUboStride(0u), m_localUboStride(0u),
-    m_globalUboOffset(0u), m_uniformBufferView(nullptr),
+    m_dataLayout(shader.properties.layout), m_descriptorPool(VK_NULL_HANDLE),
+    m_globalUboStride(0u), m_localUboStride(0u), m_globalUboOffset(0u),
+    m_uniformBufferView(nullptr),
     m_globalDescriptorSets(maxFramesInFlight, VK_NULL_HANDLE),
-    m_globalTextures(shader.getGlobalSamplerCount(), nullptr) {
+    m_globalTextures(m_dataLayout.globalDescriptorSet.samplers.size(), nullptr) {
     createDescriptorPool();
     createUniformBuffer();
 }
@@ -42,10 +43,12 @@ VulkanShaderDataBinder::~VulkanShaderDataBinder() {
 }
 
 u32 VulkanShaderDataBinder::acquireLocalDescriptorSet() {
-    auto localSet = findFreeLocalDescriptorSet();
-    localSet->textures.resize(m_shader.getLocalSamplerCount(), nullptr);
+    auto localSet       = findFreeLocalDescriptorSet();
+    const auto samplers = m_dataLayout.localDescriptorSet.samplers.size();
+    localSet->textures.resize(samplers, nullptr);
 
-    if (auto localUboSize = m_shader.getLocalUboSize(); localUboSize > 0u) {
+    if (auto localUboSize = m_dataLayout.localDescriptorSet.nonSamplers.size();
+        localUboSize > 0u) {
         auto allocatedRange = m_uniformBuffer->allocate(localUboSize);
         log::expect(
           allocatedRange.has_value(), "Could not allocate space for local UBO"
@@ -127,29 +130,28 @@ void VulkanShaderDataBinder::updateGlobalDescriptorSet(
     uboWrite.descriptorCount = 1;
     uboWrite.pBufferInfo     = &bufferInfo;
 
-    std::array<VkWriteDescriptorSet, Shader::descriptorSetCount> descriptorWrites;
-    descriptorWrites[0] = uboWrite;
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
+    descriptorWrites.push_back(uboWrite);
 
+    const auto samplerCount = m_dataLayout.globalDescriptorSet.samplers.size();
     std::vector<VkDescriptorImageInfo> imageInfos;
-    if (auto n = m_shader.getGlobalSamplerCount(); n > 0) {
-        imageInfos.reserve(m_globalTextures.size());
-        for (const auto& texture : m_globalTextures) {
-            imageInfos.emplace_back(
-              texture->getSampler(), texture->getView(),
-              texture->getLayout()  // TODO: transition layout?
-            );
+    imageInfos.reserve(samplerCount);
 
-            VkWriteDescriptorSet samplerDescriptor;
-            clearMemory(&samplerDescriptor);
-            samplerDescriptor.sType      = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            samplerDescriptor.dstSet     = m_globalDescriptorSets[imageIndex];
-            samplerDescriptor.dstBinding = 1;
-            samplerDescriptor.descriptorType =
-              VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            samplerDescriptor.descriptorCount = imageInfos.size();
-            samplerDescriptor.pImageInfo      = imageInfos.data();
-            descriptorWrites[1]               = samplerDescriptor;
-        }
+    for (const auto& texture : m_globalTextures) {
+        imageInfos.emplace_back(
+          texture->getSampler(), texture->getView(), texture->getLayout()
+        );
+
+        VkWriteDescriptorSet samplerDescriptor;
+        clearMemory(&samplerDescriptor);
+        samplerDescriptor.sType          = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        samplerDescriptor.dstSet         = m_globalDescriptorSets[imageIndex];
+        samplerDescriptor.dstBinding     = descriptorWrites.size();
+        samplerDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerDescriptor.descriptorCount = 1;
+        samplerDescriptor.pImageInfo      = &imageInfos.back();
+
+        descriptorWrites.push_back(samplerDescriptor);
     }
 
     const auto bindingCount =
@@ -176,9 +178,7 @@ void VulkanShaderDataBinder::updateLocalDescriptorSet(
     std::vector<VkWriteDescriptorSet> descriptorWrites;
     VkDescriptorBufferInfo bufferInfo;
 
-    // 0 - uniform buffer
-    const auto samplerCount    = m_shader.getLocalSamplerCount();
-    const auto nonSamplerCount = m_shader.getLocalUniformCount();
+    const auto nonSamplerCount = m_dataLayout.localDescriptorSet.nonSamplers.size();
 
     if (nonSamplerCount > 0) {
         bufferInfo.buffer = m_uniformBuffer->getHandle();
@@ -198,7 +198,7 @@ void VulkanShaderDataBinder::updateLocalDescriptorSet(
     }
 
     std::vector<VkDescriptorImageInfo> imageInfos;
-    imageInfos.reserve(samplerCount);
+    imageInfos.reserve(localDescriptor->textures.size());
 
     for (const auto& texture : localDescriptor->textures) {
         imageInfos.emplace_back(
@@ -272,7 +272,7 @@ void VulkanShaderDataBinder::setLocalSampler(
   const Shader::Uniform& uniform, u32 id, const Texture* value
 ) {
     auto& localDescriptor = m_localDescriptorSets[id];
-    localDescriptor->textures[uniform.binding - 1] =
+    localDescriptor->textures[uniform.offset] =
       static_cast<const VulkanTexture*>(value);
 }
 
@@ -315,9 +315,9 @@ void VulkanShaderDataBinder::createUniformBuffer() {
       m_device.physical.info.coreProperties.limits.minUniformBufferOffsetAlignment;
 
     m_globalUboStride =
-      getAlignedValue(m_shader.getGlobalUboSize(), requiredUboAlignment);
+      getAlignedValue(m_dataLayout.globalDescriptorSet.size, requiredUboAlignment);
     m_localUboStride =
-      getAlignedValue(m_shader.getLocalUboSize(), requiredUboAlignment);
+      getAlignedValue(m_dataLayout.localDescriptorSet.size, requiredUboAlignment);
 
     log::debug("Minimal uniform buffer offset alignment: {}", requiredUboAlignment);
 
@@ -326,7 +326,6 @@ void VulkanShaderDataBinder::createUniformBuffer() {
         ? MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         : MemoryProperty::undefined;
 
-    // TODO: read from config
     const auto totalBufferSize =
       m_globalUboStride + (m_localUboStride * maxLocalDescriptorSets);
 
@@ -381,9 +380,10 @@ void VulkanShaderDataBinder::createUniformBuffer() {
 
 VulkanShaderDataBinder::LocalDescriptorSet*
   VulkanShaderDataBinder::findFreeLocalDescriptorSet() {
+    const auto localSamplerCount = m_dataLayout.localDescriptorSet.samplers.size();
     for (u64 i = 0u; i < maxLocalDescriptorSets; ++i)
         if (auto& slot = m_localDescriptorSets[i]; not slot)
-            return slot.emplace(i, m_shader.getLocalSamplerCount());
+            return slot.emplace(i, localSamplerCount);
     log::panic("Could not find free local descriptor set");
 }
 

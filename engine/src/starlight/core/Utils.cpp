@@ -4,6 +4,8 @@
 
 namespace sl {
 
+std::string spaces(u64 count) { return std::string(count, ' '); }
+
 std::vector<std::string> split(const std::string& input, char separator) {
     std::vector<std::string> output;
     return boost::split(output, input, boost::is_any_of(std::string{ separator }));

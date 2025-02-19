@@ -1,14 +1,23 @@
 #pragma once
 
 #include <string>
+#include <span>
 #include <array>
 
-#include "starlight/core/containers/FlatMap.hh"
+#include "starlight/core/containers/KeyVector.hh"
 #include "starlight/core/Core.hh"
 #include "starlight/core/Resource.hh"
 #include "starlight/core/Utils.hh"
 
 namespace sl {
+
+namespace detail {
+
+template <typename T> struct NameGetter {
+    const std::string& operator()(const T& t) const { return t.name; }
+};
+
+}  // namespace detail
 
 class Shader : public NonMovable, public Identificable<Shader> {
     static constexpr u32 uniformScopes = 3u;
@@ -50,7 +59,6 @@ public:
 
     struct Uniform {
         enum class Scope : u8 { global = 0, local, pushConstant };
-
         u32 offset;
         u32 binding;
         DataType type;
@@ -59,19 +67,34 @@ public:
         std::string name;
     };
 
-    class Uniforms {
-        friend class Shader;
+    using UniformMap = KeyVector<Uniform, detail::NameGetter<Uniform>>;
 
-    public:
-        using UniformsMap = std::unordered_map<std::string, const Uniform*>;
+    struct DataLayout {
+        explicit DataLayout(
+          std::span<const InputAttribute> attributes,
+          std::span<const Uniform> uniforms
+        );
 
-        const Uniform* get(Uniform::Scope scope, const std::string& name) const;
-        const UniformsMap& get(Uniform::Scope scope) const;
+        struct InputAttributes {
+            std::vector<InputAttribute> fields;
+            u64 stride = 0u;
+        };
 
-    private:
-        void add(const Uniform*);
+        struct PushConstants {
+            UniformMap nonSamplers;
+            u64 size = 0u;
+        };
 
-        std::array<UniformsMap, uniformScopes> m_uniformLut;
+        struct DescriptorSet {
+            UniformMap nonSamplers;
+            UniformMap samplers;
+            u64 size = 0u;
+        };
+
+        InputAttributes inputAttributes;
+        PushConstants pushConstants;
+        DescriptorSet globalDescriptorSet;
+        DescriptorSet localDescriptorSet;
     };
 
     struct Stage {
@@ -84,51 +107,24 @@ public:
 
     struct Properties {
         std::vector<Stage> stages;
-        std::vector<InputAttribute> inputAttributes;
-        std::vector<Uniform> uniforms;
+        DataLayout layout;
     };
 
     explicit Shader(const Properties& properties);
     virtual ~Shader() = default;
 
     const Properties properties;
-
-    u64 getInputAttributesStride() const;
-    u64 getPushContantsSize() const;
-    u64 getLocalUboSize() const;
-    u64 getGlobalUboSize() const;
-    u32 getLocalSamplerCount() const;
-    u32 getGlobalSamplerCount() const;
-    u32 getLocalUniformCount() const;
-    u32 getGlobalUniformCount() const;
-
-    const Uniforms& getUniforms() const;
-
-protected:
-    Uniforms m_uniforms;
-
-    void processInputAttributes();
-    void processUniforms();
-
-    u64 m_inputAttributesStride;
-    u64 m_pushConstantsSize;
-
-    u32 m_globalSamplerCount;
-    u32 m_localSamplerCount;
-    u32 m_globalUniformCount;
-    u32 m_localUniformCount;
-
-    u64 m_localUboSize;
-    u64 m_globalUboSize;
 };
 
 template <> Shader::DataType fromString<Shader::DataType>(std::string_view str);
 
-std::string toString(Shader::DataType);
-std::string toString(Shader::Stage::Type);
-std::string toString(Shader::InputAttribute);
-std::string toString(Shader::Stage);
-std::string toString(Shader::Uniform);
-std::string toString(Shader::Uniform::Scope);
+std::string toString(const Shader::DataType&);
+std::string toString(const Shader::Stage::Type&);
+std::string toString(const Shader::InputAttribute&);
+std::string toString(const Shader::Stage&);
+std::string toString(const Shader::Uniform&);
+std::string toString(const Shader::Uniform::Scope&);
+
+void logObject(const Shader::Properties& properties);
 
 }  // namespace sl
