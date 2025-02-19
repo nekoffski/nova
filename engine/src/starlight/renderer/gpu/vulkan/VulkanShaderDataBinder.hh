@@ -43,7 +43,7 @@ private:
 
     void updateDescriptorSet(
       CommandBuffer& commandBuffer, Pipeline& pipeline,
-      VkDescriptorSet descriptorSet, u64 uniformBufferOffset, u64 stride,
+      VkDescriptorSet& descriptorSet, u64 uniformBufferOffset, u64 stride,
       std::span<const VulkanTexture*> textures, u64 nonSamplerCount,
       u64 descriptorIndex
     );
