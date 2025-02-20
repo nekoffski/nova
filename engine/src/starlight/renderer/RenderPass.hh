@@ -97,12 +97,12 @@ protected:
     }
 
     void setGlobalUniforms(
-      CommandBuffer& commandBuffer, u32 imageIndex,
+      CommandBuffer& commandBuffer, u64 frameNumber, u32 imageIndex,
       ShaderDataBinder::UniformCallback&& callback
     );
 
     void setLocalUniforms(
-      CommandBuffer& commandBuffer, u32 id, u32 imageIndex,
+      CommandBuffer& commandBuffer, u64 frameNumber, u32 id, u32 imageIndex,
       ShaderDataBinder::UniformCallback&& callback
     );
 

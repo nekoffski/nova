@@ -4,7 +4,7 @@
 
 namespace sl {
 
-std::string cullModeToString(CullMode mode) {
+std::string toString(CullMode mode) {
     switch (mode) {
         case CullMode::none:
             return "none";
@@ -18,7 +18,7 @@ std::string cullModeToString(CullMode mode) {
     log::panic("Could not parse cull mode");
 }
 
-CullMode cullModeFromString(const std::string& mode) {
+template <> CullMode fromString<CullMode>(std::string_view mode) {
     if (mode == "none")
         return CullMode::none;
     else if (mode == "front")
@@ -30,7 +30,7 @@ CullMode cullModeFromString(const std::string& mode) {
     log::panic("Could not parse cull mode: {}", mode);
 }
 
-std::string polygonModeToString(PolygonMode polygonMode) {
+std::string toString(PolygonMode polygonMode) {
     switch (polygonMode) {
         case PolygonMode::fill:
             return "fill";
@@ -42,7 +42,7 @@ std::string polygonModeToString(PolygonMode polygonMode) {
     log::panic("Could not parse polygon mode");
 }
 
-PolygonMode polygonModeFromString(const std::string& polygonName) {
+template <> PolygonMode fromString<PolygonMode>(std::string_view polygonName) {
     if (polygonName == "line")
         return PolygonMode::line;
     else if (polygonName == "fill")

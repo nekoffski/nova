@@ -10,13 +10,13 @@ enum class RenderMode : u8 { standard = 0, normals = 1, lights = 2 };
 
 enum class CullMode : u8 { none, front, back, frontAndBack };
 
-std::string cullModeToString(CullMode);
-CullMode cullModeFromString(const std::string&);
+std::string toString(CullMode);
+template <> CullMode fromString<CullMode>(std::string_view cullMode);
 
 enum class PolygonMode : u8 { fill, line, point };
 
-std::string polygonModeToString(PolygonMode polygonMode);
-PolygonMode polygonModeFromString(const std::string& polygonName);
+std::string toString(PolygonMode polygonMode);
+template <> PolygonMode fromString<PolygonMode>(std::string_view polygonName);
 
 enum class ClearFlags : u8 { none = 0x0, color = 0x1, depth = 0x2, stencil = 0x4 };
 constexpr void enableBitOperations(ClearFlags);

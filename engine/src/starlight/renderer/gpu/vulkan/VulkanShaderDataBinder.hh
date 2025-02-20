@@ -19,6 +19,7 @@ class VulkanShaderDataBinder : public ShaderDataBinder {
 
         u32 id;
         u64 offset;
+        u64 lastUpdateFrame;
         std::array<VkDescriptorSet, maxFramesInFlight> descriptorSets;
         std::vector<const VulkanTexture*> textures;
     };
@@ -35,12 +36,13 @@ public:
 
 private:
     void bindGlobalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline, bool update
+      CommandBuffer& commandBuffer, u64 frameNumber, u32 imageIndex,
+      Pipeline& pipeline, bool update
     ) override;
 
     void bindLocalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline,
-      bool update
+      CommandBuffer& commandBuffer, u64 frameNumber, u32 id, u32 imageIndex,
+      Pipeline& pipeline, bool update
     ) override;
 
     void bindDescriptorSet(
@@ -93,6 +95,7 @@ private:
 
     std::vector<VkDescriptorSet> m_globalDescriptorSets;
     std::vector<const VulkanTexture*> m_globalTextures;
+    u64 m_globalLastUpdateFrame;
     LocalDescriptorSets m_localDescriptorSets;
 };
 

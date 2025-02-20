@@ -28,7 +28,7 @@ public:
     static constexpr u32 maxLocalTextures  = 32u;
     static constexpr u32 maxAttributes     = 16u;
 
-    static constexpr u32 descriptorSetCount = 2;
+    static constexpr u32 descriptorSetCount = 2u;
     static constexpr u32 uboGlobalSet       = 0u;
     static constexpr u32 uboLocalSet        = 1u;
 

@@ -83,13 +83,13 @@ public:
     using UniformCallback = std::function<void(Setter&)>;
 
     void setGlobalUniforms(
-      Pipeline& pipeline, CommandBuffer& commandBuffer, u32 imageIndex,
-      UniformCallback&& callback
+      Pipeline& pipeline, CommandBuffer& commandBuffer, u64 frameNumber,
+      u32 imageIndex, UniformCallback&& callback
     );
 
     void setLocalUniforms(
-      Pipeline& pipeline, CommandBuffer& commandBuffer, u32 id, u32 imageIndex,
-      UniformCallback&& callback
+      Pipeline& pipeline, CommandBuffer& commandBuffer, u64 frameNumber, u32 id,
+      u32 imageIndex, UniformCallback&& callback
     );
 
     template <typename T>
@@ -111,11 +111,12 @@ public:
 
 protected:
     virtual void bindGlobalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline, bool update
+      CommandBuffer& commandBuffer, u64 frameNumber, u32 imageIndex,
+      Pipeline& pipeline, bool update
     ) = 0;
     virtual void bindLocalDescriptorSet(
-      CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline,
-      bool update
+      CommandBuffer& commandBuffer, u64 frameNumber, u32 id, u32 imageIndex,
+      Pipeline& pipeline, bool update
     ) = 0;
 
     virtual bool setLocalSampler(

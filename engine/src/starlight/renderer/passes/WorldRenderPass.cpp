@@ -32,14 +32,13 @@ struct MeshRenderData {
 };
 
 void WorldRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
-  [[maybe_unused]] u64 frameNumber
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
 ) {
     Vec4<f32> ambientColor(0.05f, 0.05f, 0.05f, 1.0f);
     auto camera               = packet.camera;
     const auto cameraPosition = camera->getPosition();
 
-    setGlobalUniforms(commandBuffer, imageIndex, [&](auto& setter) {
+    setGlobalUniforms(commandBuffer, frameNumber, imageIndex, [&](auto& setter) {
         auto depthMVP =
           math::ortho<float>(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 20.0f)
           * math::lookAt(
@@ -104,7 +103,8 @@ void WorldRenderPass::render(
 
     for (auto& [mesh, material, model, _] : meshes) {
         setLocalUniforms(
-          commandBuffer, getLocalDescriporSetId(material->getId()), imageIndex,
+          commandBuffer, frameNumber, getLocalDescriporSetId(material->getId()),
+          imageIndex,
           [&](auto& setter) {
               setter.set("diffuseColor", material->diffuseColor);
               setter.set("shininess", material->shininess);

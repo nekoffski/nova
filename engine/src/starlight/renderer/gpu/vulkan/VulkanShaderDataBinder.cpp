@@ -17,7 +17,8 @@ VulkanShaderDataBinder::VulkanShaderDataBinder(
     m_globalUboStride(0u), m_localUboStride(0u), m_globalUboOffset(0u),
     m_uniformBufferView(nullptr),
     m_globalDescriptorSets(maxFramesInFlight, VK_NULL_HANDLE),
-    m_globalTextures(m_dataLayout.globalDescriptorSet.samplers.size(), nullptr) {
+    m_globalTextures(m_dataLayout.globalDescriptorSet.samplers.size(), nullptr),
+    m_globalLastUpdateFrame(max<u64>()) {
     createDescriptorPool();
     createUniformBuffer();
 }
@@ -178,33 +179,45 @@ void VulkanShaderDataBinder::bindDescriptorSet(
 }
 
 void VulkanShaderDataBinder::bindGlobalDescriptorSet(
-  CommandBuffer& commandBuffer, u32 imageIndex, Pipeline& pipeline, bool update
+  CommandBuffer& commandBuffer, u64 frameNumber, u32 imageIndex, Pipeline& pipeline,
+  bool update
 ) {
-    const auto nonSamplerCount = m_dataLayout.globalDescriptorSet.nonSamplers.size();
+    if (frameNumber != m_globalLastUpdateFrame) {
+        m_globalLastUpdateFrame = frameNumber;
 
-    if (update) m_globalDescriptorDirtyFrames = maxFramesInFlight;
+        const auto nonSamplerCount =
+          m_dataLayout.globalDescriptorSet.nonSamplers.size();
 
-    bindDescriptorSet(
-      commandBuffer, pipeline, m_globalDescriptorSets[imageIndex], m_globalUboOffset,
-      m_globalUboStride, m_globalTextures, nonSamplerCount, Shader::uboGlobalSet,
-      m_globalDescriptorDirtyFrames
-    );
+        if (update) m_globalDescriptorDirtyFrames = maxFramesInFlight;
+
+        bindDescriptorSet(
+          commandBuffer, pipeline, m_globalDescriptorSets[imageIndex],
+          m_globalUboOffset, m_globalUboStride, m_globalTextures, nonSamplerCount,
+          Shader::uboGlobalSet, m_globalDescriptorDirtyFrames
+        );
+    }
 }
 
 void VulkanShaderDataBinder::bindLocalDescriptorSet(
-  CommandBuffer& commandBuffer, u32 id, u32 imageIndex, Pipeline& pipeline,
-  bool update
+  CommandBuffer& commandBuffer, u64 frameNumber, u32 id, u32 imageIndex,
+  Pipeline& pipeline, bool update
 ) {
-    const auto localDescriptor = m_localDescriptorSets[id].get();
-    const auto nonSamplerCount = m_dataLayout.localDescriptorSet.nonSamplers.size();
+    auto localDescriptor = m_localDescriptorSets[id].get();
 
-    if (update) m_localDescriptorDirtyFrames = maxFramesInFlight;
+    if (localDescriptor->lastUpdateFrame != frameNumber) {
+        localDescriptor->lastUpdateFrame = frameNumber;
 
-    bindDescriptorSet(
-      commandBuffer, pipeline, localDescriptor->descriptorSets[imageIndex],
-      localDescriptor->offset, m_localUboStride, localDescriptor->textures,
-      nonSamplerCount, Shader::uboLocalSet, m_localDescriptorDirtyFrames
-    );
+        const auto nonSamplerCount =
+          m_dataLayout.localDescriptorSet.nonSamplers.size();
+
+        if (update) m_localDescriptorDirtyFrames = maxFramesInFlight;
+
+        bindDescriptorSet(
+          commandBuffer, pipeline, localDescriptor->descriptorSets[imageIndex],
+          localDescriptor->offset, m_localUboStride, localDescriptor->textures,
+          nonSamplerCount, Shader::uboLocalSet, m_localDescriptorDirtyFrames
+        );
+    }
 }
 
 bool VulkanShaderDataBinder::setGlobalUniform(
@@ -373,7 +386,7 @@ VulkanShaderDataBinder::LocalDescriptorSet*
 VulkanShaderDataBinder::LocalDescriptorSet::LocalDescriptorSet(
   u32 id, u32 textureCount
 ) :
-    id(id), offset(0u), descriptorSets({ VK_NULL_HANDLE }),
-    textures(textureCount, nullptr) {}
+    id(id), offset(0u), lastUpdateFrame(max<u64>()),
+    descriptorSets({ VK_NULL_HANDLE }), textures(textureCount, nullptr) {}
 
 }  // namespace sl::vk

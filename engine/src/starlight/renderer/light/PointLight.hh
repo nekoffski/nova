@@ -34,8 +34,6 @@ public:
 
     const ShaderData& getShaderData() const;
 
-    std::string toString() const;
-
 private:
     ShaderData m_data;
     std::vector<LOD> m_lods;
@@ -44,5 +42,7 @@ public:
     Vec4<f32>& color;
     Vec3<f32>& position;
 };
+
+std::string toString(const PointLight& l);
 
 }  // namespace sl

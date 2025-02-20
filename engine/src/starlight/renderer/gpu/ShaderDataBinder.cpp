@@ -40,7 +40,7 @@ ShaderDataBinder::ShaderDataBinder(Shader& shader
 ) : m_dataLayout(shader.properties.layout) {}
 
 void ShaderDataBinder::setGlobalUniforms(
-  Pipeline& pipeline, CommandBuffer& commandBuffer, u32 imageIndex,
+  Pipeline& pipeline, CommandBuffer& commandBuffer, u64 frameNumber, u32 imageIndex,
   UniformCallback&& callback
 ) {
     Setter globalSetter{
@@ -55,13 +55,13 @@ void ShaderDataBinder::setGlobalUniforms(
     callback(globalSetter);
 
     bindGlobalDescriptorSet(
-      commandBuffer, imageIndex, pipeline, globalSetter.wasUpdated()
+      commandBuffer, frameNumber, imageIndex, pipeline, globalSetter.wasUpdated()
     );
 }
 
 void ShaderDataBinder::setLocalUniforms(
-  Pipeline& pipeline, CommandBuffer& commandBuffer, u32 id, u32 imageIndex,
-  UniformCallback&& callback
+  Pipeline& pipeline, CommandBuffer& commandBuffer, u64 frameNumber, u32 id,
+  u32 imageIndex, UniformCallback&& callback
 ) {
     Setter localSetter{
         [&](const auto& uniform, const void* value) -> bool {
@@ -75,7 +75,7 @@ void ShaderDataBinder::setLocalUniforms(
     callback(localSetter);
 
     bindLocalDescriptorSet(
-      commandBuffer, id, imageIndex, pipeline, localSetter.wasUpdated()
+      commandBuffer, frameNumber, id, imageIndex, pipeline, localSetter.wasUpdated()
     );
 }
 

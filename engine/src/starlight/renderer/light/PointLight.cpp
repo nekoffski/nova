@@ -51,14 +51,13 @@ void PointLight::generateLODs() {
     }
 }
 
-std::string PointLight::toString() const {
+const PointLight::ShaderData& PointLight::getShaderData() const { return m_data; }
+
+std::string toString(const PointLight& l) {
     return fmt::format(
       "PointLight[{}b]: color={}, position={}, attenuation={}",
-      sizeof(PointLight::ShaderData), m_data.color, m_data.position,
-      m_data.attenuation
+      sizeof(PointLight::ShaderData), l.color, l.position, l.getAttenuation()
     );
 }
-
-const PointLight::ShaderData& PointLight::getShaderData() const { return m_data; }
 
 }  // namespace sl

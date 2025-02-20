@@ -28,15 +28,14 @@ Pipeline::Properties SkyboxRenderPass::createPipelineProperties() {
 }
 
 void SkyboxRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
-  [[maybe_unused]] u64 frameNumber
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
 ) {
     auto skybox = packet.skybox;
 
     if (not skybox) return;
 
     auto camera = packet.camera;
-    setGlobalUniforms(commandBuffer, imageIndex, [&](auto& setter) {
+    setGlobalUniforms(commandBuffer, frameNumber, imageIndex, [&](auto& setter) {
         auto viewMatrix  = camera->getViewMatrix();
         viewMatrix[3][0] = 0.0f;
         viewMatrix[3][1] = 0.0f;

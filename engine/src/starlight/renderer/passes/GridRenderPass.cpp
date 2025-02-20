@@ -26,10 +26,9 @@ Pipeline::Properties GridRenderPass::createPipelineProperties() {
 }
 
 void GridRenderPass::render(
-  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex,
-  [[maybe_unused]] u64 frameNumber
+  RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
 ) {
-    setGlobalUniforms(commandBuffer, imageIndex, [&](auto& setter) {
+    setGlobalUniforms(commandBuffer, frameNumber, imageIndex, [&](auto& setter) {
         setter.set("view", packet.camera->getViewMatrix());
         setter.set("projection", packet.camera->getProjectionMatrix());
     });

@@ -4,10 +4,10 @@
 
 namespace sl {
 
-std::string DirectionalLight::toString() const {
+std::string toString(const DirectionalLight& l) {
     return fmt::format(
       "DirectionalLight[{}b]: color={}, direction={}", sizeof(DirectionalLight),
-      color, direction
+      l.color, l.direction
     );
 }
 

@@ -107,11 +107,11 @@ void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
 }
 
 void RenderPass::setLocalUniforms(
-  CommandBuffer& commandBuffer, u32 id, u32 imageIndex,
+  CommandBuffer& commandBuffer, u64 frameNumber, u32 id, u32 imageIndex,
   ShaderDataBinder::UniformCallback&& callback
 ) {
     m_shaderDataBinder->setLocalUniforms(
-      *m_pipeline, commandBuffer, id, imageIndex, std::move(callback)
+      *m_pipeline, commandBuffer, frameNumber, id, imageIndex, std::move(callback)
     );
 }
 
@@ -124,11 +124,11 @@ u32 RenderPass::getLocalDescriporSetId(u32 id) {
 }
 
 void RenderPass::setGlobalUniforms(
-  CommandBuffer& commandBuffer, u32 imageIndex,
+  CommandBuffer& commandBuffer, u64 frameNumber, u32 imageIndex,
   ShaderDataBinder::UniformCallback&& callback
 ) {
     m_shaderDataBinder->setGlobalUniforms(
-      *m_pipeline, commandBuffer, imageIndex, std::move(callback)
+      *m_pipeline, commandBuffer, frameNumber, imageIndex, std::move(callback)
     );
 }
 
