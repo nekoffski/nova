@@ -3,7 +3,7 @@
 #include <string>
 
 #include "starlight/core/Json.hh"
-#include "starlight/scene/ecs/Entity.hh"
+#include "starlight/app/scene/ecs/Entity.hh"
 
 namespace sl {
 

@@ -99,11 +99,10 @@ void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     m_renderPassBackend.clear();
     m_pipeline.clear();
 
-    // m_renderPassBackend =
-    //   device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
-    // m_pipeline = device.createPipeline(
-    //   *m_shader, *m_renderPassBackend, createPipelineProperties()
-    // );
+    m_renderPassBackend =
+      RenderPassBackend::create(props, hasPreviousPass, hasNextPass);
+    m_pipeline =
+      Pipeline::create(*m_shader, *m_renderPassBackend, createPipelineProperties());
 }
 
 void RenderPass::setLocalUniforms(

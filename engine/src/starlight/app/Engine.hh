@@ -13,6 +13,11 @@
 #include "starlight/window/Input.hh"
 #include "starlight/renderer/gpu/Device.hh"
 #include "starlight/renderer/Renderer.hh"
+#include "starlight/renderer/RenderGraph.hh"
+#include "scene/Scene.hh"
+
+#include "starlight/renderer/camera/Camera.hh"
+#include "starlight/renderer/camera/EulerCamera.hh"
 
 namespace sl {
 
@@ -23,9 +28,9 @@ public:
 
     void run();
 
-protected:
 private:
-    virtual void updateFrame(float frameTime) = 0;
+    virtual void update(float frameTime) = 0;
+    void updateFrame(float frameTime);
 
     void initEvents();
 
@@ -33,6 +38,11 @@ private:
     float beginFrame();
     void endFrame();
 
+protected:
+    Scene* getScene();
+    RenderGraph* getRenderGraph();
+
+private:
     Globals m_globals;
     std::atomic_bool m_isRunning;
 
@@ -48,6 +58,14 @@ private:
 
     Device m_device;
     Renderer m_renderer;
+
+    EulerCamera m_defaultCamera;
+    Scene m_defaultScene;
+    RenderGraph m_defaultRenderGraph;
+
+    Camera* m_camera;
+    Scene* m_scene;
+    RenderGraph* m_renderGraph;
 };
 
 }  // namespace sl

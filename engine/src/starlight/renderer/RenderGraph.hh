@@ -23,7 +23,7 @@ public:
 
     template <typename T, typename... Args>
     requires(std::is_base_of_v<RenderPassBase, T> && std::constructible_from<T, Renderer&, Args...>)
-    RenderPassBase* addRenderPass(Args&&... args) {
+    RenderPassBase* addPass(Args&&... args) {
         m_nodes.emplace_back(
           UniquePointer<T>::create(m_renderer, std::forward<Args>(args)...)
         );

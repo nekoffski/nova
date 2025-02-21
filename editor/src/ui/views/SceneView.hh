@@ -4,7 +4,7 @@
 #include <typeindex>
 
 #include <starlight/ui/UI.hh>
-#include <starlight/scene/Scene.hh>
+#include <starlight/app/scene/Scene.hh>
 
 #include "Console.hh"
 #include "Resources.hh"

@@ -10,7 +10,7 @@
 #include <starlight/event/EventHandlerSentinel.hh>
 #include <starlight/renderer/Renderer.hh>
 #include <starlight/renderer/camera/Camera.hh>
-#include <starlight/scene/parsing/SceneParser.hh>
+#include <starlight/app/scene/parsing/SceneParser.hh>
 
 #include "Cameras.hh"
 #include "ui/UserInterface.hh"

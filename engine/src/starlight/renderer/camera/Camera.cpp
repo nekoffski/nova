@@ -5,11 +5,10 @@
 namespace sl {
 
 Camera::Camera(
-  const Vec2<u32>& viewport, sl::EventProxy& eventProxy,
-  const ProjectionProperties& projectionProperties
+  const Vec2<u32>& viewport, const ProjectionProperties& projectionProperties
 ) :
     m_viewportSize(viewport), m_projectionProperties(projectionProperties),
-    m_eventSentinel(eventProxy) {
+    m_eventSentinel(EventProxy::get()) {
     m_eventSentinel.add<WindowResized>([&](auto& event) {
         m_viewportSize = event.size;
         calculateProjectionMatrix();

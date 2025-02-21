@@ -4,7 +4,7 @@
 #include "starlight/core/Singleton.hh"
 
 #include "starlight/core/FileSystem.hh"
-#include "starlight/scene/Scene.hh"
+#include "starlight/app/scene/Scene.hh"
 #include "starlight/core/Json.hh"
 
 #include "ComponentSerializer.hh"

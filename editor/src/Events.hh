@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include <starlight/scene/ecs/Entity.hh>
+#include <starlight/app/scene/ecs/Entity.hh>
 
 namespace sle::events {
 

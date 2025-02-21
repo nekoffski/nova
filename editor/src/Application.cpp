@@ -9,7 +9,7 @@
 #include <starlight/renderer/passes/GridRenderPass.hh>
 #include <starlight/ui/fonts/FontAwesome.hh>
 #include <starlight/ui/UI.hh>
-#include <starlight/scene/Scene.hh>
+#include <starlight/app/scene/Scene.hh>
 
 #include "Events.hh"
 
@@ -47,11 +47,11 @@ void Application::startRenderLoop() {
 
     sl::RenderGraph renderGraph{ m_renderer };
 
-    renderGraph.addRenderPass<sl::SkyboxRenderPass>(viewportOffset);
-    renderGraph.addRenderPass<sl::ShadowMapsRenderPass>();
-    renderGraph.addRenderPass<sl::WorldRenderPass>(viewportOffset);
-    renderGraph.addRenderPass<sl::GridRenderPass>(viewportOffset);
-    renderGraph.addRenderPass<sl::UIRenderPass>(m_userInterface);
+    renderGraph.addPass<sl::SkyboxRenderPass>(viewportOffset);
+    renderGraph.addPass<sl::ShadowMapsRenderPass>();
+    renderGraph.addPass<sl::WorldRenderPass>(viewportOffset);
+    renderGraph.addPass<sl::GridRenderPass>(viewportOffset);
+    renderGraph.addPass<sl::UIRenderPass>(m_userInterface);
 
     m_userInterface.setRenderGraph(renderGraph);
 

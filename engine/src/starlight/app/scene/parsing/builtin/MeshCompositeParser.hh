@@ -1,7 +1,7 @@
 #pragma once
 
-#include "starlight/scene/parsing/ComponentSerializer.hh"
-#include "starlight/scene/parsing/ComponentDeserializer.hh"
+#include "starlight/app/scene/parsing/ComponentSerializer.hh"
+#include "starlight/app/scene/parsing/ComponentDeserializer.hh"
 
 #include "starlight/renderer/MeshComposite.hh"
 

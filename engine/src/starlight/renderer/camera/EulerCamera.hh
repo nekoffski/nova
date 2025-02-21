@@ -12,9 +12,11 @@ public:
         Vec3<f32> target;
         float radius;
         Vec2<u32> viewportSize;
+
+        static Properties createDefault();
     };
 
-    explicit EulerCamera(const Properties& props, sl::EventProxy& eventProxy);
+    explicit EulerCamera(const Properties& props = Properties::createDefault());
 
     Mat4<f32> getViewMatrix() const override;
     Vec3<f32> getPosition() const override;

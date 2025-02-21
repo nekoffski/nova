@@ -8,8 +8,8 @@ namespace sl {
 static constexpr u32 maxPointLights       = 5;
 static constexpr u32 maxDirectionalLights = 5;
 
-Scene::Scene(Window& window, Camera* camera) :
-    m_window(window), camera(camera), skybox(nullptr), m_entities(maxEntities) {}
+Scene::Scene(Camera* camera
+) : camera(camera), skybox(nullptr), m_entities(maxEntities) {}
 
 RenderPacket Scene::getRenderPacket() {
     RenderPacket packet{};
@@ -22,9 +22,8 @@ RenderPacket Scene::getRenderPacket() {
       [&](Component<MeshComposite>& meshComposite) {
           meshComposite.data().traverse([&](MeshComposite::Node& node) {
               for (auto& instance : node.getInstances()) {
-                  packet.entities.emplace_back(
-                    instance.getWorld(), node.mesh, node.material
-                  );
+                  packet.entities
+                    .emplace_back(instance.getWorld(), node.mesh, node.material);
               }
           });
       }

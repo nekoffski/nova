@@ -19,7 +19,7 @@ class Scene {
     static constexpr u64 maxEntities = 1024;
 
 public:
-    explicit Scene(Window& window, Camera* camera);
+    explicit Scene(Camera* camera);
 
     RenderPacket getRenderPacket();
 
@@ -32,9 +32,6 @@ public:
     }
 
     Entity& addEntity(std::optional<std::string> name = {});
-
-private:
-    Window& m_window;
 
 public:
     Camera* camera;

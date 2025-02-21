@@ -20,7 +20,7 @@ public:
     };
 
     explicit Camera(
-      const Vec2<u32>& viewport, sl::EventProxy& eventProxy,
+      const Vec2<u32>& viewport,
       const ProjectionProperties& projectionProperties =
         ProjectionProperties::getDefault()
     );

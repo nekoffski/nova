@@ -13,6 +13,13 @@
 #include "gpu/CommandBuffer.hh"
 #include "gpu/Buffer.hh"
 
+#include "factories/ShaderFactory.hh"
+#include "factories/TextureFactory.hh"
+#include "factories/SkyboxFactory.hh"
+#include "factories/MeshFactory.hh"
+#include "factories/MaterialFactory.hh"
+#include "factories/ShaderFactory.hh"
+
 namespace sl {
 
 class Renderer {
@@ -58,6 +65,13 @@ private:
     std::vector<UniquePointer<Semaphore>> m_queueCompleteSemaphores;
     std::vector<UniquePointer<Fence>> m_frameFences;
     std::vector<Fence*> m_imageFences;
+
+    // factories
+    ShaderFactory m_shaderFactory;
+    TextureFactory m_textureFactory;
+    MaterialFactory m_materialFactory;
+    MeshFactory m_meshFactory;
+    SkyboxFactory m_skyboxFactory;
 
     EventHandlerSentinel m_eventSentinel;
     bool m_recreatingSwapchain;

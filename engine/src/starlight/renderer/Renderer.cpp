@@ -4,6 +4,7 @@
 #include "starlight/window/Window.hh"
 
 #include "starlight/window/Events.hh"
+#include "starlight/core/Globals.hh"
 
 namespace sl {
 
@@ -16,6 +17,10 @@ Renderer::Renderer() :
     m_swapchain(Swapchain::create()), m_vertexBuffer(createVertexBuffer()),
     m_indexBuffer(createIndexBuffer()), m_currentFrame(0u),
     m_maxFramesInFlight(m_swapchain->getImageCount()), m_frameNumber(0u),
+    m_shaderFactory(Globals::get().getConfig().paths.shaders, Device::get()),
+    m_textureFactory(Globals::get().getConfig().paths.textures, Device::get()),
+    m_materialFactory(Globals::get().getConfig().paths.materials),
+    m_meshFactory(*m_vertexBuffer, *m_indexBuffer),
     m_eventSentinel(EventProxy::get()), m_recreatingSwapchain(false),
     m_framesSinceResize(0u) {
     createSyncPrimitives();

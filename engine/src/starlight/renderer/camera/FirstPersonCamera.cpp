@@ -8,10 +8,8 @@
 
 namespace sl {
 
-FirstPersonCamera::FirstPersonCamera(
-  const Properties& props, sl::EventProxy& eventProxy
-) :
-    Camera(props.viewportSize, eventProxy), m_position(props.position),
+FirstPersonCamera::FirstPersonCamera(const Properties& props) :
+    Camera(props.viewportSize), m_position(props.position),
     m_front(0.0f, 0.0f, 1.0f), m_up(0.0f, 1.0f, 0.0f), m_right(1.0f, 0.0f, 0.0f),
     m_yaw(0.0f), m_pitch(0.0f), m_speed(10.0f) {}
 

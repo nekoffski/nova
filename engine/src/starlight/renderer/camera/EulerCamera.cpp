@@ -2,12 +2,13 @@
 
 #include "starlight/window/Input.hh"
 #include "starlight/window/Keys.hh"
+#include "starlight/window/Window.hh"
 
 namespace sl {
 
-EulerCamera::EulerCamera(const Properties& props, sl::EventProxy& eventProxy) :
-    Camera(props.viewportSize, eventProxy), m_target(props.target),
-    m_radius(props.radius), m_yaw(90.0f), m_pitch(90.0f) {
+EulerCamera::EulerCamera(const Properties& props) :
+    Camera(props.viewportSize), m_target(props.target), m_radius(props.radius),
+    m_yaw(90.0f), m_pitch(90.0f) {
     recalculateVectors();
     updateViewMatrix();
 
@@ -91,6 +92,14 @@ void EulerCamera::recalculateVectors() {
 
 void EulerCamera::updateViewMatrix() {
     m_viewMatrix = glm::lookAt(m_position, m_target, m_up);
+}
+
+EulerCamera::Properties EulerCamera::Properties::createDefault() {
+    return EulerCamera::Properties{
+        .target       = sl::Vec3<sl::f32>{ 0.0f },
+        .radius       = 5.0f,
+        .viewportSize = Window::get().getFramebufferSize(),
+    };
 }
 
 }  // namespace sl
