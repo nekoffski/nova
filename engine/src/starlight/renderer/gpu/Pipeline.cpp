@@ -1,6 +1,13 @@
 #include "Pipeline.hh"
 
-#include "starlight/core/window/Window.hh"
+#ifdef SL_USE_VK
+#include "vulkan/VulkanDevice.hh"
+#include "vulkan/VulkanPipeline.hh"
+#include "vulkan/VulkanShader.hh"
+#include "vulkan/VulkanRenderPassBackend.hh"
+#endif
+
+#include "starlight/window/Window.hh"
 
 namespace sl {
 
@@ -16,6 +23,20 @@ Pipeline::Properties Pipeline::Properties::createDefault() {
         .cullMode         = CullMode::back,
         .depthTestEnabled = true,
     };
+}
+
+UniquePointer<Pipeline> Pipeline::create(
+  Shader& shader, RenderPassBackend& renderPass, const Properties& props
+) {
+#ifdef SL_USE_VK
+    return UniquePointer<vk::VulkanPipeline>::create(
+      static_cast<vk::VulkanDevice&>(Device::get().getImpl()),
+      static_cast<vk::VulkanShader&>(shader),
+      static_cast<vk::VulkanRenderPassBackend&>(renderPass), props
+    );
+#else
+    log::panic("GPU API vendor not specified");
+#endif
 }
 
 }  // namespace sl

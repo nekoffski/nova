@@ -1,12 +1,17 @@
 #pragma once
 
+#include "starlight/core/math/Core.hh"
 #include "starlight/core/Utils.hh"
-#include "starlight/core/window/Keys.hh"
+#include "Keys.hh"
 
 namespace sl {
 
 enum class KeyAction : unsigned char { press, repeat, release, unknown };
 enum class MouseAction : unsigned char { press, release, unknown };
+
+struct QuitEvent {
+    std::string reason;
+};
 
 struct KeyEvent {
     KeyAction action;
@@ -21,6 +26,14 @@ struct MouseEvent {
 struct ScrollEvent {
     float offset;
 };
+
+struct WindowResized {
+    Vec2<u32> size;
+};
+
+inline std::string toString(const WindowResized& event) {
+    return fmt::format("WindowResized[{}/{}]", event.size.w, event.size.h);
+}
 
 inline std::string toString(const KeyAction& action) {
     switch (action) {

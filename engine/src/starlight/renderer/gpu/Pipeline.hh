@@ -4,6 +4,7 @@
 #include "starlight/core/math/Core.hh"
 
 #include "CommandBuffer.hh"
+#include "fwd.hh"
 
 namespace sl {
 
@@ -17,6 +18,11 @@ struct Pipeline : public NonCopyable, public NonMovable {
         CullMode cullMode;
         bool depthTestEnabled;
     };
+
+    static UniquePointer<Pipeline> create(
+      Shader& shader, RenderPassBackend& renderPass,
+      const Properties& props = Properties::createDefault()
+    );
 
     virtual ~Pipeline() = default;
 

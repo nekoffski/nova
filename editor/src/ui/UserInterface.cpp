@@ -1,8 +1,8 @@
 #include "UserInterface.hh"
 
 #include <starlight/ui/fonts/FontAwesome.hh>
-#include <starlight/core/event/WindowResized.hh>
-#include <starlight/core/event/Quit.hh>
+#include <starlight/event/WindowResized.hh>
+#include <starlight/event/Quit.hh>
 
 #include "Events.hh"
 
@@ -59,9 +59,8 @@ void UserInterface::createLayout(const sl::Vec2<sl::u32>& viewport) {
     m_leftCombo.clear();
 
     m_leftCombo.emplace("left-combo", createLeftComboProperties(viewport, m_config));
-    m_bottomCombo.emplace(
-      "bottom-combo", createBottomComboProperties(viewport, m_config)
-    );
+    m_bottomCombo
+      .emplace("bottom-combo", createBottomComboProperties(viewport, m_config));
 
     initLeftCombo();
     initBottomCombo();

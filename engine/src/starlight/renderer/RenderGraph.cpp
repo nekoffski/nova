@@ -2,12 +2,12 @@
 
 #include <ranges>
 
-#include "starlight/core/event/WindowResized.hh"
+#include "starlight/window/Events.hh"
 
 namespace sl {
 
 RenderGraph::RenderGraph(Renderer& renderer
-) : m_renderer(renderer), m_eventSentinel(renderer.getContext().getEventProxy()) {
+) : m_renderer(renderer), m_eventSentinel(EventProxy::get()) {
     m_eventSentinel.add<WindowResized>([&]([[maybe_unused]] auto&) {
         onWindowResize();
     });

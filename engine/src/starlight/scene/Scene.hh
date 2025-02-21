@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "starlight/core/Core.hh"
-#include "starlight/core/window/Window.hh"
+#include "starlight/window/Window.hh"
 #include "starlight/core/containers/FlatMap.hh"
 #include "starlight/renderer/camera/Camera.hh"
 #include "starlight/renderer/RenderPacket.hh"

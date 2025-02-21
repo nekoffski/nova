@@ -5,6 +5,13 @@
 #include "starlight/core/Log.hh"
 #include "starlight/core/Scope.hh"
 
+#include "Device.hh"
+
+#ifdef SL_USE_VK
+#include "vulkan/VulkanDevice.hh"
+#include "vulkan/VulkanTexture.hh"
+#endif
+
 namespace sl {
 
 std::optional<Texture::ImageData> loadFlatImageData(
@@ -176,6 +183,18 @@ std::optional<Texture::ImageData> Texture::ImageData::load(
     return textureType == Texture::Type::cubemap
              ? loadCubemapData(path)
              : loadFlatImageData(path, Texture::Orientation::vertical);
+}
+
+UniquePointer<Texture> Texture::create(
+  const ImageData& image, const SamplerProperties& sampler
+) {
+#ifdef SL_USE_VK
+    return UniquePointer<vk::VulkanTexture>::create(
+      static_cast<vk::VulkanDevice&>(Device::get().getImpl()), image, sampler
+    );
+#else
+    log::panic("GPU API vendor not specified");
+#endif
 }
 
 const Texture::SamplerProperties& Texture::getSamplerProperties() const {

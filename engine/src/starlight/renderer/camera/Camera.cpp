@@ -1,6 +1,6 @@
 #include "Camera.hh"
 
-#include "starlight/core/event/WindowResized.hh"
+#include "starlight/window/Events.hh"
 
 namespace sl {
 

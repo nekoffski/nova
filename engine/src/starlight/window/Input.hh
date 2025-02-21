@@ -1,16 +1,16 @@
 #pragma once
 
-#include "WindowImpl.hh"
 #include "starlight/core/Singleton.hh"
+#include "Window.hh"
 
 namespace sl {
 
 class Input : public Singleton<Input> {
 public:
-    using Button = WindowImpl::Button;
-    using Key    = WindowImpl::Key;
+    using Button = Window::Button;
+    using Key    = Window::Key;
 
-    explicit Input(WindowImpl& windowImpl);
+    explicit Input(Window::Impl& window);
 
     Vec2<f32> getMousePosition() const;
     Vec2<f32> getMousePositionDelta() const;
@@ -27,7 +27,7 @@ private:
     void setCallbacks();
     void calculateMousePositionDelta();
 
-    WindowImpl& m_windowImpl;
+    Window::Impl& m_window;
 
     Vec2<f32> m_previousMousePosition;
     Vec2<f32> m_mousePositionDelta;

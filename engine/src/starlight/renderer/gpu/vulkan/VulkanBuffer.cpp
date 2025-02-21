@@ -133,9 +133,8 @@ std::optional<Range> VulkanBuffer::allocate(u64 size, const void* data) {
             VkBufferCopy copyRegion{
                 .srcOffset = 0, .dstOffset = range.offset, .size = size
             };
-            ImmediateCommandBuffer commandBuffer{
-                m_device.createCommandBuffer(), m_device.getGraphicsQueue()
-            };
+            auto& queue = Device::get().getGraphicsQueue();
+            CommandBuffer::Immediate commandBuffer{ queue };
             vkCmdCopyBuffer(
               toVk(commandBuffer).getHandle(), stagingBuffer.getHandle(), m_handle,
               1, &copyRegion

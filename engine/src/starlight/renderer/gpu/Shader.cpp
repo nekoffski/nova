@@ -3,7 +3,22 @@
 #include <ranges>
 #include <unordered_map>
 
+#ifdef SL_USE_VK
+#include "vulkan/VulkanDevice.hh"
+#include "vulkan/VulkanShader.hh"
+#endif
+
 namespace sl {
+
+UniquePointer<Shader> Shader::create(const Properties& props) {
+#ifdef SL_USE_VK
+    return UniquePointer<vk::VulkanShader>::create(
+      static_cast<vk::VulkanDevice&>(Device::get().getImpl()), props
+    );
+#else
+    log::panic("GPU API vendor not specified");
+#endif
+}
 
 Shader::Shader(const Properties& properties) : properties(properties) {
     const auto stageCount = properties.stages.size();

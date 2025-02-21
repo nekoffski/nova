@@ -1,6 +1,6 @@
 file(GLOB_RECURSE SANDBOX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 set(SANDBOX_TARGET starlight-sandbox)
-set(SANDBOX_LIBS starlight-core starlight-renderer starlight-scene)
+set(SANDBOX_LIBS starlight-app)
 
 add_executable(${SANDBOX_TARGET} ${SANDBOX_SRC})
 target_include_directories(${SANDBOX_TARGET} PUBLIC ${SL_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR})

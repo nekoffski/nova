@@ -13,6 +13,8 @@ namespace sl {
 template <typename T> class UniquePointer : public NonCopyable {
     template <typename C> friend class UniquePointer;
 
+    struct PrivateConstructorTag {};
+
 public:
     explicit UniquePointer() : m_allocator(nullptr), m_buffer(nullptr) {}
     UniquePointer(std::nullptr_t) : UniquePointer() {}
@@ -64,20 +66,25 @@ public:
     template <typename... Args>
     requires std::constructible_from<T, Args...>
     static UniquePointer<T> create(Allocator* allocator, Args&&... args) {
-        return UniquePointer<T>{ allocator, std::forward<Args>(args)... };
+        return UniquePointer<T>{
+            PrivateConstructorTag{}, allocator, std::forward<Args>(args)...
+        };
     }
 
     template <typename... Args>
     requires std::constructible_from<T, Args...>
     static UniquePointer<T> create(Args&&... args) {
-        return UniquePointer<T>{ &s_defaultAllocator, std::forward<Args>(args)... };
+        return UniquePointer<T>{
+            PrivateConstructorTag{}, &s_defaultAllocator, std::forward<Args>(args)...
+        };
     }
 
 private:
     template <typename... Args>
     requires std::constructible_from<T, Args...>
-    explicit UniquePointer(Allocator* allocator, Args&&... args) :
-        m_allocator(allocator) {
+    explicit UniquePointer(
+      PrivateConstructorTag, Allocator* allocator, Args&&... args
+    ) : m_allocator(allocator) {
         m_buffer = static_cast<T*>(m_allocator->allocate(1));
         new (m_buffer) T(std::forward<Args>(args)...);
     }

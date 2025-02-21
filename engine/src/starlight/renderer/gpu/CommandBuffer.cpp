@@ -2,22 +2,36 @@
 
 #include "Queue.hh"
 
+#ifdef SL_USE_VK
+#include "vulkan/VulkanDevice.hh"
+#include "vulkan/VulkanCommandBuffer.hh"
+#endif
+
 namespace sl {
 
-ImmediateCommandBuffer::ImmediateCommandBuffer(
-  UniquePointer<CommandBuffer> commandBuffer, Queue& queue
-) : m_commandBuffer(std::move(commandBuffer)), m_queue(queue) {
+CommandBuffer::Immediate::Immediate(Queue& queue
+) : m_commandBuffer(CommandBuffer::create()), m_queue(queue) {
     m_commandBuffer->begin(CommandBuffer::BeginFlags::singleUse);
 }
 
-ImmediateCommandBuffer::~ImmediateCommandBuffer() {
+CommandBuffer::Immediate::~Immediate() {
     m_commandBuffer->end();
     m_queue.submit(Queue::SubmitInfo{ .commandBuffer = *m_commandBuffer });
     m_queue.wait();
 }
 
-CommandBuffer& ImmediateCommandBuffer::get() { return *m_commandBuffer; }
+CommandBuffer& CommandBuffer::Immediate::get() { return *m_commandBuffer; }
 
-ImmediateCommandBuffer::operator CommandBuffer&() { return get(); }
+CommandBuffer::Immediate::operator CommandBuffer&() { return get(); }
+
+UniquePointer<CommandBuffer> CommandBuffer::create(Severity severity) {
+#ifdef SL_USE_VK
+    return UniquePointer<vk::VulkanCommandBuffer>::create(
+      static_cast<vk::VulkanDevice&>(Device::get().getImpl()), severity
+    );
+#else
+    log::panic("GPU API vendor not specified");
+#endif
+}
 
 }  // namespace sl

@@ -1,11 +1,11 @@
-#include "starlight/core/window/Window.hh"
+#include "starlight/window/Window.hh"
 
 #include <gtest/gtest.h>
 
 #include "mock/WindowMock.hh"
 
-#include "starlight/core/event/EventBroker.hh"
-#include "starlight/core/window/Input.hh"
+#include "starlight/event/EventBroker.hh"
+#include "starlight/window/Input.hh"
 
 using namespace sl;
 using namespace testing;

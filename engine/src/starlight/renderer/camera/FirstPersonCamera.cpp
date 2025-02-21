@@ -3,8 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "starlight/core/Log.hh"
-#include "starlight/core/window/Keys.hh"
-#include "starlight/core/window/Input.hh"
+#include "starlight/window/Keys.hh"
+#include "starlight/window/Input.hh"
 
 namespace sl {
 

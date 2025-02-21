@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "starlight/core/Log.hh"
-#include "starlight/core/event/Input.hh"
+#include "starlight/window/Events.hh"
 
 namespace sl::glfw {
 
@@ -54,11 +54,11 @@ GLFWWindow::GLFWWindow(const Config::Window& config) {
     data->lastHeight = static_cast<i32>(config.height);
 }
 
-bool GLFWWindow::isKeyPressed(WindowImpl::Key keyCode) const {
+bool GLFWWindow::isKeyPressed(Window::Key keyCode) const {
     return glfwGetKey(GLFW_WINDOW_PTR(m_windowHandle), keyCode) == GLFW_PRESS;
 }
 
-bool GLFWWindow::isMouseButtonPressed(WindowImpl::Button buttonCode) const {
+bool GLFWWindow::isMouseButtonPressed(Window::Button buttonCode) const {
     return glfwGetMouseButton(GLFW_WINDOW_PTR(m_windowHandle), buttonCode)
            == GLFW_PRESS;
 }

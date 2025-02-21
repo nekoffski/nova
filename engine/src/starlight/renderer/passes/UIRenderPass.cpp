@@ -9,11 +9,10 @@ sl::UIRenderPass::UIRenderPass(Renderer& renderer, UI& ui) :
 
 void UIRenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     const auto props = createRenderPassProperties(hasPreviousPass, hasNextPass);
-    auto& device     = m_renderer.getDevice();
 
     m_renderPassBackend.clear();
     m_renderPassBackend =
-      device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
+      RenderPassBackend::create(props, hasPreviousPass, hasNextPass);
 }
 
 void UIRenderPass::run(

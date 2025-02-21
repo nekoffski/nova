@@ -342,7 +342,7 @@ VulkanImguiRenderPassBackend::VulkanImguiRenderPassBackend(
     ImGui::StyleColorsDark();
 
     ImGui_ImplGlfw_InitForVulkan(
-      static_cast<GLFWwindow*>(m_device.window.getHandle()), true
+      static_cast<GLFWwindow*>(Window::get().getHandle()), true
     );
 
     ImGui_ImplVulkan_InitInfo initInfo;

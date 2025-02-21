@@ -1,5 +1,13 @@
 #include "ShaderDataBinder.hh"
 
+#include "Device.hh"
+
+#ifdef SL_USE_VK
+#include "vulkan/VulkanDevice.hh"
+#include "vulkan/VulkanShaderDataBinder.hh"
+#include "vulkan/VulkanShader.hh"
+#endif
+
 namespace sl {
 
 /*
@@ -35,6 +43,17 @@ const Shader::Uniform& ShaderDataBinder::Setter::getUniform(
 /*
     ShaderDataBinder
 */
+
+UniquePointer<ShaderDataBinder> ShaderDataBinder::create(Shader& shader) {
+#ifdef SL_USE_VK
+    return UniquePointer<vk::VulkanShaderDataBinder>::create(
+      static_cast<vk::VulkanDevice&>(Device::get().getImpl()),
+      static_cast<vk::VulkanShader&>(shader)
+    );
+#else
+    log::panic("GPU API provider not specified");
+#endif
+}
 
 ShaderDataBinder::ShaderDataBinder(Shader& shader
 ) : m_dataLayout(shader.properties.layout) {}

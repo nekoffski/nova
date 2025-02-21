@@ -1,6 +1,6 @@
 #include "PropertiesView.hh"
 
-#include <starlight/core/event/EventProxy.hh>
+#include <starlight/event/EventProxy.hh>
 
 #include "Events.hh"
 

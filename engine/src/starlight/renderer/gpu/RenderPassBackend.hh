@@ -28,6 +28,10 @@ public:
         Type type   = Type::normal;
     };
 
+    static UniquePointer<RenderPassBackend> create(
+      const Properties& props, bool hasPreviousPass, bool hasNextPass
+    );
+
     virtual ~RenderPassBackend() = default;
 
     template <typename Callback>

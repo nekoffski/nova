@@ -1,6 +1,6 @@
 #include "ShadowMapsRenderPass.hh"
 
-#include "starlight/core/window/Window.hh"
+#include "starlight/window/Window.hh"
 #include "starlight/renderer/factories/TextureFactory.hh"
 #include "starlight/renderer/factories/ShaderFactory.hh"
 #include "starlight/renderer/Renderer.hh"
@@ -27,9 +27,8 @@ RenderPassBackend::Properties ShadowMapsRenderPass::createRenderPassProperties(
 
     const auto swapchainImageCount = swapchain.getImageCount();
 
-    auto& device = m_renderer.getDevice();
     for (u32 i = 0; i < swapchainImageCount; ++i)
-        m_shadowMaps.push_back(device.createTexture(depthProperties));
+        m_shadowMaps.push_back(Texture::create(depthProperties));
 
     RenderPassBackend::Properties props;
 

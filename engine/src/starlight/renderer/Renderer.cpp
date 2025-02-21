@@ -1,60 +1,27 @@
 #include "Renderer.hh"
 
 #include "starlight/core/math/Vertex.hh"
+#include "starlight/window/Window.hh"
 
-#include "starlight/core/event/WindowResized.hh"
+#include "starlight/window/Events.hh"
 
 namespace sl {
 
 static constexpr u64 bufferSize = 1024 * 1024;
 
-static UniquePointer<Buffer> createVertexBuffer(Device& device) {
-    return device.createBuffer(Buffer::Properties{
-      .size           = bufferSize * sizeof(Vertex3),
-      .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      .usage =
-        BufferUsage::BUFFER_USAGE_TRANSFER_DST_BIT
-        | BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT
-        | BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      .bindOnCreate = true,
-    });
-}
+static UniquePointer<Buffer> createVertexBuffer();
+static UniquePointer<Buffer> createIndexBuffer();
 
-static UniquePointer<Buffer> createIndexBuffer(Device& device) {
-    return device.createBuffer(Buffer::Properties{
-      .size           = bufferSize * sizeof(u32),
-      .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      .usage =
-        BufferUsage::BUFFER_USAGE_TRANSFER_DST_BIT
-        | BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT
-        | BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT,
-      .bindOnCreate = true,
-    });
-}
-
-Renderer::Renderer(Context& context) :
-    m_context(context), m_window(context.getWindow()), m_config(context.getConfig()),
-    m_device(Device::create(m_context)),
-    m_swapchain(m_device->createSwapchain(m_window.getFramebufferSize())),
-    m_vertexBuffer(createVertexBuffer(*m_device)),
-    m_indexBuffer(createIndexBuffer(*m_device)), m_currentFrame(0u),
+Renderer::Renderer() :
+    m_swapchain(Swapchain::create()), m_vertexBuffer(createVertexBuffer()),
+    m_indexBuffer(createIndexBuffer()), m_currentFrame(0u),
     m_maxFramesInFlight(m_swapchain->getImageCount()), m_frameNumber(0u),
-    m_shaderFactory(m_config.paths.shaders, *m_device),
-    m_textureFactory(m_config.paths.textures, *m_device),
-    m_materialFactory(m_config.paths.materials),
-    m_meshFactory(*m_vertexBuffer, *m_indexBuffer),
-    m_eventSentinel(context.getEventProxy()), m_recreatingSwapchain(false),
+    m_eventSentinel(EventProxy::get()), m_recreatingSwapchain(false),
     m_framesSinceResize(0u) {
     createSyncPrimitives();
     createBuffers();
     initEventHandlers();
 }
-
-Context& Renderer::getContext() { return m_context; }
-
-Window& Renderer::getWindow() { return m_window; }
-
-Device& Renderer::getDevice() { return *m_device; }
 
 Swapchain& Renderer::getSwapchain() { return *m_swapchain; }
 
@@ -69,16 +36,16 @@ void Renderer::createSyncPrimitives() {
     m_queueCompleteSemaphores.clear();
 
     for (u8 i = 0; i < m_maxFramesInFlight; ++i) {
-        m_frameFences.push_back(m_device->createFence(Fence::State::signaled));
+        m_frameFences.push_back(Fence::create(Fence::State::signaled));
         m_imageFences.push_back(nullptr);
-        m_imageAvailableSemaphores.push_back(m_device->createSemaphore());
-        m_queueCompleteSemaphores.push_back(m_device->createSemaphore());
+        m_imageAvailableSemaphores.push_back(Semaphore::create());
+        m_queueCompleteSemaphores.push_back(Semaphore::create());
     }
 }
 
 void Renderer::createBuffers() {
     for (u8 i = 0; i < m_maxFramesInFlight; ++i)
-        m_commandBuffers.push_back(m_device->createCommandBuffer());
+        m_commandBuffers.push_back(CommandBuffer::create());
 }
 
 void Renderer::initEventHandlers() {
@@ -93,7 +60,7 @@ void Renderer::onWindowResize(const Vec2<u32>& size) {
     m_recreatingSwapchain = true;
     m_framesSinceResize   = 0;
 
-    m_device->waitIdle();
+    Device::get().waitIdle();
     m_swapchain->recreate(size);
     createSyncPrimitives();
     m_currentFrame = 0u;
@@ -122,7 +89,7 @@ std::optional<u8> Renderer::beginFrame() {
     auto& commandBuffer = *m_commandBuffers[*imageIndex];
     commandBuffer.begin();
 
-    const auto& framebufferSize = m_window.getFramebufferSize();
+    const auto& framebufferSize = Window::get().getFramebufferSize();
 
     commandBuffer.execute(SetViewportCommand{
       .offset = Vec2<u32>{ 0u, 0u },
@@ -168,19 +135,45 @@ void Renderer::endFrame(u32 imageIndex) {
         .fence           = getImageFence(imageIndex)
     };
 
-    if (not m_device->getGraphicsQueue().submit(submitInfo)) [[unlikely]] {
-    }
+    auto& device = Device::get();
 
-    Queue::PresentInfo presentInfo{
-        .swapchain     = *m_swapchain,
-        .imageIndex    = imageIndex,
-        .waitSemaphore = m_queueCompleteSemaphores[m_currentFrame].get(),
-    };
-
-    if (not m_device->getPresentQueue().present(presentInfo)) [[unlikely]] {
+    if (device.getGraphicsQueue().submit(submitInfo)) [[likely]] {
+        Queue::PresentInfo presentInfo{
+            .swapchain     = *m_swapchain,
+            .imageIndex    = imageIndex,
+            .waitSemaphore = m_queueCompleteSemaphores[m_currentFrame].get(),
+        };
+        if (not device.getPresentQueue().present(presentInfo)) [[unlikely]]
+            log::warn("Could not present image");
+    } else {
+        log::warn("Could not submit graphics queue");
     }
 
     m_currentFrame = (m_currentFrame + 1) % m_maxFramesInFlight;
+}
+
+UniquePointer<Buffer> createVertexBuffer() {
+    return Buffer::create(Buffer::Properties{
+      .size           = bufferSize * sizeof(Vertex3),
+      .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      .usage =
+        BufferUsage::BUFFER_USAGE_TRANSFER_DST_BIT
+        | BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT
+        | BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      .bindOnCreate = true,
+    });
+}
+
+UniquePointer<Buffer> createIndexBuffer() {
+    return Buffer::create(Buffer::Properties{
+      .size           = bufferSize * sizeof(u32),
+      .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      .usage =
+        BufferUsage::BUFFER_USAGE_TRANSFER_DST_BIT
+        | BufferUsage::BUFFER_USAGE_TRANSFER_SRC_BIT
+        | BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT,
+      .bindOnCreate = true,
+    });
 }
 
 }  // namespace sl

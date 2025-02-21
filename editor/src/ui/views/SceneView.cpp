@@ -1,6 +1,6 @@
 #include "SceneView.hh"
 
-#include <starlight/core/event/EventProxy.hh>
+#include <starlight/event/EventProxy.hh>
 
 #include "components/PointLightUI.hh"
 #include "components/DirectionalLightUI.hh"
@@ -81,9 +81,8 @@ void SceneView::EntitiesTab::selectEntity(
 ) {
     editorWriteDebug("Entity selected: {}", entity.name);
     m_selectedEntity = &entity;
-    sl::EventProxy::get().emit<events::EntitySelected>(
-      m_selectedEntity, clearComponentCallback
-    );
+    sl::EventProxy::get()
+      .emit<events::EntitySelected>(m_selectedEntity, clearComponentCallback);
 }
 
 SceneView::SceneTab::SceneTab(sl::Scene* scene) : m_scene(scene) {}

@@ -1,7 +1,7 @@
-#include "starlight/core/event/Core.hh"
-#include "starlight/core/event/EventProxy.hh"
-#include "starlight/core/event/EventBroker.hh"
-#include "starlight/core/event/EventHandlerSentinel.hh"
+#include "starlight/event/Core.hh"
+#include "starlight/event/EventProxy.hh"
+#include "starlight/event/EventBroker.hh"
+#include "starlight/event/EventHandlerSentinel.hh"
 
 #include <gtest/gtest.h>
 

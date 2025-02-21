@@ -1,25 +1,23 @@
 #pragma once
 
 #include "starlight/core/Core.hh"
-#include "starlight/core/window/Window.hh"
-#include "starlight/core/Context.hh"
+#include "starlight/window/Window.hh"
 #include "starlight/core/Enum.hh"
-#include "starlight/core/event/EventHandlerSentinel.hh"
+#include "starlight/event/EventHandlerSentinel.hh"
 
 #include "starlight/renderer/gpu/Device.hh"
 #include "starlight/renderer/gpu/Sync.hh"
 
 #include "fwd.hh"
-
 #include "VulkanQueue.hh"
 #include "Vulkan.hh"
 
 namespace sl::vk {
 
-class VulkanDevice : public Device {
+class VulkanDevice : public Device::Impl {
     class Instance : public NonCopyable, public NonMovable {
     public:
-        explicit Instance(const Config& config, Allocator* allocator);
+        explicit Instance(Allocator* allocator);
         ~Instance();
 
         VkInstance handle;
@@ -41,7 +39,7 @@ class VulkanDevice : public Device {
 
     class Surface : public NonCopyable, public NonMovable {
     public:
-        explicit Surface(VkInstance instance, Window& window, Allocator* allocator);
+        explicit Surface(VkInstance instance, Allocator* allocator);
         ~Surface();
 
         VkSurfaceKHR handle;
@@ -109,7 +107,7 @@ public:
         Allocator* m_allocator;
     };
 
-    explicit VulkanDevice(Context& context);
+    explicit VulkanDevice();
     ~VulkanDevice() override;
 
     void waitIdle() override;
@@ -117,38 +115,6 @@ public:
 
     std::optional<i32> findMemoryIndex(u32 typeFilter, u32 propertyFlags) const;
 
-    UniquePointer<Buffer> createBuffer(const Buffer::Properties& props) override;
-
-    UniquePointer<Pipeline> createPipeline(
-      Shader& shader, RenderPassBackend& renderPass,
-      const Pipeline::Properties& props
-    ) override;
-
-    UniquePointer<ShaderDataBinder> createShaderDataBinder(Shader& shader) override;
-
-    UniquePointer<Shader> createShader(const Shader::Properties& props) override;
-
-    UniquePointer<CommandBuffer> createCommandBuffer(
-      CommandBuffer::Severity severity = CommandBuffer::Severity::primary
-    ) override;
-
-    UniquePointer<Texture>
-      createTexture(const Texture::ImageData& image, const Texture::SamplerProperties&)
-        override;
-
-    UniquePointer<RenderPassBackend> createRenderPassBackend(
-      const RenderPassBackend::Properties& props, bool hasPreviousPass,
-      bool hasNextPass
-    ) override;
-
-    UniquePointer<Semaphore> createSemaphore() override;
-
-    UniquePointer<Fence> createFence(Fence::State) override;
-
-    UniquePointer<Swapchain> createSwapchain(const Vec2<u32>& size) override;
-
-    Window& window;
-    Config config;
     EventHandlerSentinel m_eventSentinel;
     Allocator* allocator;
     Instance instance;

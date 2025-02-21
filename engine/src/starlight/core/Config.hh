@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include "starlight/core/Core.hh"
+#include "Core.hh"
 #include "FileSystem.hh"
 
 namespace sl {

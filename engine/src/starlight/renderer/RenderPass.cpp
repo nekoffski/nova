@@ -4,6 +4,7 @@
 
 #include "starlight/core/LazyEvaluator.hh"
 #include "starlight/renderer/Renderer.hh"
+#include "starlight/window/Window.hh"
 
 namespace sl {
 
@@ -15,7 +16,7 @@ RenderPassBase::RenderPassBase(
     name(name.value_or(fmt::format("RenderPass_{}", getId()))) {}
 
 Rect2<u32> RenderPassBase::getViewport() {
-    auto framebufferSize = m_renderer.getWindow().getFramebufferSize();
+    auto framebufferSize = Window::get().getFramebufferSize();
 
     Vec2<u32> viewportOffset{
         static_cast<u32>(framebufferSize.x * m_viewportOffset.x), 0u
@@ -72,7 +73,7 @@ RenderPass::RenderPass(
   std::optional<std::string> name
 ) :
     RenderPassBase(renderer, viewportOffset, name), m_shader(shader),
-    m_shaderDataBinder(m_renderer.getDevice().createShaderDataBinder(*m_shader)) {}
+    m_shaderDataBinder(ShaderDataBinder::create(*m_shader)) {}
 
 void RenderPass::run(
   RenderPacket& packet, CommandBuffer& commandBuffer, u32 imageIndex, u64 frameNumber
@@ -94,16 +95,15 @@ void RenderPass::run(
 
 void RenderPass::init(bool hasPreviousPass, bool hasNextPass) {
     const auto props = createRenderPassProperties(hasPreviousPass, hasNextPass);
-    auto& device     = m_renderer.getDevice();
 
     m_renderPassBackend.clear();
     m_pipeline.clear();
 
-    m_renderPassBackend =
-      device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
-    m_pipeline = device.createPipeline(
-      *m_shader, *m_renderPassBackend, createPipelineProperties()
-    );
+    // m_renderPassBackend =
+    //   device.createRenderPassBackend(props, hasPreviousPass, hasNextPass);
+    // m_pipeline = device.createPipeline(
+    //   *m_shader, *m_renderPassBackend, createPipelineProperties()
+    // );
 }
 
 void RenderPass::setLocalUniforms(

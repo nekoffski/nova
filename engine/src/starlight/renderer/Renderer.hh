@@ -4,8 +4,7 @@
 
 #include "starlight/core/memory/Memory.hh"
 #include "starlight/core/Core.hh"
-#include "starlight/core/Context.hh"
-#include "starlight/core/event/EventHandlerSentinel.hh"
+#include "starlight/event/EventHandlerSentinel.hh"
 #include "starlight/core/Concepts.hh"
 
 #include "gpu/Device.hh"
@@ -14,22 +13,12 @@
 #include "gpu/CommandBuffer.hh"
 #include "gpu/Buffer.hh"
 
-#include "factories/ShaderFactory.hh"
-#include "factories/TextureFactory.hh"
-#include "factories/SkyboxFactory.hh"
-#include "factories/MeshFactory.hh"
-#include "factories/MaterialFactory.hh"
-#include "factories/ShaderFactory.hh"
-
 namespace sl {
 
 class Renderer {
 public:
-    explicit Renderer(Context& context);
+    explicit Renderer();
 
-    Context& getContext();
-    Window& getWindow();
-    Device& getDevice();
     Swapchain& getSwapchain();
     Buffer& getVertexBuffer();
     Buffer& getIndexBuffer();
@@ -55,11 +44,6 @@ private:
     std::optional<u8> beginFrame();
     void endFrame(u32 imageIndex);
 
-    Context& m_context;
-    Window& m_window;
-    Config m_config;
-
-    UniquePointer<Device> m_device;
     UniquePointer<Swapchain> m_swapchain;
 
     UniquePointer<Buffer> m_vertexBuffer;
@@ -74,13 +58,6 @@ private:
     std::vector<UniquePointer<Semaphore>> m_queueCompleteSemaphores;
     std::vector<UniquePointer<Fence>> m_frameFences;
     std::vector<Fence*> m_imageFences;
-
-    // factories
-    ShaderFactory m_shaderFactory;
-    TextureFactory m_textureFactory;
-    MaterialFactory m_materialFactory;
-    MeshFactory m_meshFactory;
-    SkyboxFactory m_skyboxFactory;
 
     EventHandlerSentinel m_eventSentinel;
     bool m_recreatingSwapchain;

@@ -110,10 +110,14 @@ public:
         DataLayout layout;
     };
 
-    explicit Shader(const Properties& properties);
+    static UniquePointer<Shader> create(const Properties& props);
+
     virtual ~Shader() = default;
 
     const Properties properties;
+
+protected:
+    explicit Shader(const Properties& properties);
 };
 
 template <> Shader::DataType fromString<Shader::DataType>(std::string_view str);

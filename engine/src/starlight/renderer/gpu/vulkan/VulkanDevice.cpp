@@ -4,9 +4,10 @@
 
 #include "VulkanQueue.hh"
 
+#include "starlight/core/Globals.hh"
 #include "starlight/core/Log.hh"
-#include "starlight/core/window/glfw/Vulkan.hh"
-#include "starlight/core/event/WindowResized.hh"
+#include "starlight/window/glfw/Vulkan.hh"
+#include "starlight/window/Events.hh"
 
 #include "VulkanFence.hh"
 #include "VulkanSemaphore.hh"
@@ -21,15 +22,12 @@
 
 namespace sl::vk {
 
-VulkanDevice::VulkanDevice(Context& context) :
-    window(context.getWindow()), config(context.getConfig()),
-    m_eventSentinel(context.getEventProxy()), allocator(nullptr),
-    instance(config, allocator),
+VulkanDevice::VulkanDevice() :
+    m_eventSentinel(EventProxy::get()), allocator(nullptr), instance(allocator),
 #ifdef SL_VK_DEBUG
     m_debugMessenger(instance.handle, allocator),
 #endif
-    surface(instance.handle, window, allocator),
-    physical(instance.handle, surface.handle),
+    surface(instance.handle, allocator), physical(instance.handle, surface.handle),
     logical(physical.handle, allocator, physical.info.queueIndices) {
 
     createUiResources();
@@ -43,66 +41,6 @@ VulkanDevice::~VulkanDevice() {
     if (uiDescriptorPool) {
         vkDestroyDescriptorPool(logical.handle, uiDescriptorPool, allocator);
     }
-}
-
-UniquePointer<Buffer> VulkanDevice::createBuffer(const Buffer::Properties& props) {
-    return UniquePointer<VulkanBuffer>::create(*this, props);
-}
-
-UniquePointer<Texture> VulkanDevice::createTexture(
-  const Texture::ImageData& image, const Texture::SamplerProperties& sampler
-) {
-    return UniquePointer<VulkanTexture>::create(*this, image, sampler);
-}
-
-UniquePointer<Fence> VulkanDevice::createFence(Fence::State state) {
-    return UniquePointer<VulkanFence>::create(*this, state);
-}
-
-UniquePointer<Swapchain> VulkanDevice::createSwapchain(const Vec2<u32>& size) {
-    return UniquePointer<VulkanSwapchain>::create(*this, size);
-}
-
-UniquePointer<RenderPassBackend> VulkanDevice::createRenderPassBackend(
-  const RenderPassBackend::Properties& props, bool hasPreviousPass, bool hasNextPass
-) {
-    return props.type == RenderPassBackend::Type::normal
-             ? UniquePointer<VulkanRenderPassBackend>::create(
-                 *this, props, hasPreviousPass, hasNextPass
-               )
-             : UniquePointer<VulkanImguiRenderPassBackend>::create(
-                 *this, props, hasPreviousPass, hasNextPass, config.paths.fonts
-               );
-}
-
-UniquePointer<Semaphore> VulkanDevice::createSemaphore() {
-    return UniquePointer<VulkanSemaphore>::create(*this);
-}
-
-UniquePointer<CommandBuffer> VulkanDevice::createCommandBuffer(
-  CommandBuffer::Severity severity
-) {
-    return UniquePointer<VulkanCommandBuffer>::create(*this, severity);
-}
-
-UniquePointer<Shader> VulkanDevice::createShader(const Shader::Properties& props) {
-    return UniquePointer<VulkanShader>::create(*this, props);
-}
-
-UniquePointer<Pipeline> VulkanDevice::createPipeline(
-  Shader& shader, RenderPassBackend& renderPass, const Pipeline::Properties& props
-) {
-    return UniquePointer<VulkanPipeline>::create(
-      *this, static_cast<VulkanShader&>(shader),
-      static_cast<VulkanRenderPassBackend&>(renderPass), props
-    );
-}
-
-UniquePointer<ShaderDataBinder> VulkanDevice::createShaderDataBinder(Shader& shader
-) {
-    return UniquePointer<VulkanShaderDataBinder>::create(
-      *this, static_cast<VulkanShader&>(shader)
-    );
 }
 
 void VulkanDevice::waitIdle() { vkDeviceWaitIdle(logical.handle); }
@@ -130,7 +68,9 @@ std::optional<i32> VulkanDevice::findMemoryIndex(u32 typeFilter, u32 propertyFla
     Instance
 */
 
-static VkApplicationInfo createApplicationInfo(const Config& config) {
+static VkApplicationInfo createApplicationInfo() {
+    const auto& config = Globals::get().getConfig();
+
     VkApplicationInfo applicationInfo;
     clearMemory(&applicationInfo);
     applicationInfo.sType            = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -210,9 +150,9 @@ static VkInstanceCreateInfo createInstanceCreateInfo(
     return instanceCreateInfo;
 }
 
-VulkanDevice::Instance::Instance(const Config& config, Allocator* allocator) :
-    handle(VK_NULL_HANDLE), m_allocator(allocator) {
-    auto applicationInfo = createApplicationInfo(config);
+VulkanDevice::Instance::Instance(Allocator* allocator
+) : handle(VK_NULL_HANDLE), m_allocator(allocator) {
+    auto applicationInfo = createApplicationInfo();
     auto layers          = getLayers();
     auto extensions      = getExtensions();
 
@@ -313,10 +253,9 @@ VulkanDevice::DebugMessenger::~DebugMessenger() {
     Surface
 */
 
-VulkanDevice::Surface::Surface(
-  VkInstance instance, Window& window, Allocator* allocator
-) :
-    handle(glfw::createVulkanSurface(instance, window.getHandle(), allocator)),
+VulkanDevice::Surface::Surface(VkInstance instance, Allocator* allocator) :
+    handle(glfw::createVulkanSurface(instance, Window::get().getHandle(), allocator)
+    ),
     m_instance(instance), m_allocator(allocator) {
     log::trace("Vulkan surface created");
 }

@@ -10,6 +10,8 @@ namespace sl {
 struct Fence : public NonCopyable, public NonMovable {
     enum class State : u8 { signaled, notSignaled };
 
+    static UniquePointer<Fence> create(State state);
+
     virtual ~Fence() = default;
 
     virtual bool wait(Nanoseconds timeout = max<u64>()) = 0;
@@ -17,6 +19,8 @@ struct Fence : public NonCopyable, public NonMovable {
 };
 
 struct Semaphore : public NonCopyable, public NonMovable {
+    static UniquePointer<Semaphore> create();
+
     virtual ~Semaphore() = default;
 };
 

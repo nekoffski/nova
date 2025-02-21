@@ -13,12 +13,13 @@ namespace sl {
 
 class Texture : public NonMovable, public Identificable<Texture> {
 public:
-    static constexpr u32 defaultWidth   = 1024;
-    static constexpr u32 defaultHeight  = 1024;
-    static constexpr u8 defaultChannels = 4;
-
     using PixelWidth = u8;
     using Pixels     = std::vector<PixelWidth>;
+
+    static constexpr u32 defaultWidth             = 1024u;
+    static constexpr u32 defaultHeight            = 1024u;
+    static constexpr u8 defaultChannels           = 4u;
+    static constexpr PixelWidth defaultPixelColor = 255u;
 
     enum class Type : u8 { flat, cubemap };
     enum class Filter : u8 { nearest, linear };
@@ -75,6 +76,11 @@ public:
         Repeat vRepeat;
         Repeat wRepeat;
     };
+
+    static UniquePointer<Texture> create(
+      const ImageData& image           = ImageData::createDefault(defaultPixelColor),
+      const SamplerProperties& sampler = SamplerProperties::createDefault()
+    );
 
     virtual ~Texture() = default;
 

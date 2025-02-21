@@ -3,7 +3,9 @@
 #include <optional>
 
 #include "starlight/core/Core.hh"
+#include "starlight/core/memory/UniquePointer.hh"
 #include "starlight/core/math/Core.hh"
+#include "starlight/window/Window.hh"
 
 #include "Sync.hh"
 #include "Texture.hh"
@@ -12,6 +14,10 @@ namespace sl {
 
 class Swapchain {
 public:
+    static UniquePointer<Swapchain> create(
+      const Vec2<u32>& size = Window::get().getFramebufferSize()
+    );
+
     virtual ~Swapchain() = default;
 
     virtual void recreate(const Vec2<u32>& size) = 0;

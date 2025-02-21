@@ -1,7 +1,7 @@
 #include "PointLightUI.hh"
 
 #include <starlight/ui/UI.hh>
-#include <starlight/core/event/EventProxy.hh>
+#include <starlight/event/EventProxy.hh>
 
 #include "Events.hh"
 

@@ -1,7 +1,7 @@
 #include "EulerCamera.hh"
 
-#include "starlight/core/window/Input.hh"
-#include "starlight/core/window/Keys.hh"
+#include "starlight/window/Input.hh"
+#include "starlight/window/Keys.hh"
 
 namespace sl {
 

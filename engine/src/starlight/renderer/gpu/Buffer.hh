@@ -28,6 +28,8 @@ struct Buffer : public NonCopyable, public NonMovable {
         }
     };
 
+    static UniquePointer<Buffer> create(const Properties& props);
+
     virtual ~Buffer() = default;
 
     virtual void bind(u64 offset = 0) = 0;

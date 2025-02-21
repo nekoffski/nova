@@ -269,10 +269,9 @@ void VulkanTexture::write(std::span<u8> pixels, CommandBuffer* commandBuffer) {
     if (commandBuffer != nullptr) {
         execute(*commandBuffer);
     } else {
-        ImmediateCommandBuffer commandBuffer{
-            m_device.createCommandBuffer(), m_device.getGraphicsQueue()
-        };
-        execute(commandBuffer.get());
+        auto& queue = Device::get().getGraphicsQueue();
+        CommandBuffer::Immediate commandBuffer{ queue };
+        execute(commandBuffer);
     }
     m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }

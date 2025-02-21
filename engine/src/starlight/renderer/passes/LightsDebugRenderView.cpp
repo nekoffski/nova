@@ -1,6 +1,6 @@
 // #include "LightsDebugRenderView.hh"
 
-// #include "starlight/core/window/Window.hh"
+// #include "starlight/window/Window.hh"
 
 // namespace sl {
 

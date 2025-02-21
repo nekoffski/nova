@@ -2,7 +2,7 @@
 
 #include "VulkanDevice.hh"
 
-#include "starlight/core/window/Window.hh"
+#include "starlight/window/Window.hh"
 
 namespace sl::vk {
 

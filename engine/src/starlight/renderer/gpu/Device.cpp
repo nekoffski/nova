@@ -6,9 +6,11 @@
 
 namespace sl {
 
-UniquePointer<Device> Device::create(Context& context) {
+Device::Device() : m_impl(Impl::create()) {}
+
+UniquePointer<Device::Impl> Device::Impl::create() {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanDevice>::create(context);
+    return UniquePointer<vk::VulkanDevice>::create();
 #endif
     return nullptr;
 }
@@ -16,5 +18,11 @@ UniquePointer<Device> Device::create(Context& context) {
 Queue& Device::getPresentQueue() { return getQueue(Queue::Type::present); }
 
 Queue& Device::getGraphicsQueue() { return getQueue(Queue::Type::graphics); }
+
+Queue& Device::getQueue(Queue::Type type) { return m_impl->getQueue(type); }
+
+void Device::waitIdle() { m_impl->waitIdle(); }
+
+Device::Impl& Device::getImpl() { return *m_impl; }
 
 }  // namespace sl
