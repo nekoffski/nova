@@ -26,7 +26,7 @@ public:
     explicit Engine(const Config& config);
     virtual ~Engine() = default;
 
-    void run();
+    int run();
 
 private:
     virtual void update(float frameTime) = 0;

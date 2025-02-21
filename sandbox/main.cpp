@@ -4,11 +4,11 @@
 
 #include "starlight/app/Engine.hh"
 #include "starlight/ui/UI.hh"
-#include "starlight/renderer/passes/GridRenderPass.hh"
-#include "starlight/renderer/passes/SkyboxRenderPass.hh"
-#include "starlight/renderer/passes/ShadowMapsRenderPass.hh"
-#include "starlight/renderer/passes/WorldRenderPass.hh"
-#include "starlight/renderer/passes/UIRenderPass.hh"
+#include "starlight/app/renderPasses/GridRenderPass.hh"
+#include "starlight/app/renderPasses/SkyboxRenderPass.hh"
+#include "starlight/app/renderPasses/ShadowMapsRenderPass.hh"
+#include "starlight/app/renderPasses/WorldRenderPass.hh"
+#include "starlight/app/renderPasses/UIRenderPass.hh"
 #include "starlight/renderer/MeshComposite.hh"
 
 struct UI : sl::UI {
@@ -44,11 +44,10 @@ private:
 int main(int argc, char** argv) {
     sl::log::init("sl-sandbox");
     sl::log::expect(argc >= 2, "Config path required");
+
     auto config = sl::Config::fromJson(std::string{ argv[1] });
     sl::log::expect(config.has_value(), "Could not load config file");
 
     Sandbox sandbox{ *config };
-    sandbox.run();
-
-    return 0;
+    return sandbox.run();
 }

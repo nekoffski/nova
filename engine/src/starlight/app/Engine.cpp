@@ -11,13 +11,15 @@ Engine::Engine(const Config& config) :
     initEvents();
 }
 
-void Engine::run() {
+int Engine::run() {
     while (m_isRunning) {
         const auto frameTime = beginFrame();
         updateFrame(frameTime);
         render();
         endFrame();
     }
+
+    return 0;
 }
 
 void Engine::render() {
