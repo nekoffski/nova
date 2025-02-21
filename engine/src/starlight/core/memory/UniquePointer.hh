@@ -61,15 +61,6 @@ public:
 
     operator bool() const { return m_buffer != nullptr; }
 
-    // template <typename C, typename... Args>
-    // requires std::constructible_from<C, Args...>
-    // friend UniquePointer<C> makeUniquePointer(Allocator* allocator, Args&&...
-    // args);
-
-    // template <typename C, typename... Args>
-    // requires std::constructible_from<C, Args...>
-    // friend UniquePointer<C> makeUniquePointer(Args&&... args);
-
     template <typename... Args>
     requires std::constructible_from<T, Args...>
     static UniquePointer<T> create(Allocator* allocator, Args&&... args) {

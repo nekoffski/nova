@@ -35,19 +35,24 @@ struct Tester2 : public Tester {
 
 struct UniquePointerTests : testing::Test {
     void SetUp() {
-        Tester::constructorCalls = 0;
-        Tester::destructorCalls  = 0;
+        Tester::constructorCalls  = 0;
+        Tester::destructorCalls   = 0;
+        Tester2::constructorCalls = 0;
+        Tester2::destructorCalls  = 0;
 
         ON_CALL(allocator, allocate)
-          .WillByDefault(Invoke([](std::size_t) -> Tester* {
+          .WillByDefault(Invoke([&](std::size_t s) -> Tester* {
+              lastAllocatedChunk = s;
               return static_cast<Tester*>(std::malloc(sizeof(Tester)));
           }));
         ON_CALL(allocator, deallocate)
-          .WillByDefault(Invoke([](void* ptr, std::size_t) {
+          .WillByDefault(Invoke([&](void* ptr, std::size_t s) {
+              EXPECT_EQ(lastAllocatedChunk, s);
               std::free(static_cast<Tester*>(ptr));
           }));
     }
 
+    std::size_t lastAllocatedChunk = 0;
     MockAllocator<Tester> allocator;
 };
 
