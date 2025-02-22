@@ -69,7 +69,7 @@ Pipeline::Properties RenderPassBase::createPipelineProperties() {
 }
 
 RenderPass::RenderPass(
-  Renderer& renderer, ResourceRef<Shader> shader, const Vec2<f32>& viewportOffset,
+  Renderer& renderer, SharedPointer<Shader> shader, const Vec2<f32>& viewportOffset,
   std::optional<std::string> name
 ) :
     RenderPassBase(renderer, viewportOffset, name), m_shader(shader),

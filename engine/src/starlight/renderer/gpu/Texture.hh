@@ -51,9 +51,6 @@ public:
           u32 width = defaultWidth, u32 height = defaultHeight,
           u8 channels = defaultChannels, std::optional<PixelWidth> pixelColor = {}
         );
-        static std::optional<ImageData> load(
-          std::string_view path, Texture::Type textureType
-        );
 
         u32 width;
         u32 height;
@@ -77,7 +74,7 @@ public:
         Repeat wRepeat;
     };
 
-    static UniquePointer<Texture> create(
+    static SharedPointer<Texture> create(
       const ImageData& image           = ImageData::createDefault(defaultPixelColor),
       const SamplerProperties& sampler = SamplerProperties::createDefault()
     );

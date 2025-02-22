@@ -22,8 +22,9 @@ RenderPacket Scene::getRenderPacket() {
       [&](Component<MeshComposite>& meshComposite) {
           meshComposite.data().traverse([&](MeshComposite::Node& node) {
               for (auto& instance : node.getInstances()) {
-                  packet.entities
-                    .emplace_back(instance.getWorld(), node.mesh, node.material);
+                  packet.entities.emplace_back(
+                    instance.getWorld(), node.mesh.get(), node.material.get()
+                  );
               }
           });
       }
@@ -56,7 +57,7 @@ RenderPacket Scene::getRenderPacket() {
     // light.data.color      = Vec4<f32>{ 0.5f, 0.5f, 0.1f, 1.0f };
     // packet.pointLights.push_back(light);
 
-    packet.skybox = skybox;
+    packet.skybox = skybox.get();
 
     return packet;
 }

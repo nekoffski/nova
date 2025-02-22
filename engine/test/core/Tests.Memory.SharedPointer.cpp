@@ -115,7 +115,7 @@ TEST_F(SharedPointerTests, whenCreatingView_shouldBeAbleCreatePointerUsingIt) {
     expectTesterCalls<Tester>(0u, 0u);
     auto p = SharedPointer<Tester>::create();
     expectTesterCalls<Tester>(1u, 0u);
-    SharedPointer<Tester>::View view = p;
+    SharedPointer<Tester> view = p;
     expectTesterCalls<Tester>(1u, 0u);
     SharedPointer<Tester> p2 = view;
     expectTesterCalls<Tester>(1u, 0u);

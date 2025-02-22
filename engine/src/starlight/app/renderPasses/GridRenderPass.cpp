@@ -1,6 +1,6 @@
 #include "GridRenderPass.hh"
 
-#include "starlight/renderer/factories/ShaderFactory.hh"
+#include "starlight/app/factories/ShaderFactory.hh"
 
 namespace sl {
 

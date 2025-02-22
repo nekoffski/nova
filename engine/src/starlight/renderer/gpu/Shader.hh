@@ -110,9 +110,9 @@ public:
         DataLayout layout;
     };
 
-    static UniquePointer<Shader> create(const Properties& props);
+    static SharedPointer<Shader> create(const Properties& props);
 
-    virtual ~Shader() = default;
+    virtual ~Shader();
 
     const Properties properties;
 

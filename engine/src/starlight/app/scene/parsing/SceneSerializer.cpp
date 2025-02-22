@@ -14,9 +14,9 @@ void SceneSerializer::serialize(
     root["ts"] = getTimeString("%Y-%m-%d %H:%M:%S");
 
     if (scene.skybox) {
-        const auto skyboxName = scene.skybox.getName();
-        log::debug("Saving skybox: {}", skyboxName);
-        root["skybox"] = skyboxName;
+        // const auto skyboxName = scene.skybox->getName();
+        // log::debug("Saving skybox: {}", skyboxName);
+        // root["skybox"] = skyboxName;
     }
 
     scene.forEachEntity([&](auto& entity) {

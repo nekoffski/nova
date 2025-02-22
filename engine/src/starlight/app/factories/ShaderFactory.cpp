@@ -1,8 +1,7 @@
 #include "ShaderFactory.hh"
 
-#include "shader/SPIRVParser.hh"
-
-#include <ranges>
+#include "starlight/core/Globals.hh"
+#include "starlight/app/utils/SPIRVParser.hh"
 
 namespace sl {
 
@@ -88,19 +87,17 @@ std::optional<Shader::Properties> parseShader(
     return properties;
 }
 
-ResourceRef<Shader> ShaderFactory::load(
+SharedPointer<Shader> ShaderFactory::load(
   const std::string& name, const FileSystem& fs
 ) {
-    const auto basePath = fmt::format("{}/{}", m_shadersPath, name);
+    const auto shadersPath = Globals::get().getConfig().paths.shaders;
+    const auto basePath    = fmt::format("{}/{}", shadersPath, name);
 
     if (auto properties = parseShader(basePath, fs); properties)
-        return store(name, Shader::create(*properties));
+        return save(name, Shader::create(*properties));
 
     log::warn("Could not parse shader properties");
-    return {};
+    return nullptr;
 }
-
-ShaderFactory::ShaderFactory(const std::string& path, Device& device) :
-    ResourceFactory("Shader"), m_shadersPath(path), m_device(device) {}
 
 }  // namespace sl

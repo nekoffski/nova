@@ -7,7 +7,8 @@ Engine::Engine(const Config& config) :
     m_eventSentinel(m_eventProxy), m_input(m_window.getImpl()),
     m_defaultScene(&m_defaultCamera), m_defaultRenderGraph(m_renderer),
     m_camera(&m_defaultCamera), m_scene(&m_defaultScene),
-    m_renderGraph(&m_defaultRenderGraph) {
+    m_renderGraph(&m_defaultRenderGraph),
+    m_meshFactory(m_renderer.getVertexBuffer(), m_renderer.getIndexBuffer()) {
     initEvents();
 }
 

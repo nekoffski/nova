@@ -1,7 +1,7 @@
 #include "MeshCompositeParser.hh"
 
-#include "starlight/renderer/factories/MeshFactory.hh"
-#include "starlight/renderer/factories/MaterialFactory.hh"
+#include "starlight/app/factories/MeshFactory.hh"
+#include "starlight/app/factories/MaterialFactory.hh"
 
 namespace sl {
 
@@ -13,8 +13,8 @@ nlohmann::json MeshCompositeSerializer::serialize(MeshComposite& component) cons
     // just root for now
     auto& root = component.getRoot();
 
-    json["material"] = root.material.getName();
-    json["mesh"]     = root.mesh.getName();
+    // json["material"] = root.material.getName();
+    // json["mesh"]     = root.mesh.getName();
 
     return json;
 }
@@ -31,11 +31,13 @@ void MeshCompositeDeserializer::deserialize(
 }
 
 // TODO: store default materials/meshes/shaders/textures in some lookup table
-ResourceRef<Mesh> MeshCompositeDeserializer::getMesh(const std::string& name) const {
+SharedPointer<Mesh> MeshCompositeDeserializer::getMesh(const std::string& name
+) const {
     return MeshFactory::get().find(name);
 }
 
-ResourceRef<Material> MeshCompositeDeserializer::getMaterial(const std::string& name
+SharedPointer<Material> MeshCompositeDeserializer::getMaterial(
+  const std::string& name
 ) const {
     return MaterialFactory::get().find(name);
 }

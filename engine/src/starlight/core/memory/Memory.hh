@@ -4,3 +4,4 @@
 
 #include "UniquePointer.hh"
 #include "LocalPointer.hh"
+#include "SharedPointer.hh"

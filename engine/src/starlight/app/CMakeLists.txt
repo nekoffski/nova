@@ -1,4 +1,4 @@
-set(SL_APP_LIBS stb dl starlight-core starlight-window starlight-event starlight-renderer)
+set(SL_APP_LIBS stb dl starlight-core starlight-window starlight-event starlight-renderer spirv-cross::spirv-cross)
 set(SL_APP_TARGET starlight-app)
 file(GLOB_RECURSE SL_APP_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 

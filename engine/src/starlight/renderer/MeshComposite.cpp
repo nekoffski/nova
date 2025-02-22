@@ -3,7 +3,7 @@
 namespace sl {
 
 MeshComposite::Node::Node(
-  ResourceRef<Mesh> mesh, ResourceRef<Material> material, u64 depth, u64 index
+  SharedPointer<Mesh> mesh, SharedPointer<Material> material, u64 depth, u64 index
 ) :
     mesh(mesh), material(material), name(fmt::format("Node-{}/{}", depth, index)),
     m_depth(depth), m_index(index) {

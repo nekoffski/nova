@@ -21,27 +21,50 @@ struct ControlBlock {
 
 }  // namespace detail
 
-template <typename T> class SharedPointer : public NonCopyable {
+template <typename T> class SharedPointer {
     template <typename C> friend class SharedPointer;
 
     struct PrivateConstructorTag {};
 
 public:
-    class View {
-    public:
-        View(SharedPointer& ptr) : m_ptr(ptr) {}
-
-        SharedPointer clone() { return m_ptr.clone(); }
-        operator SharedPointer() { return m_ptr.clone(); }
-
-    private:
-        SharedPointer& m_ptr;
-    };
-
     explicit SharedPointer() : m_controlBlock(nullptr), m_buffer(nullptr) {}
     SharedPointer(std::nullptr_t) : SharedPointer() {}
 
     ~SharedPointer() { reset(); }
+
+    template <typename F>
+    requires std::derived_from<F, T>
+    SharedPointer& operator=(SharedPointer<F>&& oth) {
+        reset();
+
+        m_buffer       = std::exchange(oth.m_buffer, nullptr);
+        m_controlBlock = std::exchange(oth.m_controlBlock, nullptr);
+
+        return *this;
+    }
+
+    SharedPointer& operator=(const SharedPointer& oth) {
+        reset();
+
+        m_buffer       = oth.m_buffer;
+        m_controlBlock = oth.m_controlBlock;
+
+        if (m_controlBlock) m_controlBlock->referenceCounter++;
+
+        return *this;
+    }
+
+    template <typename F>
+    requires std::derived_from<F, T>
+    SharedPointer(const SharedPointer<F>& oth
+    ) : m_controlBlock(oth.m_controlBlock), m_buffer(oth.m_buffer) {
+        if (m_controlBlock) m_controlBlock->referenceCounter++;
+    }
+
+    SharedPointer(const SharedPointer<T>& oth
+    ) : m_controlBlock(oth.m_controlBlock), m_buffer(oth.m_buffer) {
+        if (m_controlBlock) m_controlBlock->referenceCounter++;
+    }
 
     template <typename F>
     requires std::derived_from<F, T>
@@ -55,6 +78,8 @@ public:
             delete m_controlBlock;
             delete m_buffer;
         }
+        m_controlBlock = nullptr;
+        m_buffer       = nullptr;
     }
 
     bool empty() const { return m_buffer == nullptr; }
@@ -77,14 +102,7 @@ public:
         };
     }
 
-    SharedPointer clone() { return SharedPointer{ m_controlBlock, m_buffer }; }
-
 private:
-    explicit SharedPointer(detail::ControlBlock* controlBlock, T* buffer) :
-        m_controlBlock(controlBlock), m_buffer(buffer) {
-        m_controlBlock->referenceCounter++;
-    }
-
     template <typename... Args>
     requires std::constructible_from<T, Args...>
     explicit SharedPointer(PrivateConstructorTag, Args&&... args) :

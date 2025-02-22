@@ -2,8 +2,7 @@
 
 #include "starlight/core/Utils.hh"
 
-#include "starlight/renderer/factories/ShaderFactory.hh"
-#include "starlight/renderer/factories/MeshFactory.hh"
+#include "starlight/app/factories/ShaderFactory.hh"
 #include "starlight/renderer/Core.hh"
 
 namespace sl {
@@ -108,9 +107,9 @@ void WorldRenderPass::render(
           [&](auto& setter) {
               setter.set("diffuseColor", material->diffuseColor);
               setter.set("shininess", material->shininess);
-              setter.set("diffuseMap", material->textures.diffuse.get());
-              setter.set("specularMap", material->textures.specular.get());
-              setter.set("normalMap", material->textures.normal.get());
+              setter.set("diffuseMap", material->diffuseMap.get());
+              setter.set("specularMap", material->specularMap.get());
+              setter.set("normalMap", material->normalMap.get());
           }
         );
         setPushConstant(commandBuffer, "model", model);

@@ -19,7 +19,7 @@ public:
 
     public:
         explicit Node(
-          ResourceRef<Mesh> mesh, ResourceRef<Material> material, u64 depth,
+          SharedPointer<Mesh> mesh, SharedPointer<Material> material, u64 depth,
           u64 index
         );
 
@@ -36,8 +36,8 @@ public:
         }
 
     public:
-        ResourceRef<Mesh> mesh;
-        ResourceRef<Material> material;
+        SharedPointer<Mesh> mesh;
+        SharedPointer<Material> material;
         const std::string name;
 
     private:
@@ -48,8 +48,9 @@ public:
         std::vector<Node> m_children;
     };
 
-    explicit MeshComposite(ResourceRef<Mesh> mesh, ResourceRef<Material> material) :
-        m_root(mesh, material, 0u, 0u) {}
+    explicit MeshComposite(
+      SharedPointer<Mesh> mesh, SharedPointer<Material> material
+    ) : m_root(mesh, material, 0u, 0u) {}
 
     Node& getRoot() { return m_root; }
 

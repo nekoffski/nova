@@ -20,7 +20,7 @@ private:
 
     Rect2<u32> getViewport() override;
 
-    std::vector<UniquePointer<Texture>> m_shadowMaps;
+    std::vector<SharedPointer<Texture>> m_shadowMaps;
 };
 
 }  // namespace sl

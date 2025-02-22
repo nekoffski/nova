@@ -1,7 +1,7 @@
 #include "SkyboxRenderPass.hh"
 
-#include "starlight/renderer/factories/SkyboxFactory.hh"
-#include "starlight/renderer/factories/MeshFactory.hh"
+#include "starlight/app/factories/SkyboxFactory.hh"
+#include "starlight/app/factories/MeshFactory.hh"
 
 namespace sl {
 

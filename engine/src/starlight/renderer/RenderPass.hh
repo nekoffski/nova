@@ -61,7 +61,7 @@ public:
 class RenderPass : public RenderPassBase {
 public:
     explicit RenderPass(
-      Renderer& renderer, ResourceRef<Shader> shader,
+      Renderer& renderer, SharedPointer<Shader> shader,
       const Vec2<f32>& viewportOffset = { 0.0f, 0.0f },
       std::optional<std::string> name = {}
     );
@@ -73,7 +73,7 @@ public:
     );
 
 private:
-    ResourceRef<Shader> m_shader;
+    SharedPointer<Shader> m_shader;
     UniquePointer<Pipeline> m_pipeline;
     UniquePointer<ShaderDataBinder> m_shaderDataBinder;
 

@@ -19,21 +19,12 @@ namespace sl {
 using namespace std::string_literals;
 
 class Material : public NonMovable, public Identificable<Material> {
-    inline static auto defaultDiffuseColor = Vec4<f32>{ 1.0f };
-    inline static auto defaultShininess    = 32.0f;
-
 public:
-    struct Textures {
-        ResourceRef<Texture> diffuse;
-        ResourceRef<Texture> specular;
-        ResourceRef<Texture> normal;
-    };
-
     struct Properties {
-        static Properties createDefault();
-
+        SharedPointer<Texture> diffuseMap;
+        SharedPointer<Texture> specularMap;
+        SharedPointer<Texture> normalMap;
         Vec4<f32> diffuseColor;
-        Textures textures;
         float shininess;
     };
 
@@ -42,9 +33,11 @@ public:
 
     bool isTransparent() const;
 
+    SharedPointer<Texture> diffuseMap;
+    SharedPointer<Texture> specularMap;
+    SharedPointer<Texture> normalMap;
     float shininess;
     Vec4<f32> diffuseColor;
-    Textures textures;
 };
 
 }  // namespace sl

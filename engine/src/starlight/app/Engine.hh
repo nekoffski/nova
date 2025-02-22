@@ -19,6 +19,12 @@
 #include "starlight/renderer/camera/Camera.hh"
 #include "starlight/renderer/camera/EulerCamera.hh"
 
+#include "factories/TextureFactory.hh"
+#include "factories/ShaderFactory.hh"
+#include "factories/SkyboxFactory.hh"
+#include "factories/MeshFactory.hh"
+#include "factories/MaterialFactory.hh"
+
 namespace sl {
 
 class Engine {
@@ -66,6 +72,13 @@ private:
     Camera* m_camera;
     Scene* m_scene;
     RenderGraph* m_renderGraph;
+
+    // factories
+    ShaderFactory m_shaderFactory;
+    TextureFactory m_textureFactory;
+    MaterialFactory m_materialFactory;
+    MeshFactory m_meshFactory;
+    SkyboxFactory m_skyboxFactory;
 };
 
 }  // namespace sl

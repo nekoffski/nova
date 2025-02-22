@@ -1,8 +1,7 @@
 #include "ShadowMapsRenderPass.hh"
 
 #include "starlight/window/Window.hh"
-#include "starlight/renderer/factories/TextureFactory.hh"
-#include "starlight/renderer/factories/ShaderFactory.hh"
+#include "starlight/app/factories/ShaderFactory.hh"
 #include "starlight/renderer/Renderer.hh"
 
 namespace sl {
@@ -12,7 +11,7 @@ static constexpr u64 shadowMapResolution = 1024;
 ShadowMapsRenderPass::ShadowMapsRenderPass(Renderer& renderer) :
     RenderPass(
       renderer, ShaderFactory::get().load("Builtin.Shader.ShadowMaps"),
-      { 0.0f, 0.0f }, "SHadowMapsRenderPass"
+      { 0.0f, 0.0f }, "ShadowMapsRenderPass"
     ) {}
 
 RenderPassBackend::Properties ShadowMapsRenderPass::createRenderPassProperties(

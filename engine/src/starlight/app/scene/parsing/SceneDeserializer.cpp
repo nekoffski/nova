@@ -1,6 +1,6 @@
 #include "SceneDeserializer.hh"
 
-#include "starlight/renderer/factories/SkyboxFactory.hh"
+#include "starlight/app/factories/SkyboxFactory.hh"
 
 #include "starlight/core/Json.hh"
 
