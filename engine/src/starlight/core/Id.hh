@@ -3,9 +3,14 @@
 #include <mutex>
 #include <limits>
 #include <concepts>
+#include <optional>
 #include <queue>
 
+#include <fmt/core.h>
+
 #include "starlight/core/Core.hh"
+#include "starlight/core/Log.hh"
+#include "starlight/core/Utils.hh"
 
 namespace sl {
 
@@ -13,17 +18,17 @@ template <typename T, typename Id = u64>
 requires std::is_arithmetic_v<Id>
 class Identificable : public virtual NonCopyable {
 public:
-    explicit Identificable() : m_id(createId()) {}
+    explicit Identificable() : id(createId()) {}
 
     Identificable(Identificable&& oth)            = default;
     Identificable& operator=(Identificable&& oth) = default;
 
     ~Identificable() {
         std::scoped_lock guard{ s_mutex };
-        s_freeIds.push(m_id);
+        s_freeIds.push(id);
     }
 
-    Id getId() const { return m_id; }
+    Id id;
 
 private:
     static Id createId() {
@@ -38,11 +43,31 @@ private:
         return s_generator++;
     }
 
-    Id m_id;
-
     inline static Id s_generator = 0;
     inline static std::queue<Id> s_freeIds;
     inline static std::mutex s_mutex;
+};
+
+template <typename T, StringLiteral NameGenerator>
+class NamedResource : public Identificable<T> {
+public:
+    explicit NamedResource(std::optional<std::string> name = {}) :
+        name(name.value_or(
+          fmt::format("{}_{}", NameGenerator.value, Identificable<T>::id)
+        )) {
+        log::debug(
+          "Creating {} - id={} name='{}'", NameGenerator.value, Identificable<T>::id,
+          this->name
+        );
+    }
+    virtual ~NamedResource() {
+        log::debug(
+          "Destroying {} - id={} name='{}'", NameGenerator.value,
+          Identificable<T>::id, name
+        );
+    }
+
+    const std::string name;
 };
 
 template <typename T>

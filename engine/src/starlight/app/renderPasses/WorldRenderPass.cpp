@@ -102,7 +102,7 @@ void WorldRenderPass::render(
 
     for (auto& [mesh, material, model, _] : meshes) {
         setLocalUniforms(
-          commandBuffer, frameNumber, getLocalDescriporSetId(material->getId()),
+          commandBuffer, frameNumber, getLocalDescriporSetId(material->id),
           imageIndex,
           [&](auto& setter) {
               setter.set("diffuseColor", material->diffuseColor);

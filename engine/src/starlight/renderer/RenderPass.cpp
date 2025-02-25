@@ -11,9 +11,7 @@ namespace sl {
 RenderPassBase::RenderPassBase(
   Renderer& renderer, const Vec2<f32>& viewportOffset,
   std::optional<std::string> name
-) :
-    m_renderer(renderer), m_viewportOffset(viewportOffset),
-    name(name.value_or(fmt::format("RenderPass_{}", getId()))) {}
+) : NamedResource(name), m_renderer(renderer), m_viewportOffset(viewportOffset) {}
 
 Rect2<u32> RenderPassBase::getViewport() {
     auto framebufferSize = Window::get().getFramebufferSize();

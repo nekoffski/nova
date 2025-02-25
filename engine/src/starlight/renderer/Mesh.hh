@@ -8,7 +8,6 @@
 #include "starlight/core/math/Extent.hh"
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/math/Vertex.hh"
-#include "starlight/core/Resource.hh"
 #include "starlight/core/Concepts.hh"
 
 #include "gpu/Device.hh"
@@ -72,7 +71,7 @@ struct SphereProperties {
     float radius;
 };
 
-class Mesh : public NonMovable, public Identificable<Mesh> {
+class Mesh : public NonMovable, public NamedResource<Mesh, "Mesh"> {
 public:
     struct Data {
         u64 indexCount;

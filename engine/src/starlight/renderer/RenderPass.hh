@@ -8,7 +8,6 @@
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/Enum.hh"
 #include "starlight/core/Id.hh"
-#include "starlight/core/Resource.hh"
 #include "starlight/renderer/RenderPacket.hh"
 
 #include "gpu/Texture.hh"
@@ -22,7 +21,9 @@
 
 namespace sl {
 
-class RenderPassBase : public NonMovable, public Identificable<RenderPassBase> {
+class RenderPassBase
+    : public NonMovable,
+      public NamedResource<RenderPassBase, "RenderPass"> {
 public:
     explicit RenderPassBase(
       Renderer& renderer, const Vec2<f32>& viewportOffset = { 0.0f, 0.0f },
@@ -53,9 +54,6 @@ protected:
     Renderer& m_renderer;
     UniquePointer<RenderPassBackend> m_renderPassBackend;
     Vec2<f32> m_viewportOffset;
-
-public:
-    const std::string name;
 };
 
 class RenderPass : public RenderPassBase {

@@ -20,7 +20,7 @@ SharedPointer<Shader> Shader::create(const Properties& props) {
 #endif
 }
 
-Shader::~Shader() { log::trace("Destroying shader: {}", getId()); }
+Shader::~Shader() { log::trace("Destroying shader: {}", id); }
 
 Shader::Shader(const Properties& properties) : properties(properties) {
     const auto stageCount = properties.stages.size();

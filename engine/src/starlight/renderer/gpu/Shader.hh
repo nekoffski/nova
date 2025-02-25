@@ -4,10 +4,11 @@
 #include <span>
 #include <array>
 
+#include "starlight/core/memory/Memory.hh"
 #include "starlight/core/containers/KeyVector.hh"
 #include "starlight/core/Core.hh"
-#include "starlight/core/Resource.hh"
 #include "starlight/core/Utils.hh"
+#include "starlight/core/Id.hh"
 
 namespace sl {
 
@@ -19,7 +20,7 @@ template <typename T> struct NameGetter {
 
 }  // namespace detail
 
-class Shader : public NonMovable, public Identificable<Shader> {
+class Shader : public NonMovable, public NamedResource<Shader, "Shader"> {
     static constexpr u32 uniformScopes = 3u;
 
 public:

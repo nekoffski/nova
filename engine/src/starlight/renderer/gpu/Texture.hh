@@ -11,7 +11,7 @@
 
 namespace sl {
 
-class Texture : public NonMovable, public Identificable<Texture> {
+class Texture : public NonMovable, public NamedResource<Texture, "Texture"> {
 public:
     using PixelWidth = u8;
     using Pixels     = std::vector<PixelWidth>;

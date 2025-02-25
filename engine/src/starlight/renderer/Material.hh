@@ -4,7 +4,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "starlight/core/Resource.hh"
 #include "starlight/core/math/Core.hh"
 #include "starlight/core/Id.hh"
 #include "starlight/core/memory/Memory.hh"
@@ -18,7 +17,7 @@ namespace sl {
 
 using namespace std::string_literals;
 
-class Material : public NonMovable, public Identificable<Material> {
+class Material : public NonMovable, public NamedResource<Material, "Material"> {
 public:
     struct Properties {
         SharedPointer<Texture> diffuseMap;
@@ -29,7 +28,6 @@ public:
     };
 
     explicit Material(const Properties& props);
-    ~Material();
 
     bool isTransparent() const;
 

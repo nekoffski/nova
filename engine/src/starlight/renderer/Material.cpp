@@ -7,11 +7,7 @@ namespace sl {
 Material::Material(const Properties& props) :
     diffuseMap(props.diffuseMap), specularMap(props.specularMap),
     normalMap(props.normalMap), shininess(props.shininess),
-    diffuseColor(props.diffuseColor) {
-    log::trace("Creating Material: {}", getId());
-}
-
-Material::~Material() { log::trace("Destroying Material: {}", getId()); }
+    diffuseColor(props.diffuseColor) {}
 
 bool Material::isTransparent() const {
     return isFlagEnabled(

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "starlight/core/Resource.hh"
 #include "starlight/core/memory/Memory.hh"
 
 #include "gpu/Texture.hh"
@@ -9,7 +8,7 @@
 
 namespace sl {
 
-class Skybox : public NonMovable, public Identificable<Skybox> {
+class Skybox : public NonMovable, public NamedResource<Skybox, "Skybox"> {
 public:
     explicit Skybox(SharedPointer<Texture> cubeMap);
     ~Skybox();

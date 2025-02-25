@@ -19,11 +19,11 @@ public:
     template <typename T, typename... Args>
     Component<T>& addComponent(Args&&... args) {
         m_componentTypes.emplace_back(typeid(T));
-        return m_componentManager.add<T>(getId(), std::forward<Args>(args)...);
+        return m_componentManager.add<T>(id, std::forward<Args>(args)...);
     }
 
     template <typename T> Component<T>& getComponent() {
-        return m_componentManager.get<T>(getId());
+        return m_componentManager.get<T>(id);
     }
 
     template <typename T> bool hasComponent() {
@@ -32,7 +32,7 @@ public:
     }
 
     void* getComponent(std::type_index component) {
-        return m_componentManager.getComponent(component, getId());
+        return m_componentManager.getComponent(component, id);
     }
 
     std::span<const std::type_index> getComponentTypes() const {
