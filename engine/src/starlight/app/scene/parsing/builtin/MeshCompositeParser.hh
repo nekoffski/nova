@@ -18,8 +18,8 @@ public:
     void deserialize(Entity& entity, const nlohmann::json& json) const override;
 
 private:
-    SharedPointer<Mesh> getMesh(const std::string& name) const;
-    SharedPointer<Material> getMaterial(const std::string& name) const;
+    SharedPtr<Mesh> getMesh(const std::string& name) const;
+    SharedPtr<Material> getMaterial(const std::string& name) const;
 };
 
 }  // namespace sl

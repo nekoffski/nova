@@ -137,7 +137,7 @@ static std::optional<Texture::ImageData> loadImageData(
 
 TextureFactory::TextureFactory() {}
 
-SharedPointer<Texture> TextureFactory::load(
+SharedPtr<Texture> TextureFactory::load(
   const std::string& name, Texture::Type textureType,
   const Texture::SamplerProperties& sampler
 ) {
@@ -191,24 +191,23 @@ void TextureFactory::createDefaults() {
     m_defaultDiffuseMap = save("Default.DiffuseMap", Texture::create(image));
 }
 
-SharedPointer<Texture> TextureFactory::getDefaultDiffuseMap() {
+SharedPtr<Texture> TextureFactory::getDefaultDiffuseMap() {
     return m_defaultDiffuseMap;
 }
 
-SharedPointer<Texture> TextureFactory::getDefaultNormalMap() {
+SharedPtr<Texture> TextureFactory::getDefaultNormalMap() {
     return m_defaultNormalMap;
 }
 
-SharedPointer<Texture> TextureFactory::getDefaultSpecularMap() {
+SharedPtr<Texture> TextureFactory::getDefaultSpecularMap() {
     return m_defaultSpecularMap;
 }
 
 void serialize(
-  [[maybe_unused]] nlohmann::json& j,
-  [[maybe_unused]] const SharedPointer<Texture>& v
+  [[maybe_unused]] nlohmann::json& j, [[maybe_unused]] const SharedPtr<Texture>& v
 ) {}
 
-void deserialize(const nlohmann::json& j, SharedPointer<Texture>& v) {
+void deserialize(const nlohmann::json& j, SharedPtr<Texture>& v) {
     v = TextureFactory::get().load(j.get<std::string>(), Texture::Type::flat);
 }
 

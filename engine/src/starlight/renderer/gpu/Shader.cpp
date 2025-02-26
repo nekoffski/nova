@@ -10,9 +10,9 @@
 
 namespace sl {
 
-SharedPointer<Shader> Shader::create(const Properties& props) {
+SharedPtr<Shader> Shader::create(const Properties& props) {
 #ifdef SL_USE_VK
-    return SharedPointer<vk::VulkanShader>::create(
+    return SharedPtr<vk::VulkanShader>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl()), props
     );
 #else

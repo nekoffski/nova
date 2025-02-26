@@ -17,7 +17,7 @@ public:
         virtual void waitIdle()                   = 0;
         virtual Queue& getQueue(Queue::Type type) = 0;
 
-        static UniquePointer<Impl> create();
+        static UniquePtr<Impl> create();
     };
 
     explicit Device();
@@ -31,7 +31,7 @@ public:
     Impl& getImpl();
 
 private:
-    UniquePointer<Impl> m_impl;
+    UniquePtr<Impl> m_impl;
 };
 
 }  // namespace sl

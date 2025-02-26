@@ -111,8 +111,7 @@ public:
         DataLayout layout;
     };
 
-    static SharedPointer<Shader> create(const Properties& props);
-
+    static SharedPtr<Shader> create(const Properties& props);
     virtual ~Shader();
 
     const Properties properties;

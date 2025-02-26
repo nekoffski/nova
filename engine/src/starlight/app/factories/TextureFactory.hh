@@ -10,25 +10,25 @@ class TextureFactory : public Factory<TextureFactory, Texture> {
 public:
     explicit TextureFactory();
 
-    SharedPointer<Texture> load(
+    SharedPtr<Texture> load(
       const std::string& name, Texture::Type textureType,
       const Texture::SamplerProperties& sampler =
         Texture::SamplerProperties::createDefault()
     );
 
-    SharedPointer<Texture> getDefaultDiffuseMap();
-    SharedPointer<Texture> getDefaultNormalMap();
-    SharedPointer<Texture> getDefaultSpecularMap();
+    SharedPtr<Texture> getDefaultDiffuseMap();
+    SharedPtr<Texture> getDefaultNormalMap();
+    SharedPtr<Texture> getDefaultSpecularMap();
 
 private:
     void createDefaults();
 
-    SharedPointer<Texture> m_defaultDiffuseMap;
-    SharedPointer<Texture> m_defaultNormalMap;
-    SharedPointer<Texture> m_defaultSpecularMap;
+    SharedPtr<Texture> m_defaultDiffuseMap;
+    SharedPtr<Texture> m_defaultNormalMap;
+    SharedPtr<Texture> m_defaultSpecularMap;
 };
 
-void serialize(nlohmann::json& j, const SharedPointer<Texture>& v);
-void deserialize(const nlohmann::json& j, SharedPointer<Texture>& v);
+void serialize(nlohmann::json& j, const SharedPtr<Texture>& v);
+void deserialize(const nlohmann::json& j, SharedPtr<Texture>& v);
 
 }  // namespace sl

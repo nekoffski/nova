@@ -47,7 +47,7 @@ static std::optional<Material::Properties> loadProperties(
 
 MaterialFactory::MaterialFactory() { createDefault(); }
 
-SharedPointer<Material> MaterialFactory::load(
+SharedPtr<Material> MaterialFactory::load(
   const std::string& name, const FileSystem& fs
 ) {
     const auto& materialsPath = Globals::get().getConfig().paths.materials;
@@ -61,13 +61,13 @@ SharedPointer<Material> MaterialFactory::load(
     return nullptr;
 }
 
-SharedPointer<Material> MaterialFactory::create(
+SharedPtr<Material> MaterialFactory::create(
   const std::string& name, const Material::Properties& properties
 ) {
-    return save(name, SharedPointer<Material>::create(properties));
+    return save(name, SharedPtr<Material>::create(properties));
 }
 
-SharedPointer<Material> MaterialFactory::getDefault() { return m_defaultMaterial; }
+SharedPtr<Material> MaterialFactory::getDefault() { return m_defaultMaterial; }
 
 void MaterialFactory::createDefault() {}
 

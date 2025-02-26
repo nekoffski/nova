@@ -21,20 +21,20 @@ struct ControlBlock {
 
 }  // namespace detail
 
-template <typename T> class SharedPointer {
-    template <typename C> friend class SharedPointer;
+template <typename T> class SharedPtr {
+    template <typename C> friend class SharedPtr;
 
     struct PrivateConstructorTag {};
 
 public:
-    explicit SharedPointer() : m_controlBlock(nullptr), m_buffer(nullptr) {}
-    SharedPointer(std::nullptr_t) : SharedPointer() {}
+    explicit SharedPtr() : m_controlBlock(nullptr), m_buffer(nullptr) {}
+    SharedPtr(std::nullptr_t) : SharedPtr() {}
 
-    ~SharedPointer() { reset(); }
+    ~SharedPtr() { reset(); }
 
     template <typename F>
     requires std::derived_from<F, T>
-    SharedPointer& operator=(SharedPointer<F>&& oth) {
+    SharedPtr& operator=(SharedPtr<F>&& oth) {
         reset();
 
         m_buffer       = std::exchange(oth.m_buffer, nullptr);
@@ -43,7 +43,7 @@ public:
         return *this;
     }
 
-    SharedPointer& operator=(const SharedPointer& oth) {
+    SharedPtr& operator=(const SharedPtr& oth) {
         reset();
 
         m_buffer       = oth.m_buffer;
@@ -56,19 +56,19 @@ public:
 
     template <typename F>
     requires std::derived_from<F, T>
-    SharedPointer(const SharedPointer<F>& oth
+    SharedPtr(const SharedPtr<F>& oth
     ) : m_controlBlock(oth.m_controlBlock), m_buffer(oth.m_buffer) {
         if (m_controlBlock) m_controlBlock->referenceCounter++;
     }
 
-    SharedPointer(const SharedPointer<T>& oth
+    SharedPtr(const SharedPtr<T>& oth
     ) : m_controlBlock(oth.m_controlBlock), m_buffer(oth.m_buffer) {
         if (m_controlBlock) m_controlBlock->referenceCounter++;
     }
 
     template <typename F>
     requires std::derived_from<F, T>
-    SharedPointer(SharedPointer<F>&& oth) {
+    SharedPtr(SharedPtr<F>&& oth) {
         m_buffer       = std::exchange(oth.m_buffer, nullptr);
         m_controlBlock = std::exchange(oth.m_controlBlock, nullptr);
     }
@@ -96,16 +96,14 @@ public:
 
     template <typename... Args>
     requires std::constructible_from<T, Args...>
-    static SharedPointer create(Args&&... args) {
-        return SharedPointer<T>{
-            PrivateConstructorTag{}, std::forward<Args>(args)...
-        };
+    static SharedPtr create(Args&&... args) {
+        return SharedPtr<T>{ PrivateConstructorTag{}, std::forward<Args>(args)... };
     }
 
 private:
     template <typename... Args>
     requires std::constructible_from<T, Args...>
-    explicit SharedPointer(PrivateConstructorTag, Args&&... args) :
+    explicit SharedPtr(PrivateConstructorTag, Args&&... args) :
         m_controlBlock(new detail::ControlBlock),
         m_buffer(new T(std::forward<Args>(args)...)) {}
 

@@ -11,32 +11,32 @@ public:
 
     template <typename T>
     requires std::is_constructible_v<Mesh::Properties3D, const T&>
-    SharedPointer<Mesh> create(const std::string& name, const T& properties) {
+    SharedPtr<Mesh> create(const std::string& name, const T& properties) {
         return create(name, Mesh::Properties3D{ properties });
     }
 
-    SharedPointer<Mesh> create(
+    SharedPtr<Mesh> create(
       const std::string& name, const Mesh::Properties2D& config
     );
-    SharedPointer<Mesh> create(
+    SharedPtr<Mesh> create(
       const std::string& name, const Mesh::Properties3D& config
     );
 
-    SharedPointer<Mesh> getCube();
-    SharedPointer<Mesh> getUnitSphere();
-    SharedPointer<Mesh> getPlane();
+    SharedPtr<Mesh> getCube();
+    SharedPtr<Mesh> getUnitSphere();
+    SharedPtr<Mesh> getPlane();
 
 private:
-    SharedPointer<Mesh> createMesh(const Mesh::Data& meshData);
+    SharedPtr<Mesh> createMesh(const Mesh::Data& meshData);
 
     void createDefaults();
 
     Buffer& m_vertexBuffer;
     Buffer& m_indexBuffer;
 
-    SharedPointer<Mesh> m_unitSphere;
-    SharedPointer<Mesh> m_plane;
-    SharedPointer<Mesh> m_cube;
+    SharedPtr<Mesh> m_unitSphere;
+    SharedPtr<Mesh> m_plane;
+    SharedPtr<Mesh> m_cube;
 };
 
 }  // namespace sl

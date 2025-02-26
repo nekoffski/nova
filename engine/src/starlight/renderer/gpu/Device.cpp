@@ -8,9 +8,9 @@ namespace sl {
 
 Device::Device() : m_impl(Impl::create()) {}
 
-UniquePointer<Device::Impl> Device::Impl::create() {
+UniquePtr<Device::Impl> Device::Impl::create() {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanDevice>::create();
+    return UniquePtr<vk::VulkanDevice>::create();
 #endif
     return nullptr;
 }

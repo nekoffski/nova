@@ -20,9 +20,9 @@ using namespace std::string_literals;
 class Material : public NonMovable, public NamedResource<Material, "Material"> {
 public:
     struct Properties {
-        SharedPointer<Texture> diffuseMap;
-        SharedPointer<Texture> specularMap;
-        SharedPointer<Texture> normalMap;
+        SharedPtr<Texture> diffuseMap;
+        SharedPtr<Texture> specularMap;
+        SharedPtr<Texture> normalMap;
         Vec4<f32> diffuseColor;
         float shininess;
     };
@@ -31,9 +31,9 @@ public:
 
     bool isTransparent() const;
 
-    SharedPointer<Texture> diffuseMap;
-    SharedPointer<Texture> specularMap;
-    SharedPointer<Texture> normalMap;
+    SharedPtr<Texture> diffuseMap;
+    SharedPtr<Texture> specularMap;
+    SharedPtr<Texture> normalMap;
     float shininess;
     Vec4<f32> diffuseColor;
 };

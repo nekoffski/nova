@@ -19,7 +19,7 @@ struct Pipeline : public NonCopyable, public NonMovable {
         bool depthTestEnabled;
     };
 
-    static UniquePointer<Pipeline> create(
+    static UniquePtr<Pipeline> create(
       Shader& shader, RenderPassBackend& renderPass,
       const Properties& props = Properties::createDefault()
     );

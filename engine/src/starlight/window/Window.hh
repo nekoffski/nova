@@ -3,7 +3,7 @@
 #include "starlight/core/Singleton.hh"
 #include "starlight/core/Config.hh"
 #include "starlight/core/math/Core.hh"
-#include "starlight/core/memory/UniquePointer.hh"
+#include "starlight/core/memory/UniquePtr.hh"
 
 #include "Events.hh"
 
@@ -46,7 +46,7 @@ public:
 
         virtual void* getHandle() = 0;
 
-        static UniquePointer<Impl> create();
+        static UniquePtr<Impl> create();
     };
 
     explicit Window();
@@ -64,7 +64,7 @@ public:
 
 private:
     void setCallbacks();
-    UniquePointer<Impl> m_impl;
+    UniquePtr<Impl> m_impl;
 };
 
 }  // namespace sl

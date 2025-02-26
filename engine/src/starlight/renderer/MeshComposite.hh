@@ -18,8 +18,7 @@ public:
 
     public:
         explicit Node(
-          SharedPointer<Mesh> mesh, SharedPointer<Material> material, u64 depth,
-          u64 index
+          SharedPtr<Mesh> mesh, SharedPtr<Material> material, u64 depth, u64 index
         );
 
         std::span<Transform> getInstances();
@@ -35,8 +34,8 @@ public:
         }
 
     public:
-        SharedPointer<Mesh> mesh;
-        SharedPointer<Material> material;
+        SharedPtr<Mesh> mesh;
+        SharedPtr<Material> material;
         const std::string name;
 
     private:
@@ -47,9 +46,8 @@ public:
         std::vector<Node> m_children;
     };
 
-    explicit MeshComposite(
-      SharedPointer<Mesh> mesh, SharedPointer<Material> material
-    ) : m_root(mesh, material, 0u, 0u) {}
+    explicit MeshComposite(SharedPtr<Mesh> mesh, SharedPtr<Material> material) :
+        m_root(mesh, material, 0u, 0u) {}
 
     Node& getRoot() { return m_root; }
 

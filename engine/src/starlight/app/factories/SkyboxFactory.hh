@@ -9,11 +9,11 @@ class SkyboxFactory : public Factory<SkyboxFactory, Skybox> {
 public:
     explicit SkyboxFactory();
 
-    SharedPointer<Skybox> load(const std::string& name);
-    SharedPointer<Shader> getDefaultShader();
+    SharedPtr<Skybox> load(const std::string& name);
+    SharedPtr<Shader> getDefaultShader();
 
 private:
-    SharedPointer<Shader> m_defaultSkyboxShader;
+    SharedPtr<Shader> m_defaultSkyboxShader;
 };
 
 }  // namespace sl

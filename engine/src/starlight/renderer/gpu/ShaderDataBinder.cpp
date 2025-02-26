@@ -44,9 +44,9 @@ const Shader::Uniform& ShaderDataBinder::Setter::getUniform(
     ShaderDataBinder
 */
 
-UniquePointer<ShaderDataBinder> ShaderDataBinder::create(Shader& shader) {
+UniquePtr<ShaderDataBinder> ShaderDataBinder::create(Shader& shader) {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanShaderDataBinder>::create(
+    return UniquePtr<vk::VulkanShaderDataBinder>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl()),
       static_cast<vk::VulkanShader&>(shader)
     );

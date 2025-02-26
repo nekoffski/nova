@@ -20,7 +20,7 @@ struct CommandBuffer : public NonCopyable, public NonMovable {
         operator CommandBuffer&();
 
     private:
-        UniquePointer<CommandBuffer> m_commandBuffer;
+        UniquePtr<CommandBuffer> m_commandBuffer;
         Queue& m_queue;
     };
 
@@ -33,9 +33,7 @@ struct CommandBuffer : public NonCopyable, public NonMovable {
         simultaneousUse      = 0x4
     };
 
-    static UniquePointer<CommandBuffer> create(
-      Severity severity = Severity::primary
-    );
+    static UniquePtr<CommandBuffer> create(Severity severity = Severity::primary);
 
     virtual ~CommandBuffer() = default;
 

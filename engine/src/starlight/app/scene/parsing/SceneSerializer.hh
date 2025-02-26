@@ -13,7 +13,7 @@ namespace sl {
 
 class SceneSerializer {
     using Serializers =
-      std::unordered_map<std::type_index, UniquePointer<ComponentSerializerBase>>;
+      std::unordered_map<std::type_index, UniquePtr<ComponentSerializerBase>>;
 
 public:
     void serialize(Scene& scene, const std::string& path, const FileSystem& fs);
@@ -21,7 +21,7 @@ public:
     template <typename Serializer>
     requires std::is_base_of_v<ComponentSerializerBase, Serializer>
     SceneSerializer& addSerializer() {
-        auto serializer     = UniquePointer<Serializer>::create();
+        auto serializer     = UniquePtr<Serializer>::create();
         const auto type     = serializer->getTypeIndex();
         m_serializers[type] = std::move(serializer);
 

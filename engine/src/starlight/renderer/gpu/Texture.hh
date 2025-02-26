@@ -74,7 +74,7 @@ public:
         Repeat wRepeat;
     };
 
-    static SharedPointer<Texture> create(
+    static SharedPtr<Texture> create(
       const ImageData& image           = ImageData::createDefault(defaultPixelColor),
       const SamplerProperties& sampler = SamplerProperties::createDefault()
     );

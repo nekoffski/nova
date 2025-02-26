@@ -31,13 +31,11 @@ void MeshCompositeDeserializer::deserialize(
 }
 
 // TODO: store default materials/meshes/shaders/textures in some lookup table
-SharedPointer<Mesh> MeshCompositeDeserializer::getMesh(const std::string& name
-) const {
+SharedPtr<Mesh> MeshCompositeDeserializer::getMesh(const std::string& name) const {
     return MeshFactory::get().find(name);
 }
 
-SharedPointer<Material> MeshCompositeDeserializer::getMaterial(
-  const std::string& name
+SharedPtr<Material> MeshCompositeDeserializer::getMaterial(const std::string& name
 ) const {
     return MaterialFactory::get().find(name);
 }

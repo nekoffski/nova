@@ -12,9 +12,9 @@ public:
     explicit EventProxy(details::Events& events, details::EventHandlers& handlers);
 
     template <typename T, typename... Args> void emit(Args&&... args) {
-        m_events.push_back(UniquePointer<details::EventStorage<T>>::create(
-          std::forward<Args>(args)...
-        ));
+        m_events.push_back(
+          UniquePtr<details::EventStorage<T>>::create(std::forward<Args>(args)...)
+        );
     }
 
     template <typename T>
@@ -23,9 +23,10 @@ public:
     ) {
         return pushEventHandlerImpl(
           typeid(T),
-          [handler = std::move(handler)](
-            details::EventStorageBase& event, details::HandledCallback&& handled
-          ) { handler(event.as<T>(), std::move(handled)); }
+          [handler = std::move(handler
+           )](details::EventStorageBase& event, details::HandledCallback&& handled) {
+              handler(event.as<T>(), std::move(handled));
+          }
         );
     }
 

@@ -9,9 +9,9 @@
 
 namespace sl {
 
-UniquePointer<Buffer> Buffer::create(const Properties& props) {
+UniquePtr<Buffer> Buffer::create(const Properties& props) {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanBuffer>::create(
+    return UniquePtr<vk::VulkanBuffer>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl()), props
     );
 #else

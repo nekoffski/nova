@@ -41,10 +41,10 @@ u32 Window::getFramebufferHeight() const { return getFramebufferSize().y; }
 u32 Window::getWidth() const { return getSize().x; }
 u32 Window::getHeight() const { return getSize().y; }
 
-UniquePointer<Window::Impl> Window::Impl::create() {
+UniquePtr<Window::Impl> Window::Impl::create() {
     const auto& windowConfig = Globals::get().getConfig().window;
 #ifdef SL_USE_GLFW
-    return UniquePointer<glfw::GLFWWindow>::create(windowConfig);
+    return UniquePtr<glfw::GLFWWindow>::create(windowConfig);
 #else
     log::panic("Window provider not specified");
 #endif

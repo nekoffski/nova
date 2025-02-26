@@ -13,20 +13,20 @@ public:
 
     explicit MaterialFactory();
 
-    SharedPointer<Material> load(
+    SharedPtr<Material> load(
       const std::string& name, const FileSystem& fs = FileSystem::getDefault()
     );
 
-    SharedPointer<Material> create(
+    SharedPtr<Material> create(
       const std::string& name, const Material::Properties& properties
     );
 
-    SharedPointer<Material> getDefault();
+    SharedPtr<Material> getDefault();
 
 private:
     void createDefault();
 
-    SharedPointer<Material> m_defaultMaterial;
+    SharedPtr<Material> m_defaultMaterial;
 };
 
 }  // namespace sl

@@ -58,11 +58,11 @@ Texture::SamplerProperties Texture::SamplerProperties::createDefault() {
     };
 }
 
-SharedPointer<Texture> Texture::create(
+SharedPtr<Texture> Texture::create(
   const ImageData& image, const SamplerProperties& sampler
 ) {
 #ifdef SL_USE_VK
-    return SharedPointer<vk::VulkanTexture>::create(
+    return SharedPtr<vk::VulkanTexture>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl()), image, sampler
     );
 #else

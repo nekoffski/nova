@@ -35,7 +35,7 @@ public:
 
 public:
     Camera* camera;
-    SharedPointer<Skybox> skybox;
+    SharedPtr<Skybox> skybox;
 
 private:
     ComponentManager m_componentManager;

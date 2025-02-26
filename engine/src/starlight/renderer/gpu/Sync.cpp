@@ -8,9 +8,9 @@
 
 namespace sl {
 
-UniquePointer<Fence> Fence::create(State state) {
+UniquePtr<Fence> Fence::create(State state) {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanFence>::create(
+    return UniquePtr<vk::VulkanFence>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl()), state
     );
 #else
@@ -18,9 +18,9 @@ UniquePointer<Fence> Fence::create(State state) {
 #endif
 }
 
-UniquePointer<Semaphore> Semaphore::create() {
+UniquePtr<Semaphore> Semaphore::create() {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanSemaphore>::create(
+    return UniquePtr<vk::VulkanSemaphore>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl())
     );
 #else

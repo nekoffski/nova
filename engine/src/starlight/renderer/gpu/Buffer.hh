@@ -28,7 +28,7 @@ struct Buffer : public NonCopyable, public NonMovable {
         }
     };
 
-    static UniquePointer<Buffer> create(const Properties& props);
+    static UniquePtr<Buffer> create(const Properties& props);
 
     virtual ~Buffer() = default;
 

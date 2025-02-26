@@ -2,6 +2,6 @@
 
 #include <memory>
 
-#include "UniquePointer.hh"
-#include "LocalPointer.hh"
-#include "SharedPointer.hh"
+#include "UniquePtr.hh"
+#include "LocalPtr.hh"
+#include "SharedPtr.hh"

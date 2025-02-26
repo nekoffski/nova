@@ -24,9 +24,9 @@ CommandBuffer& CommandBuffer::Immediate::get() { return *m_commandBuffer; }
 
 CommandBuffer::Immediate::operator CommandBuffer&() { return get(); }
 
-UniquePointer<CommandBuffer> CommandBuffer::create(Severity severity) {
+UniquePtr<CommandBuffer> CommandBuffer::create(Severity severity) {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanCommandBuffer>::create(
+    return UniquePtr<vk::VulkanCommandBuffer>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl()), severity
     );
 #else

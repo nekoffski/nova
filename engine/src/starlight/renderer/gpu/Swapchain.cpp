@@ -7,9 +7,9 @@
 
 namespace sl {
 
-UniquePointer<Swapchain> Swapchain::create(const Vec2<u32>& size) {
+UniquePtr<Swapchain> Swapchain::create(const Vec2<u32>& size) {
 #ifdef SL_USE_VK
-    return UniquePointer<vk::VulkanSwapchain>::create(
+    return UniquePtr<vk::VulkanSwapchain>::create(
       static_cast<vk::VulkanDevice&>(Device::get().getImpl()), size
     );
 #else

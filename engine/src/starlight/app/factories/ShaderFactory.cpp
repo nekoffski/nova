@@ -87,7 +87,7 @@ std::optional<Shader::Properties> parseShader(
     return properties;
 }
 
-SharedPointer<Shader> ShaderFactory::load(
+SharedPtr<Shader> ShaderFactory::load(
   const std::string& name, const FileSystem& fs
 ) {
     const auto shadersPath = Globals::get().getConfig().paths.shaders;

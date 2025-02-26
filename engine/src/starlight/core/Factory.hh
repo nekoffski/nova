@@ -3,13 +3,13 @@
 #include <unordered_map>
 
 #include "Singleton.hh"
-#include "memory/SharedPointer.hh"
+#include "memory/SharedPtr.hh"
 
 namespace sl {
 
 template <typename CFactory, typename T> class Factory : public Singleton<CFactory> {
 public:
-    SharedPointer<T> find(const std::string& key) {
+    SharedPtr<T> find(const std::string& key) {
         if (auto record = m_lut.find(key); record != m_lut.end())
             return record->second;
         return nullptr;
@@ -20,13 +20,13 @@ public:
     }
 
 protected:
-    SharedPointer<T> save(const std::string& key, SharedPointer<T> resource) {
+    SharedPtr<T> save(const std::string& key, SharedPtr<T> resource) {
         auto record = m_lut.insert({ key, resource });
         return record.first->second;
     }
 
 private:
-    std::unordered_map<std::string, SharedPointer<T>> m_lut;
+    std::unordered_map<std::string, SharedPtr<T>> m_lut;
 };
 
 }  // namespace sl

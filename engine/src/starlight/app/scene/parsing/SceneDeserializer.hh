@@ -13,7 +13,7 @@ namespace sl {
 
 class SceneDeserializer {
     using Deserializers =
-      std::unordered_map<std::string, UniquePointer<ComponentDeserializer>>;
+      std::unordered_map<std::string, UniquePtr<ComponentDeserializer>>;
 
 public:
     void deserialize(Scene& scene, const std::string& path, const FileSystem& fs);
@@ -21,7 +21,7 @@ public:
     template <typename Deserializer>
     requires std::is_base_of_v<ComponentDeserializer, Deserializer>
     SceneDeserializer& addDeserializer() {
-        auto deserializer     = UniquePointer<Deserializer>::create();
+        auto deserializer     = UniquePtr<Deserializer>::create();
         const auto name       = deserializer->getName();
         m_deserializers[name] = std::move(deserializer);
 

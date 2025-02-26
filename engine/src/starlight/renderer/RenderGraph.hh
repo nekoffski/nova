@@ -15,7 +15,7 @@ namespace sl {
 class RenderGraph {
 public:
     struct Node {
-        UniquePointer<RenderPassBase> renderPass;
+        UniquePtr<RenderPassBase> renderPass;
         bool active = true;
     };
 
@@ -25,7 +25,7 @@ public:
     requires(std::is_base_of_v<RenderPassBase, T> && std::constructible_from<T, Renderer&, Args...>)
     RenderPassBase* addPass(Args&&... args) {
         m_nodes.emplace_back(
-          UniquePointer<T>::create(m_renderer, std::forward<Args>(args)...)
+          UniquePtr<T>::create(m_renderer, std::forward<Args>(args)...)
         );
         rebuildChain();
         return m_nodes.back().renderPass.get();

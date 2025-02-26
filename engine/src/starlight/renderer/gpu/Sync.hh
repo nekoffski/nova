@@ -10,7 +10,7 @@ namespace sl {
 struct Fence : public NonCopyable, public NonMovable {
     enum class State : u8 { signaled, notSignaled };
 
-    static UniquePointer<Fence> create(State state);
+    static UniquePtr<Fence> create(State state);
 
     virtual ~Fence() = default;
 
@@ -19,7 +19,7 @@ struct Fence : public NonCopyable, public NonMovable {
 };
 
 struct Semaphore : public NonCopyable, public NonMovable {
-    static UniquePointer<Semaphore> create();
+    static UniquePtr<Semaphore> create();
 
     virtual ~Semaphore() = default;
 };

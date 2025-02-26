@@ -52,14 +52,14 @@ protected:
     ) = 0;
 
     Renderer& m_renderer;
-    UniquePointer<RenderPassBackend> m_renderPassBackend;
+    UniquePtr<RenderPassBackend> m_renderPassBackend;
     Vec2<f32> m_viewportOffset;
 };
 
 class RenderPass : public RenderPassBase {
 public:
     explicit RenderPass(
-      Renderer& renderer, SharedPointer<Shader> shader,
+      Renderer& renderer, SharedPtr<Shader> shader,
       const Vec2<f32>& viewportOffset = { 0.0f, 0.0f },
       std::optional<std::string> name = {}
     );
@@ -71,9 +71,9 @@ public:
     );
 
 private:
-    SharedPointer<Shader> m_shader;
-    UniquePointer<Pipeline> m_pipeline;
-    UniquePointer<ShaderDataBinder> m_shaderDataBinder;
+    SharedPtr<Shader> m_shader;
+    UniquePtr<Pipeline> m_pipeline;
+    UniquePtr<ShaderDataBinder> m_shaderDataBinder;
 
     std::unordered_map<u32, u32> m_localDescriptorSets;
 

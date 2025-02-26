@@ -28,7 +28,7 @@ public:
         Type type   = Type::normal;
     };
 
-    static UniquePointer<RenderPassBackend> create(
+    static UniquePtr<RenderPassBackend> create(
       const Properties& props, bool hasPreviousPass, bool hasNextPass
     );
 

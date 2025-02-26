@@ -10,8 +10,8 @@ namespace sl {
 
 static constexpr u64 bufferSize = 1024 * 1024;
 
-static UniquePointer<Buffer> createVertexBuffer();
-static UniquePointer<Buffer> createIndexBuffer();
+static UniquePtr<Buffer> createVertexBuffer();
+static UniquePtr<Buffer> createIndexBuffer();
 
 Renderer::Renderer() :
     m_swapchain(Swapchain::create()), m_vertexBuffer(createVertexBuffer()),
@@ -153,7 +153,7 @@ void Renderer::endFrame(u32 imageIndex) {
     m_currentFrame = (m_currentFrame + 1) % m_maxFramesInFlight;
 }
 
-UniquePointer<Buffer> createVertexBuffer() {
+UniquePtr<Buffer> createVertexBuffer() {
     return Buffer::create(Buffer::Properties{
       .size           = bufferSize * sizeof(Vertex3),
       .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -165,7 +165,7 @@ UniquePointer<Buffer> createVertexBuffer() {
     });
 }
 
-UniquePointer<Buffer> createIndexBuffer() {
+UniquePtr<Buffer> createIndexBuffer() {
     return Buffer::create(Buffer::Properties{
       .size           = bufferSize * sizeof(u32),
       .memoryProperty = MemoryProperty::MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

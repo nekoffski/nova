@@ -4,7 +4,7 @@
 
 namespace sl {
 
-Skybox::Skybox(SharedPointer<Texture> cubeMap) : m_cubeMap(cubeMap) {}
+Skybox::Skybox(SharedPtr<Texture> cubeMap) : m_cubeMap(cubeMap) {}
 
 Skybox::~Skybox() { log::trace("Destroying Skybox: {}", id); }
 

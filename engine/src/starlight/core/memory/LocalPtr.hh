@@ -7,14 +7,14 @@
 
 namespace sl {
 
-template <typename T> class LocalPointer : public NonCopyable {
+template <typename T> class LocalPtr : public NonCopyable {
 public:
-    explicit LocalPointer() : m_pointer(nullptr) { clear(); }
+    explicit LocalPtr() : m_pointer(nullptr) { clear(); }
 
-    ~LocalPointer() { clear(); }
+    ~LocalPtr() { clear(); }
 
     template <typename... Args>
-    explicit LocalPointer(Args&&... args) : m_pointer(nullptr) {
+    explicit LocalPtr(Args&&... args) : m_pointer(nullptr) {
         emplace(std::forward<Args>(args)...);
     }
 
@@ -31,16 +31,16 @@ public:
 
     operator bool() const { return m_pointer != nullptr; }
 
-    LocalPointer(const LocalPointer&)            = delete;
-    LocalPointer& operator=(const LocalPointer&) = delete;
+    LocalPtr(const LocalPtr&)            = delete;
+    LocalPtr& operator=(const LocalPtr&) = delete;
 
-    LocalPointer(LocalPointer&& rhs) :
+    LocalPtr(LocalPtr&& rhs) :
         m_buffer(std::exchange(rhs.m_buffer, std::array<char, sizeof(T)>{})),
         m_pointer((T*)m_buffer.data()) {
         rhs.m_pointer = nullptr;
     }
 
-    LocalPointer& operator=(LocalPointer&& rhs) {
+    LocalPtr& operator=(LocalPtr&& rhs) {
         clear();
 
         using std::swap;

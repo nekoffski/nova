@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "starlight/core/memory/LocalPointer.hh"
+#include "starlight/core/memory/LocalPtr.hh"
 
 using namespace sl;
 
@@ -18,20 +18,20 @@ struct Foo {
     int getX() const { return x; }
 };
 
-struct LocalPointerTests : testing::Test {
+struct LocalPtrTests : testing::Test {
     void SetUp() override {
         Foo::ctorCalls  = 0;
         Foo::dctorCalls = 0;
     }
 };
 
-TEST_F(LocalPointerTests, givenNotInitializedPointer_whenAccessing_shouldCrash) {
-    LocalPointer<Foo> foo;
+TEST_F(LocalPtrTests, givenNotInitializedPointer_whenAccessing_shouldCrash) {
+    LocalPtr<Foo> foo;
     ASSERT_DEATH({ foo->x = 1; }, "");
 }
 
-TEST_F(LocalPointerTests, givenInitializedPointer_whenAccessing_shouldNotCrash) {
-    LocalPointer<Foo> foo(2, 1.0f);
+TEST_F(LocalPtrTests, givenInitializedPointer_whenAccessing_shouldNotCrash) {
+    LocalPtr<Foo> foo(2, 1.0f);
 
     ASSERT_NO_FATAL_FAILURE({
         EXPECT_EQ(foo->x, 2);
@@ -39,9 +39,9 @@ TEST_F(LocalPointerTests, givenInitializedPointer_whenAccessing_shouldNotCrash) 
     });
 }
 
-TEST_F(LocalPointerTests, givenEmptyPointer_whenEmplacing_shouldNotCrash) {
+TEST_F(LocalPtrTests, givenEmptyPointer_whenEmplacing_shouldNotCrash) {
     {
-        LocalPointer<Foo> foo;
+        LocalPtr<Foo> foo;
 
         ASSERT_EQ(Foo::ctorCalls, 0);
         ASSERT_EQ(Foo::dctorCalls, 0);
@@ -61,17 +61,17 @@ TEST_F(LocalPointerTests, givenEmptyPointer_whenEmplacing_shouldNotCrash) {
     ASSERT_EQ(Foo::dctorCalls, 1);
 }
 
-TEST_F(LocalPointerTests, givenPointer_whenCreating_shouldCallCtor) {
+TEST_F(LocalPtrTests, givenPointer_whenCreating_shouldCallCtor) {
     ASSERT_EQ(Foo::ctorCalls, 0);
-    LocalPointer<Foo> foo(2, 1.0f);
+    LocalPtr<Foo> foo(2, 1.0f);
     EXPECT_EQ(Foo::ctorCalls, 1);
 }
 
-TEST_F(LocalPointerTests, givenPointer_whenEmplacing_shouldCallCtorAndDctor) {
+TEST_F(LocalPtrTests, givenPointer_whenEmplacing_shouldCallCtorAndDctor) {
     ASSERT_EQ(Foo::ctorCalls, 0);
     ASSERT_EQ(Foo::dctorCalls, 0);
 
-    LocalPointer<Foo> foo(2, 1.0f);
+    LocalPtr<Foo> foo(2, 1.0f);
     EXPECT_EQ(Foo::ctorCalls, 1);
 
     foo.emplace(1, 0.5f);
@@ -80,19 +80,19 @@ TEST_F(LocalPointerTests, givenPointer_whenEmplacing_shouldCallCtorAndDctor) {
     ASSERT_EQ(Foo::dctorCalls, 1);
 }
 
-TEST_F(LocalPointerTests, givenPointer_whenDestroying_shouldCallDctor) {
+TEST_F(LocalPtrTests, givenPointer_whenDestroying_shouldCallDctor) {
     ASSERT_EQ(Foo::dctorCalls, 0);
-    { LocalPointer<Foo> foo(2, 1.0f); }
+    { LocalPtr<Foo> foo(2, 1.0f); }
     EXPECT_EQ(Foo::dctorCalls, 1);
 }
 
-TEST_F(LocalPointerTests, givenPointer_whenMoving_shouldDestroyObject) {
+TEST_F(LocalPtrTests, givenPointer_whenMoving_shouldDestroyObject) {
     ASSERT_EQ(Foo::dctorCalls, 0);
     ASSERT_EQ(Foo::ctorCalls, 0);
     {
-        LocalPointer<Foo> foo(2, 1.0f);
+        LocalPtr<Foo> foo(2, 1.0f);
         ASSERT_EQ(Foo::ctorCalls, 1);
-        foo = LocalPointer<Foo>(2, 1.5f);
+        foo = LocalPtr<Foo>(2, 1.5f);
         ASSERT_EQ(Foo::ctorCalls, 2);
         ASSERT_EQ(Foo::dctorCalls, 1);
     }

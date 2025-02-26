@@ -77,7 +77,7 @@ public:
         const Shader::DataLayout::DescriptorSet& m_descriptorLayout;
     };
 
-    static UniquePointer<ShaderDataBinder> create(Shader& shader);
+    static UniquePtr<ShaderDataBinder> create(Shader& shader);
 
     explicit ShaderDataBinder(Shader& shader);
     virtual ~ShaderDataBinder() = default;

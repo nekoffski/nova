@@ -72,7 +72,7 @@ public:
 
 private:
     const u64 m_capacity;
-    std::vector<LocalPointer<T>> m_buffer;
+    std::vector<LocalPtr<T>> m_buffer;
     std::queue<u64> m_freeSlots;
 };
 

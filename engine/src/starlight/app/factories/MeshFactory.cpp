@@ -7,21 +7,21 @@ MeshFactory::MeshFactory(Buffer& vertexBuffer, Buffer& indexBuffer) :
     createDefaults();
 }
 
-SharedPointer<Mesh> MeshFactory::create(
+SharedPtr<Mesh> MeshFactory::create(
   const std::string& name, const Mesh::Properties2D& config
 ) {
     return save(name, createMesh(config.toMeshData()));
 }
 
-SharedPointer<Mesh> MeshFactory::create(
+SharedPtr<Mesh> MeshFactory::create(
   const std::string& name, const Mesh::Properties3D& config
 ) {
     return save(name, createMesh(config.toMeshData()));
 }
 
-SharedPointer<Mesh> MeshFactory::getCube() { return m_cube; }
-SharedPointer<Mesh> MeshFactory::getUnitSphere() { return m_unitSphere; }
-SharedPointer<Mesh> MeshFactory::getPlane() { return m_plane; }
+SharedPtr<Mesh> MeshFactory::getCube() { return m_cube; }
+SharedPtr<Mesh> MeshFactory::getUnitSphere() { return m_unitSphere; }
+SharedPtr<Mesh> MeshFactory::getPlane() { return m_plane; }
 
 void MeshFactory::createDefaults() {
     Mesh::Properties3D unitSphere{
@@ -40,8 +40,8 @@ void MeshFactory::createDefaults() {
     m_cube = save("Cube", createMesh(cube.toMeshData()));
 }
 
-SharedPointer<Mesh> MeshFactory::createMesh(const Mesh::Data& meshData) {
-    return SharedPointer<Mesh>::create(meshData, m_vertexBuffer, m_indexBuffer);
+SharedPtr<Mesh> MeshFactory::createMesh(const Mesh::Data& meshData) {
+    return SharedPtr<Mesh>::create(meshData, m_vertexBuffer, m_indexBuffer);
 }
 
 }  // namespace sl

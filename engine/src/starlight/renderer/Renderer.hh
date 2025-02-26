@@ -44,19 +44,19 @@ private:
     std::optional<u8> beginFrame();
     void endFrame(u32 imageIndex);
 
-    UniquePointer<Swapchain> m_swapchain;
+    UniquePtr<Swapchain> m_swapchain;
 
-    UniquePointer<Buffer> m_vertexBuffer;
-    UniquePointer<Buffer> m_indexBuffer;
+    UniquePtr<Buffer> m_vertexBuffer;
+    UniquePtr<Buffer> m_indexBuffer;
 
     u8 m_currentFrame;
     u8 m_maxFramesInFlight;
     u64 m_frameNumber;
 
-    std::vector<UniquePointer<CommandBuffer>> m_commandBuffers;
-    std::vector<UniquePointer<Semaphore>> m_imageAvailableSemaphores;
-    std::vector<UniquePointer<Semaphore>> m_queueCompleteSemaphores;
-    std::vector<UniquePointer<Fence>> m_frameFences;
+    std::vector<UniquePtr<CommandBuffer>> m_commandBuffers;
+    std::vector<UniquePtr<Semaphore>> m_imageAvailableSemaphores;
+    std::vector<UniquePtr<Semaphore>> m_queueCompleteSemaphores;
+    std::vector<UniquePtr<Fence>> m_frameFences;
     std::vector<Fence*> m_imageFences;
 
     EventHandlerSentinel m_eventSentinel;
