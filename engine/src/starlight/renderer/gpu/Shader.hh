@@ -111,13 +111,13 @@ public:
         DataLayout layout;
     };
 
-    static SharedPtr<Shader> create(const Properties& props);
-    virtual ~Shader();
+    static SharedPtr<Shader> create(const Properties& props, OptStr name = {});
+    virtual ~Shader() = default;
 
     const Properties properties;
 
 protected:
-    explicit Shader(const Properties& properties);
+    explicit Shader(const Properties& properties, OptStr name);
 };
 
 template <> Shader::DataType fromString<Shader::DataType>(std::string_view str);

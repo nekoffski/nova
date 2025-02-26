@@ -76,7 +76,8 @@ public:
 
     static SharedPtr<Texture> create(
       const ImageData& image           = ImageData::createDefault(defaultPixelColor),
-      const SamplerProperties& sampler = SamplerProperties::createDefault()
+      const SamplerProperties& sampler = SamplerProperties::createDefault(),
+      OptStr name                      = {}
     );
 
     virtual ~Texture() = default;
@@ -89,7 +90,8 @@ public:
 
 protected:
     explicit Texture(
-      const ImageData& imageData, const SamplerProperties& samplerProperties
+      const ImageData& imageData, const SamplerProperties& samplerProperties,
+      OptStr name = {}
     );
 
     ImageData m_imageData;

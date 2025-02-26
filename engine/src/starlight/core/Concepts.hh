@@ -8,7 +8,12 @@ namespace sl {
 
 template <typename T>
 concept HasToString = requires(const T& value) {
-    { toString(value) } -> std::same_as<std::string>;
+    { toString(value) } -> std::convertible_to<std::string>;
+};
+
+template <typename T>
+concept HasName = requires(const T& value) {
+    { value.name } -> std::convertible_to<std::string>;
 };
 
 template <typename C, typename R = void, typename... Args>

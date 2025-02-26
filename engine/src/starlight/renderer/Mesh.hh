@@ -125,7 +125,9 @@ public:
 
     struct Properties2D final : public Properties<Vertex2, Extent2> {};
 
-    explicit Mesh(const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer);
+    explicit Mesh(
+      const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer, OptStr name = {}
+    );
     ~Mesh();
 
     const MemoryLayout& getMemoryLayout() const;

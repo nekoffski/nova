@@ -5,8 +5,11 @@
 
 namespace sl {
 
-Mesh::Mesh(const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer) :
-    m_extent(data.extent), m_vertexBuffer(vertexBuffer), m_indexBuffer(indexBuffer) {
+Mesh::Mesh(
+  const Data& data, Buffer& vertexBuffer, Buffer& indexBuffer, OptStr name
+) :
+    NamedResource(name), m_extent(data.extent), m_vertexBuffer(vertexBuffer),
+    m_indexBuffer(indexBuffer) {
     log::debug(
       "Creating Mesh, vertex data size = {}b, index data size = {}b",
       data.vertexDataSize, data.indexDataSize

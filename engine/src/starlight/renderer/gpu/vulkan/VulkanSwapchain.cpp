@@ -163,7 +163,8 @@ void VulkanSwapchain::createImages() {
         auto& swapchainImageHandle = swapchainImages[i];
 
         m_textures[i].emplace(
-          m_device, swapchainImageHandle, imageData, samplerProperties
+          m_device, swapchainImageHandle, imageData, samplerProperties,
+          fmt::format("Swapchain_Image{}", i + 1)
         );
     }
 
@@ -176,7 +177,8 @@ void VulkanSwapchain::createImages() {
     depthImageData.format = static_cast<Format>(m_device.physical.info.depthFormat);
     depthImageData.channels = m_device.physical.info.depthChannelCount;
 
-    m_depthTexture.emplace(m_device, depthImageData, samplerProperties);
+    m_depthTexture
+      .emplace(m_device, depthImageData, samplerProperties, "Swapchain_DepthBuffer");
 }
 
 void VulkanSwapchain::create() {

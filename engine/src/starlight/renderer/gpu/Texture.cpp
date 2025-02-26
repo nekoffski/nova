@@ -59,11 +59,11 @@ Texture::SamplerProperties Texture::SamplerProperties::createDefault() {
 }
 
 SharedPtr<Texture> Texture::create(
-  const ImageData& image, const SamplerProperties& sampler
+  const ImageData& image, const SamplerProperties& sampler, OptStr name
 ) {
 #ifdef SL_USE_VK
     return SharedPtr<vk::VulkanTexture>::create(
-      static_cast<vk::VulkanDevice&>(Device::get().getImpl()), image, sampler
+      static_cast<vk::VulkanDevice&>(Device::get().getImpl()), image, sampler, name
     );
 #else
     log::panic("GPU API vendor not specified");
@@ -76,7 +76,9 @@ const Texture::SamplerProperties& Texture::getSamplerProperties() const {
 const Texture::ImageData& Texture::getImageData() const { return m_imageData; }
 
 Texture::Texture(
-  const ImageData& imageData, const SamplerProperties& samplerProperties
-) : m_imageData(imageData), m_samplerProperties(samplerProperties) {}
+  const ImageData& imageData, const SamplerProperties& samplerProperties, OptStr name
+) :
+    NamedResource(name), m_imageData(imageData),
+    m_samplerProperties(samplerProperties) {}
 
 }  // namespace sl

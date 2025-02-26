@@ -148,7 +148,7 @@ SharedPtr<Texture> TextureFactory::load(
     const auto fullPath     = fmt::format("{}/{}", texturesPath, name);
 
     if (auto data = loadImageData(fullPath, textureType); data)
-        return save(name, Texture::create(*data, sampler));
+        return save(Texture::create(*data, sampler, name));
 
     log::warn("Could not process texture: {}", fullPath);
     return nullptr;
@@ -159,14 +159,17 @@ void TextureFactory::createDefaults() {
     const auto bufferSize = image.width * image.height * image.channels;
     image.pixels.resize(bufferSize, 255);
 
-    m_defaultSpecularMap = save("Default.SpecularMap", Texture::create(image));
+    auto sampler = Texture::SamplerProperties::createDefault();
+
+    m_defaultSpecularMap =
+      save(Texture::create(image, sampler, "Default.SpecularMap"));
 
     for (auto index = 0u; index < bufferSize; index += image.channels) {
         image.pixels[index]     = 128;
         image.pixels[index + 1] = 128;
         image.pixels[index + 2] = 255;
     }
-    m_defaultNormalMap = save("Default.NormalMap", Texture::create(image));
+    m_defaultNormalMap = save(Texture::create(image, sampler, "Default.NormalMap"));
 
     static constexpr u8 white    = 255u;
     static constexpr u8 black    = 0u;
@@ -188,7 +191,8 @@ void TextureFactory::createDefaults() {
             image.pixels[index + 2] = color;
         }
     }
-    m_defaultDiffuseMap = save("Default.DiffuseMap", Texture::create(image));
+    m_defaultDiffuseMap = save(Texture::create(image, sampler, "Default.DiffuseMap")
+    );
 }
 
 SharedPtr<Texture> TextureFactory::getDefaultDiffuseMap() {

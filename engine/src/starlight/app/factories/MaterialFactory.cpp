@@ -64,11 +64,14 @@ SharedPtr<Material> MaterialFactory::load(
 SharedPtr<Material> MaterialFactory::create(
   const std::string& name, const Material::Properties& properties
 ) {
-    return save(name, SharedPtr<Material>::create(properties));
+    return save(SharedPtr<Material>::create(properties, name));
 }
 
 SharedPtr<Material> MaterialFactory::getDefault() { return m_defaultMaterial; }
 
-void MaterialFactory::createDefault() {}
+void MaterialFactory::createDefault() {
+    m_defaultMaterial =
+      save(SharedPtr<Material>::create(getDefaultProperties(), "Material.Default"));
+}
 
 }  // namespace sl

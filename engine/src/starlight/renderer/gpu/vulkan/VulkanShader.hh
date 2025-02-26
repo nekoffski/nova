@@ -25,7 +25,7 @@ public:
       std::vector<VkVertexInputAttributeDescription>;
 
     explicit VulkanShader(
-      VulkanDevice& device, const Shader::Properties& properties
+      VulkanDevice& device, const Shader::Properties& properties, OptStr name
     );
 
     ~VulkanShader() override;

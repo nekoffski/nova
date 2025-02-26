@@ -4,9 +4,8 @@
 
 namespace sl {
 
-Skybox::Skybox(SharedPtr<Texture> cubeMap) : m_cubeMap(cubeMap) {}
-
-Skybox::~Skybox() { log::trace("Destroying Skybox: {}", id); }
+Skybox::Skybox(SharedPtr<Texture> cubeMap, OptStr name) :
+    NamedResource(name), m_cubeMap(cubeMap) {}
 
 Texture* Skybox::getCubeMap() { return m_cubeMap.get(); }
 

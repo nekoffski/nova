@@ -45,8 +45,8 @@ static VkShaderStageFlagBits toVk(Shader::Stage::Type type) {
 }
 
 VulkanShader::VulkanShader(
-  VulkanDevice& device, const Shader::Properties& properties
-) : Shader(properties), m_device(device) {
+  VulkanDevice& device, const Shader::Properties& properties, OptStr name
+) : Shader(properties, name), m_device(device) {
     const auto stagesCount = properties.stages.size();
     m_modules.reserve(stagesCount);
     m_pipelineStageInfos.reserve(stagesCount);

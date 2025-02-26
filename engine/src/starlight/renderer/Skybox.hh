@@ -10,8 +10,7 @@ namespace sl {
 
 class Skybox : public NonMovable, public NamedResource<Skybox, "Skybox"> {
 public:
-    explicit Skybox(SharedPtr<Texture> cubeMap);
-    ~Skybox();
+    explicit Skybox(SharedPtr<Texture> cubeMap, OptStr name = {});
 
     Texture* getCubeMap();
 

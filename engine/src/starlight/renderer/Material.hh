@@ -27,7 +27,7 @@ public:
         float shininess;
     };
 
-    explicit Material(const Properties& props);
+    explicit Material(const Properties& props, OptStr name = {});
 
     bool isTransparent() const;
 

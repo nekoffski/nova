@@ -12,6 +12,8 @@
 
 namespace sl {
 
+using OptStr = std::optional<std::string>;
+
 template <u64 N> struct StringLiteral {
     constexpr StringLiteral(const char (&str)[N]) { std::copy_n(str, N, value); }
     char value[N];

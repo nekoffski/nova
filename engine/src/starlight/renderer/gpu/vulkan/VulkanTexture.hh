@@ -20,7 +20,7 @@ class VulkanTextureBase : public Texture {
 public:
     explicit VulkanTextureBase(
       VulkanDevice& device, const ImageData& imageData,
-      const SamplerProperties& sampler
+      const SamplerProperties& sampler, OptStr name
     );
 
     VkImageView getView() const;
@@ -40,7 +40,7 @@ class VulkanTexture : public VulkanTextureBase {
 public:
     explicit VulkanTexture(
       VulkanDevice& device, const ImageData& imageData,
-      const SamplerProperties& sampler
+      const SamplerProperties& sampler, OptStr name
     );
 
     ~VulkanTexture() override;
@@ -72,7 +72,7 @@ class VulkanSwapchainTexture : public VulkanTextureBase {
 public:
     explicit VulkanSwapchainTexture(
       VulkanDevice& device, VkImage handle, const ImageData& imageData,
-      const SamplerProperties& sampler
+      const SamplerProperties& sampler, OptStr name
     );
 
     ~VulkanSwapchainTexture() override;

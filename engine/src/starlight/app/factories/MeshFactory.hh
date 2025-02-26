@@ -27,7 +27,7 @@ public:
     SharedPtr<Mesh> getPlane();
 
 private:
-    SharedPtr<Mesh> createMesh(const Mesh::Data& meshData);
+    SharedPtr<Mesh> createMesh(const Mesh::Data& meshData, const std::string& name);
 
     void createDefaults();
 

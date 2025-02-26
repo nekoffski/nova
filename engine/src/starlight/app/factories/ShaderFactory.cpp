@@ -94,7 +94,7 @@ SharedPtr<Shader> ShaderFactory::load(
     const auto basePath    = fmt::format("{}/{}", shadersPath, name);
 
     if (auto properties = parseShader(basePath, fs); properties)
-        return save(name, Shader::create(*properties));
+        return save(Shader::create(*properties, name));
 
     log::warn("Could not parse shader properties");
     return nullptr;

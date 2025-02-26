@@ -12,8 +12,6 @@
 
 namespace sl::ui {
 
-using OptStr = std::optional<std::string>;
-
 constexpr Vec2<f32> parentWidth = { -1.0f, 0.0f };
 
 using Callback = std::function<void()>;  // TODO: measure if it causes bottlenecks ->

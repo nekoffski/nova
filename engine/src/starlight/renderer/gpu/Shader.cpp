@@ -10,19 +10,18 @@
 
 namespace sl {
 
-SharedPtr<Shader> Shader::create(const Properties& props) {
+SharedPtr<Shader> Shader::create(const Properties& props, OptStr name) {
 #ifdef SL_USE_VK
     return SharedPtr<vk::VulkanShader>::create(
-      static_cast<vk::VulkanDevice&>(Device::get().getImpl()), props
+      static_cast<vk::VulkanDevice&>(Device::get().getImpl()), props, name
     );
 #else
     log::panic("GPU API vendor not specified");
 #endif
 }
 
-Shader::~Shader() { log::trace("Destroying shader: {}", id); }
-
-Shader::Shader(const Properties& properties) : properties(properties) {
+Shader::Shader(const Properties& properties, OptStr name) :
+    NamedResource(name), properties(properties) {
     const auto stageCount = properties.stages.size();
     log::expect(
       stageCount <= maxStages, "Max shader stages ({}) exceed: {}", maxStages,

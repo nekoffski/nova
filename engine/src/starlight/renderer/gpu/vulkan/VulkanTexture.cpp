@@ -129,9 +129,10 @@ void VulkanTextureBase::createView() {
 }
 
 VulkanTextureBase::VulkanTextureBase(
-  VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
+  VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler,
+  OptStr name
 ) :
-    Texture(imageData, sampler), m_device(device), m_image(VK_NULL_HANDLE),
+    Texture(imageData, sampler, name), m_device(device), m_image(VK_NULL_HANDLE),
     m_sampler(VK_NULL_HANDLE), m_view(VK_NULL_HANDLE) {}
 
 VkImageView VulkanTextureBase::getView() const { return m_view; }
@@ -145,9 +146,10 @@ VkSampler VulkanTextureBase::getSampler() const { return m_sampler; }
 */
 
 VulkanTexture::VulkanTexture(
-  VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler
+  VulkanDevice& device, const ImageData& imageData, const SamplerProperties& sampler,
+  OptStr name
 ) :
-    VulkanTextureBase(device, imageData, sampler), m_memory(VK_NULL_HANDLE),
+    VulkanTextureBase(device, imageData, sampler, name), m_memory(VK_NULL_HANDLE),
     m_layout(VK_IMAGE_LAYOUT_GENERAL) {
     log::trace("Creating vulkan texture: {}", id);
     create();
@@ -379,8 +381,8 @@ void VulkanTexture::createImage() {
 
 VulkanSwapchainTexture::VulkanSwapchainTexture(
   VulkanDevice& device, VkImage handle, const ImageData& imageData,
-  const SamplerProperties& sampler
-) : VulkanTextureBase(device, imageData, sampler) {
+  const SamplerProperties& sampler, OptStr name
+) : VulkanTextureBase(device, imageData, sampler, name) {
     m_image = handle;
     createView();
     createSampler();

@@ -13,7 +13,7 @@ SharedPtr<Skybox> SkyboxFactory::load(const std::string& name) {
         return resource;
 
     auto cubemap = TextureFactory::get().load(name, Texture::Type::cubemap);
-    return save(name, SharedPtr<Skybox>::create(cubemap));
+    return save(SharedPtr<Skybox>::create(cubemap, name));
 }
 
 SharedPtr<Shader> SkyboxFactory::getDefaultShader() { return m_defaultSkyboxShader; }
