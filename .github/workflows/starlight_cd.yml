@@ -20,7 +20,7 @@ jobs:
       - name: Run static code check
         run: ./bin/run-static-analysis.sh
       - name: Run build
-        run: ./bin/build.sh debug
+        run: ./bin/build.sh dev
       - name: Run unit tests
         run: pushd build && make test
       - name: Generate venv

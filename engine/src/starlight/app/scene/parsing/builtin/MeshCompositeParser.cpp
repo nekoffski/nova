@@ -13,8 +13,8 @@ nlohmann::json MeshCompositeSerializer::serialize(MeshComposite& component) cons
     // just root for now
     auto& root = component.getRoot();
 
-    // json["material"] = root.material.getName();
-    // json["mesh"]     = root.mesh.getName();
+    json["material"] = root.material->name;
+    json["mesh"]     = root.mesh->name;
 
     return json;
 }

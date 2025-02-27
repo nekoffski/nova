@@ -42,7 +42,7 @@ Application::Application(
     m_userInterface.setRenderGraph(*getRenderGraph());
 }
 
-void Application::update(float frameTime) {}
+void Application::update([[maybe_unused]] float frameTime) {}
 
 void Application::initEvents() {
     m_eventSentinel

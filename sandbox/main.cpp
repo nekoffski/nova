@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    void update(float frameTime) override {}
+    void update([[maybe_unused]] float frameTime) override {}
 
     UI m_ui;
 };

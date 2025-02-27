@@ -24,6 +24,12 @@ public:
         m_lut.erase(key);
     }
 
+    template <typename Callback>
+    requires Callable<Callback, void, SharedPtr<T>>
+    void forEach(Callback&& callback) {
+        // for (auto& record : m_lut | std::views::values) callback(record);
+    }
+
 protected:
     SharedPtr<T> save(SharedPtr<T> resource) {
         auto record = m_lut.insert({ resource->name, resource });
