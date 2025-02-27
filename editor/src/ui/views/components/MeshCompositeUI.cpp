@@ -2,8 +2,8 @@
 
 #include <starlight/ui/UI.hh>
 #include <starlight/event/EventProxy.hh>
-#include <starlight/renderer/factories/MeshFactory.hh>
-#include <starlight/renderer/factories/MaterialFactory.hh>
+#include <starlight/app/factories/MeshFactory.hh>
+#include <starlight/app/factories/MaterialFactory.hh>
 
 #include "Events.hh"
 
@@ -23,14 +23,14 @@ void MeshCompositeUI::renderInstanceUI(sl::Transform& instance) {
 }
 
 void MeshCompositeUI::renderNodeUI(sl::MeshComposite::Node& node) {
-    sl::ui::combo(
-      "Mesh", node.mesh.getName(), sl::MeshFactory::get().getAll(),
-      [&](auto& mesh) { node.mesh = mesh; }
-    );
-    sl::ui::combo(
-      "Material", node.material.getName(), sl::MaterialFactory::get().getAll(),
-      [&](auto& material) { node.material = material; }
-    );
+    // sl::ui::combo(
+    //   "Mesh", node.mesh->name, sl::MeshFactory::get().getAll(),
+    //   [&](auto& mesh) { node.mesh = mesh; }
+    // );
+    // sl::ui::combo(
+    //   "Material", node.material->name, sl::MaterialFactory::get().getAll(),
+    //   [&](auto& material) { node.material = material; }
+    // );
     if (sl::ui::button("Add Instance")) node.addInstance();
 }
 

@@ -23,7 +23,7 @@ class SceneView {
 
     class EntitiesTab : public SceneTab {
         using ComponentUIs =
-          std::unordered_map<std::type_index, sl::UniquePointer<ComponentUIBase>>;
+          std::unordered_map<std::type_index, sl::UniquePtr<ComponentUIBase>>;
 
     public:
         explicit EntitiesTab(sl::Scene* scene, Resources& resources);
@@ -35,8 +35,8 @@ class SceneView {
         template <typename T, typename... Args>
         requires(std::is_base_of_v<ComponentUIBase, T> && std::is_constructible_v<T, Args...>)
         void addComponentUI(Args&&... args) {
-            auto ui = sl::UniquePointer<T>::create(std::forward<Args>(args)...);
-            const auto index      = ui->getTypeIndex();
+            auto ui          = sl::UniquePtr<T>::create(std::forward<Args>(args)...);
+            const auto index = ui->getTypeIndex();
             m_componentUIs[index] = std::move(ui);
         }
 

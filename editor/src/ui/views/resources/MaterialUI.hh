@@ -10,7 +10,7 @@ class MaterialUI {
 public:
     explicit MaterialUI(Resources& resources);
 
-    void render(sl::ResourceRef<sl::Material> material);
+    void render(sl::SharedPtr<sl::Material> material);
 
 private:
     Resources& m_resources;

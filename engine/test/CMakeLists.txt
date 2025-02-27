@@ -3,7 +3,7 @@ find_package(GTest REQUIRED)
 
 set(GTEST_LINK gtest::gtest)
 set(MOCK_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})
-set(SL_LIBS starlight-core starlight-renderer starlight-scene)
+set(SL_LIBS starlight-core starlight-renderer starlight-event starlight-window starlight-app)
 
 function(add_test_file TEST_FILE MODULE)
     get_filename_component(TEST_NAME ${TEST_FILE} NAME_WLE)

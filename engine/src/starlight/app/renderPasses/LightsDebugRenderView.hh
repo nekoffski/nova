@@ -22,7 +22,7 @@
 //     ) override;
 
 // private:
-//     ResourceRef<Shader> m_shader;
+//     SharedPtr<Shader> m_shader;
 //     Mesh* m_mesh;
 // };
 

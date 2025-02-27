@@ -1,4 +1,4 @@
-set(SL_WINDOW_LIBS stb dl glfw spdlog::spdlog glm::glm fmt::fmt Vulkan::Loader vulkan-headers::vulkan-headers)
+set(SL_WINDOW_LIBS stb dl glfw spdlog::spdlog glm::glm fmt::fmt Vulkan::Loader vulkan-headers::vulkan-headers starlight-event starlight-core) 
 set(SL_WINDOW_TARGET starlight-window)
 file(GLOB_RECURSE SL_WINDOW_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 

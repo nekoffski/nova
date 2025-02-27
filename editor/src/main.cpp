@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
         if (auto opts = sle::ProgramOptions::parse(argc, argv); opts) {
             if (auto config = sl::Config::fromJson(opts->configPath); config) {
                 sl::log::info("Config loaded successfully, starting engine");
-                return sle::Application{ *config, opts->scene }.start();
+                return sle::Application{ *config, opts->scene }.run();
             } else {
                 sl::log::error("Could not load config");
                 return -2;

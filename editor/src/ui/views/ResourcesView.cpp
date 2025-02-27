@@ -2,9 +2,9 @@
 
 #include <starlight/event/EventProxy.hh>
 #include <starlight/renderer/Material.hh>
-#include <starlight/renderer/factories/MeshFactory.hh>
-#include <starlight/renderer/factories/MaterialFactory.hh>
-#include <starlight/renderer/factories/TextureFactory.hh>
+#include <starlight/app/factories/MeshFactory.hh>
+#include <starlight/app/factories/MaterialFactory.hh>
+#include <starlight/app/factories/TextureFactory.hh>
 
 #include "Console.hh"
 #include "Events.hh"
@@ -31,25 +31,25 @@ static void renderResourceTab(
     sl::ui::separator();
     const auto width = getThumbnailWidth();
 
-    auto resources = manager.getAll();
+    // auto resources = manager.getAll();
 
-    for (sl::u64 i = 0; i < resources.size(); ++i) {
-        if (i % rowSize != 0) sl::ui::sameLine();
+    // for (sl::u64 i = 0; i < resources.size(); ++i) {
+    //     if (i % rowSize != 0) sl::ui::sameLine();
 
-        sl::ui::group([&, resource = resources[i]]() {
-            renderThumbnail(resource, width);
-            sl::ui::text("{}", resource.getName());
-        });
+    //     sl::ui::group([&, resource = resources[i]]() {
+    //         renderThumbnail(resource, width);
+    //         sl::ui::text("{}", resource.name);
+    //     });
 
-        if (sl::ui::wasItemClicked()) {
-            editorWriteDebug("{} selected: {}", name, resources[i].getName());
-            sl::EventProxy::get().emit<events::SetResourceUICallback>(
-              [render = std::move(render), resource = resources[i]]() {
-                  render(resource);
-              }
-            );
-        }
-    }
+    //     if (sl::ui::wasItemClicked()) {
+    //         editorWriteDebug("{} selected: {}", name, resources[i].name);
+    //         sl::EventProxy::get().emit<events::SetResourceUICallback>(
+    //           [render = std::move(render), resource = resources[i]]() {
+    //               render(resource);
+    //           }
+    //         );
+    //     }
+    // }
 }
 
 ResourcesView::ResourcesView(Resources& resources) :
@@ -63,9 +63,9 @@ ResourcesView::ResourcesView(Resources& resources) :
 void ResourcesView::render() { m_tabMenu.render(); }
 
 void ResourcesView::renderMeshesTab() {
-    for (auto& mesh : sl::MeshFactory::get().getAll()) {
-        sl::ui::text("{}", mesh.getName());
-    }
+    // for (auto& mesh : sl::MeshFactory::get().getAll()) {
+    //     sl::ui::text("{}", mesh.name);
+    // }
 }
 
 void ResourcesView::renderMaterialsTab() {

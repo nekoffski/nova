@@ -88,7 +88,7 @@ TEST_F(
     expectTesterCalls<Tester>(0u, 0u);
     auto p = SharedPtr<Tester>::create();
     expectTesterCalls<Tester>(1u, 0u);
-    auto p2 = p.clone();
+    auto p2 = p;
     expectTesterCalls<Tester>(1u, 0u);
     p.reset();
     expectTesterCalls<Tester>(1u, 0u);
@@ -110,27 +110,13 @@ TEST_F(
     expectTesterCalls<Tester>(1u, 1u);
 }
 
-TEST_F(SharedPtrTests, whenCreatingView_shouldBeAbleCreatePointerUsingIt) {
-    expectTesterCalls<Tester>(0u, 0u);
-    auto p = SharedPtr<Tester>::create();
-    expectTesterCalls<Tester>(1u, 0u);
-    SharedPtr<Tester> view = p;
-    expectTesterCalls<Tester>(1u, 0u);
-    SharedPtr<Tester> p2 = view;
-    expectTesterCalls<Tester>(1u, 0u);
-    p.reset();
-    expectTesterCalls<Tester>(1u, 0u);
-    p2.reset();
-    expectTesterCalls<Tester>(1u, 1u);
-}
-
 TEST_F(SharedPtrTests, whenCreatingPolymorphicSharedPtr_shouldBeDestroyedProperly) {
     expectTesterCalls<Tester>(0u, 0u);
     expectTesterCalls<Tester2>(0u, 0u);
     SharedPtr<Tester> p = SharedPtr<Tester2>::create();
     expectTesterCalls<Tester>(1u, 0u);
     expectTesterCalls<Tester2>(1u, 0u);
-    auto p2 = p.clone();
+    auto p2 = p;
     expectTesterCalls<Tester>(1u, 0u);
     expectTesterCalls<Tester2>(1u, 0u);
     p.reset();

@@ -4,8 +4,8 @@
 
 namespace sle {
 
-void TextureUI::render(sl::ResourceRef<sl::Texture> texture) {
-    sl::ui::text(ICON_FA_PRESCRIPTION_BOTTLE "  Texture - {}", texture.getName());
+void TextureUI::render(sl::SharedPtr<sl::Texture> texture) {
+    sl::ui::text(ICON_FA_PRESCRIPTION_BOTTLE "  Texture - {}", texture->name);
     sl::ui::separator();
 
     // auto props       = material->getProperties();

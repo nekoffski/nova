@@ -10,7 +10,7 @@
 
 namespace sl {
 
-Window::Window() : m_impl(Impl::create()) { setCallbacks(); }
+Window::Window(UniquePtr<Impl> impl) : m_impl(std::move(impl)) { setCallbacks(); }
 
 void Window::setCallbacks() {
     m_impl->onWindowCloseCallback([]() {

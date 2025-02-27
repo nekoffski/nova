@@ -7,7 +7,7 @@ namespace sle {
 
 class Cameras {
 public:
-    explicit Cameras(const sl::Vec2<sl::u32>& viewport, sl::EventProxy& eventProxy);
+    explicit Cameras(const sl::Vec2<sl::u32>& viewport);
 
     sl::Camera* getActive();
 

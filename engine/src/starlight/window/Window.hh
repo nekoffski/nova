@@ -49,7 +49,7 @@ public:
         static UniquePtr<Impl> create();
     };
 
-    explicit Window();
+    explicit Window(UniquePtr<Impl> = Impl::create());
 
     Vec2<u32> getSize() const;
     Vec2<u32> getFramebufferSize() const;

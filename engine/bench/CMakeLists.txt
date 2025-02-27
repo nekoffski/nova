@@ -2,7 +2,7 @@ find_package(benchmark REQUIRED)
 
 file(GLOB_RECURSE BENCH_SRC *.cpp)
 
-set(BENCH_LIBS starlight-core starlight-renderer starlight-scene)
+set(BENCH_LIBS starlight-core starlight-renderer)
 set(BENCH_EXE ${PROJECT_NAME}_benchmark)
 
 add_definitions(-DSPDLOG_ACTIVE_LEVEL=6)

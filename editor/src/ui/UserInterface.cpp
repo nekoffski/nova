@@ -1,8 +1,7 @@
 #include "UserInterface.hh"
 
 #include <starlight/ui/fonts/FontAwesome.hh>
-#include <starlight/event/WindowResized.hh>
-#include <starlight/event/Quit.hh>
+#include <starlight/window/Events.hh>
 
 #include "Events.hh"
 
@@ -37,12 +36,12 @@ UserInterface::Config UserInterface::Config::createDefault() {
 }
 
 UserInterface::UserInterface(
-  sl::EventProxy& eventProxy, const sl::Vec2<sl::u32>& viewport, sl::Scene* scene,
-  sl::RenderGraph* renderGraph, const Config& config
+  const sl::Vec2<sl::u32>& viewport, sl::Scene* scene, sl::RenderGraph* renderGraph,
+  const Config& config
 ) :
-    m_eventProxy(eventProxy), m_eventSentinel(eventProxy), m_config(config),
-    m_viewport(viewport), m_sceneView(scene, m_resources),
-    m_propertiesView(renderGraph), m_resourcesView(m_resources) {
+    m_eventSentinel(sl::EventProxy::get()), m_config(config), m_viewport(viewport),
+    m_sceneView(scene, m_resources), m_propertiesView(renderGraph),
+    m_resourcesView(m_resources) {
     m_eventSentinel.add<sl::WindowResized>([&](auto& event) {
         onViewportReisze(event.size);
     });
@@ -102,7 +101,7 @@ void UserInterface::initLeftCombo() {
 void UserInterface::initMenu() {
     m_menu.addMenu("File").addItem("Exit", [&]() {
         editorWriteInfo("File.Exit presesed, emitting quit event");
-        m_eventProxy.emit<sl::QuitEvent>("UI.File.Exit pressed");
+        sl::EventProxy::get().emit<sl::QuitEvent>("UI.File.Exit pressed");
     });
 
     static std::string scenePath = "./test.starscene.json";
@@ -112,14 +111,14 @@ void UserInterface::initMenu() {
         "Load",
         [&]() {
             editorWriteDebug("Requesting scene load: {}", scenePath);
-            m_eventProxy.emit<events::SceneSerialization>(
+            sl::EventProxy::get().emit<events::SceneSerialization>(
               events::SceneSerialization::Action::deserialize, scenePath
             );
         }
       )
       .addItem("Save", [&]() {
           editorWriteDebug("Requesting scene save: {}", scenePath);
-          m_eventProxy.emit<events::SceneSerialization>(
+          sl::EventProxy::get().emit<events::SceneSerialization>(
             events::SceneSerialization::Action::serialize, scenePath
           );
       });

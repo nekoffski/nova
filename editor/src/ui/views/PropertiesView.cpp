@@ -79,14 +79,14 @@ void PropertiesView::EntityTab::renderEntityUI() {
             );
 
             if (m_data.selectedComponentIndex == 0) {
-                ADD_COMPONENT(
-                  sl::MeshComposite, sl::MeshFactory::get().getCube(),
-                  sl::MaterialFactory::get().getDefault()
-                );
+                // ADD_COMPONENT(
+                //   sl::MeshComposite, sl::MeshFactory::get().getCube(),
+                //   sl::MaterialFactory::get().getDefault()
+                // );
             } else if (m_data.selectedComponentIndex == 1) {
-                ADD_COMPONENT(sl::PointLight);
+                // ADD_COMPONENT(sl::PointLight);
             } else if (m_data.selectedComponentIndex == 2) {
-                ADD_COMPONENT(sl::DirectionalLight);
+                // ADD_COMPONENT(sl::DirectionalLight);
             }
         }
 
@@ -141,9 +141,9 @@ void PropertiesView::RendererTab::render() {
         });
 
         if (changed) {
-            sl::TaskQueue::get().callPostFrame([&]() {
-                m_renderGraph->rebuildChain();
-            });
+            // sl::TaskQueue::get().callPostFrame([&]() {
+            //     m_renderGraph->rebuildChain();
+            // });
         }
     });
 }

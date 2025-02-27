@@ -19,10 +19,7 @@ public:
         return *s_instance;
     }
 
-    static T* getPtr() {
-        log::expect(isCreated(), "Singleton instance has not been created");
-        return s_instance;
-    }
+    static T* getPtr() { return s_instance; }
 
     static bool isCreated() { return s_instance != nullptr; }
 

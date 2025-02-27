@@ -8,7 +8,7 @@ namespace sle {
 
 class TextureUI {
 public:
-    void render(sl::ResourceRef<sl::Texture> texture);
+    void render(sl::SharedPtr<sl::Texture> texture);
 };
 
 }  // namespace sle

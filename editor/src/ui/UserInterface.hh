@@ -10,7 +10,7 @@
 #include "Console.hh"
 #include "Resources.hh"
 
-#include "starlight/renderer/passes/UIRenderPass.hh"
+#include "starlight/app/renderPasses/UIRenderPass.hh"
 
 namespace sle {
 
@@ -24,9 +24,9 @@ public:
     };
 
     explicit UserInterface(
-      sl::EventProxy& eventProxy, const sl::Vec2<sl::u32>& viewport,
-      sl::Scene* scene, sl::RenderGraph* renderGraph = nullptr,
-      const Config& config = Config::createDefault()
+      const sl::Vec2<sl::u32>& viewport, sl::Scene* scene,
+      sl::RenderGraph* renderGraph = nullptr,
+      const Config& config         = Config::createDefault()
     );
 
     void onViewportReisze(const sl::Vec2<sl::u32>& viewport);
@@ -42,7 +42,6 @@ private:
     void initLeftCombo();
     void initBottomCombo();
 
-    sl::EventProxy& m_eventProxy;
     sl::EventHandlerSentinel m_eventSentinel;
 
     Config m_config;
@@ -53,8 +52,8 @@ private:
     Resources m_resources;
 
     sl::ui::MainMenuBar m_menu;
-    sl::LocalPointer<sl::ui::PanelCombo> m_leftCombo;
-    sl::LocalPointer<sl::ui::PanelCombo> m_bottomCombo;
+    sl::LocalPtr<sl::ui::PanelCombo> m_leftCombo;
+    sl::LocalPtr<sl::ui::PanelCombo> m_bottomCombo;
 
     SceneView m_sceneView;
     PropertiesView m_propertiesView;

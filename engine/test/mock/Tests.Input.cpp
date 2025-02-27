@@ -36,7 +36,7 @@ TEST_F(
 ) {
     EXPECT_CALL(windowImpl, onMouseCallback)
       .Times(1)
-      .WillOnce([](WindowImpl::OnMouseCallback callback) {
+      .WillOnce([](Window::Impl::OnMouseCallback callback) {
           callback(MouseAction::press, 1);
       });
 
@@ -59,7 +59,7 @@ TEST_F(
 ) {
     EXPECT_CALL(windowImpl, onKeyCallback)
       .Times(1)
-      .WillOnce([](WindowImpl::OnKeyCallback callback) {
+      .WillOnce([](Window::Impl::OnKeyCallback callback) {
           callback(KeyAction::press, 1);
       });
 

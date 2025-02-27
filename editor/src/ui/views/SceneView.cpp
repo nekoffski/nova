@@ -32,7 +32,7 @@ SceneView::EntitiesTab::EntitiesTab(sl::Scene* scene, Resources& resources) :
 void SceneView::EntitiesTab::render() {
     if (sl::ui::button("Add Entity", sl::ui::parentWidth)) {
         auto& entity = m_scene->addEntity();
-        editorWriteInfo("New entity added: {}/{}", entity.getId(), entity.name);
+        editorWriteInfo("New entity added: {}/{}", entity.id, entity.name);
     }
 
     sl::ui::separator();
@@ -44,7 +44,7 @@ void SceneView::EntitiesTab::render() {
                 ImGuiTreeNodeFlags_OpenOnDoubleClick
                 | ImGuiTreeNodeFlags_DefaultOpen;
 
-              if (m_selectedEntity && m_selectedEntity->getId() == entity.getId())
+              if (m_selectedEntity && m_selectedEntity->id == entity.id)
                   flags |= ImGuiTreeNodeFlags_Selected;
 
               sl::ui::treeNode(
@@ -52,8 +52,7 @@ void SceneView::EntitiesTab::render() {
                 [&]() {
                     if (sl::ui::wasItemClicked()) {
                         const auto clearComponentCallback =
-                          not m_selectedEntity
-                          || m_selectedEntity->getId() != entity.getId();
+                          not m_selectedEntity || m_selectedEntity->id != entity.id;
                         selectEntity(entity, clearComponentCallback);
                     }
 
