@@ -6,11 +6,15 @@
 
 #include "starlight/event/EventBroker.hh"
 #include "starlight/window/Events.hh"
+#include "starlight/core/Globals.hh"
 
 using namespace sl;
 using namespace testing;
 
 struct WindowTests : Test {
+    EventBroker eventBroker;
+    Globals globals{ {} };
+
     UniquePtr<NiceMock<WindowImplMock>> windowImpl =
       UniquePtr<NiceMock<WindowImplMock>>::create();
 };
@@ -22,8 +26,6 @@ TEST_F(WindowTests, givenWindow_whenCreating_shouldSetOnWindowCloseCallback) {
 
 struct WindowCallbacksTests : WindowTests {
     void SetUp() override { called = false; }
-
-    EventBroker eventBroker;
     bool called;
 };
 
