@@ -1,4 +1,4 @@
-#include "starlight/core/LazyEvaluator.hh"
+#include "starlight/core/Function.hh"
 
 #include <unordered_map>
 
@@ -6,7 +6,7 @@
 
 using namespace sl;
 
-TEST(LazyEvaluator, givenLazyEvaluator_whenConvertingToValue_shouldBeCalled) {
+TEST(Function, givenFunction_whenConvertingToValue_shouldBeCalled) {
     bool called = false;
     int x       = lazyEvaluate([&]() -> int {
         called = true;
@@ -16,7 +16,7 @@ TEST(LazyEvaluator, givenLazyEvaluator_whenConvertingToValue_shouldBeCalled) {
     ASSERT_TRUE(called);
 }
 
-TEST(LazyEvaluator, givenLazyEvaluator_whenNotConvertingToValue_shouldNotBeCalled) {
+TEST(Function, givenFunction_whenNotConvertingToValue_shouldNotBeCalled) {
     bool called = false;
     lazyEvaluate([&]() -> int {
         called = true;
@@ -25,7 +25,7 @@ TEST(LazyEvaluator, givenLazyEvaluator_whenNotConvertingToValue_shouldNotBeCalle
     ASSERT_FALSE(called);
 }
 
-TEST(LazyEvaluator, givenUnorderedMap_whenRecordExists_shouldNotEvaluate) {
+TEST(Function, givenUnorderedMap_whenRecordExists_shouldNotEvaluate) {
     std::unordered_map<int, int> map;
     bool called   = false;
     const int key = 1;
@@ -42,7 +42,7 @@ TEST(LazyEvaluator, givenUnorderedMap_whenRecordExists_shouldNotEvaluate) {
     EXPECT_EQ(it->second, 2);
 }
 
-TEST(LazyEvaluator, givenUnorderedMap_whenRecordNotExist_shouldEvaluate) {
+TEST(Function, givenUnorderedMap_whenRecordNotExist_shouldEvaluate) {
     std::unordered_map<int, int> map;
     bool called               = false;
     const int key             = 1;
@@ -55,4 +55,10 @@ TEST(LazyEvaluator, givenUnorderedMap_whenRecordNotExist_shouldEvaluate) {
     EXPECT_TRUE(inserted);
     EXPECT_TRUE(called);
     EXPECT_EQ(it->second, 3);
+}
+
+TEST(Function, givenSingleCaller_whenCreating_shouldBeCalled) {
+    bool called = false;
+    SingleCaller{ [&] { called = true; } };
+    EXPECT_TRUE(called);
 }

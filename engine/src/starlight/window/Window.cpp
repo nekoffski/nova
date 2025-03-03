@@ -10,7 +10,10 @@
 
 namespace sl {
 
-Window::Window(UniquePtr<Impl> impl) : m_impl(std::move(impl)) { setCallbacks(); }
+Window::Window(UniquePtr<Impl> impl
+) : m_guard([] { expectCreated<Globals, EventProxy>(); }), m_impl(std::move(impl)) {
+    setCallbacks();
+}
 
 void Window::setCallbacks() {
     m_impl->onWindowCloseCallback([]() {
@@ -18,7 +21,7 @@ void Window::setCallbacks() {
         EventProxy::get().emit<QuitEvent>("Window closed");
     });
 
-    m_impl->onWindowResizeCallback([](uint32_t width, uint32_t height) {
+    m_impl->onWindowResizeCallback([](u32 width, u32 height) {
         WindowResized event{
             Vec2<u32>{ width, height }
         };

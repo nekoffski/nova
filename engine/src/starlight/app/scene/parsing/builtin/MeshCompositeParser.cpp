@@ -37,7 +37,7 @@ SharedPtr<Mesh> MeshCompositeDeserializer::getMesh(const std::string& name) cons
 
 SharedPtr<Material> MeshCompositeDeserializer::getMaterial(const std::string& name
 ) const {
-    return MaterialFactory::get().find(name);
+    return MaterialFactory::get().load(name);
 }
 
 }  // namespace sl

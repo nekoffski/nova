@@ -2,7 +2,7 @@
 
 #include <fmt/core.h>
 
-#include "starlight/core/LazyEvaluator.hh"
+#include "starlight/core/Function.hh"
 #include "starlight/renderer/Renderer.hh"
 #include "starlight/window/Window.hh"
 

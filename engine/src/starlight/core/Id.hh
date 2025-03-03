@@ -50,29 +50,27 @@ private:
 
 template <typename T, StringLiteral NameGenerator>
 class NamedResource : public Identificable<T> {
+    inline const static std::string baseName = NameGenerator.value;
+
 public:
     explicit NamedResource(std::optional<std::string> name = {}) :
-        name(createName(name)) {
+        name(generateName(name)) {
         log::debug(
-          "Creating {} - id={} name='{}'", NameGenerator.value, Identificable<T>::id,
-          this->name
+          "Creating {} - id={} name='{}'", baseName, Identificable<T>::id, this->name
         );
     }
 
     virtual ~NamedResource() {
         log::debug(
-          "Destroying {} - id={} name='{}'", NameGenerator.value,
-          Identificable<T>::id, name
+          "Destroying {} - id={} name='{}'", baseName, Identificable<T>::id, name
         );
     }
 
     const std::string name;
 
 private:
-    std::string createName(std::optional<std::string> name) {
-        return name.value_or(
-          fmt::format("{}_{}", NameGenerator.value, Identificable<T>::id)
-        );
+    std::string generateName(std::optional<std::string> name) {
+        return name.value_or(fmt::format("{}_{}", baseName, Identificable<T>::id));
     }
 };
 

@@ -14,6 +14,7 @@ static UniquePtr<Buffer> createVertexBuffer();
 static UniquePtr<Buffer> createIndexBuffer();
 
 Renderer::Renderer() :
+    m_guard([] { expectCreated<Globals, Window, Device, EventProxy>(); }),
     m_swapchain(Swapchain::create()), m_vertexBuffer(createVertexBuffer()),
     m_indexBuffer(createIndexBuffer()), m_currentFrame(0u),
     m_maxFramesInFlight(m_swapchain->getImageCount()), m_frameNumber(0u),

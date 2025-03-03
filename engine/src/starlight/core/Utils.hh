@@ -6,6 +6,7 @@
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>
+#include <boost/core/demangle.hpp>
 
 #include "Concepts.hh"
 #include "Core.hh"
@@ -13,6 +14,10 @@
 namespace sl {
 
 using OptStr = std::optional<std::string>;
+
+template <typename T> std::string getTypeName() {
+    return boost::core::demangle(typeid(T).name());
+}
 
 template <u64 N> struct StringLiteral {
     constexpr StringLiteral(const char (&str)[N]) { std::copy_n(str, N, value); }
